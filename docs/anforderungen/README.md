@@ -18,5 +18,6 @@ mit dem letzten Kapitel.
 | 1 | Vision, Philosophie und Projektziele | [kapitel-01-vision-philosophie-projektziele.md](kapitel-01-vision-philosophie-projektziele.md) |
 | 2 | Gesamtarchitektur des Systems | [kapitel-02-gesamtarchitektur.md](kapitel-02-gesamtarchitektur.md) |
 | 3 | Hardwareplattform und Systemkomponenten | [kapitel-03-hardwareplattform-systemkomponenten.md](kapitel-03-hardwareplattform-systemkomponenten.md) |
+| 4 | Softwarearchitektur | [kapitel-04-softwarearchitektur.md](kapitel-04-softwarearchitektur.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
