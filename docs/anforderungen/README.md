@@ -16,5 +16,6 @@ mit dem letzten Kapitel.
 | Kapitel | Titel | Datei |
 | --- | --- | --- |
 | 1 | Vision, Philosophie und Projektziele | [kapitel-01-vision-philosophie-projektziele.md](kapitel-01-vision-philosophie-projektziele.md) |
+| 2 | Gesamtarchitektur des Systems | [kapitel-02-gesamtarchitektur.md](kapitel-02-gesamtarchitektur.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
