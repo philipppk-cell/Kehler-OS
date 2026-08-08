@@ -29,10 +29,13 @@ mit dem letzten Kapitel.
 | 12 | Hardwareintegration: Siemens SPS, Raspberry Pi, Victron und Sensorik | [kapitel-12-hardwareintegration.md](kapitel-12-hardwareintegration.md) |
 | 13 | Zustandsverwaltung und Datenmodell im laufenden Betrieb | [kapitel-13-zustandsverwaltung-datenmodell-betrieb.md](kapitel-13-zustandsverwaltung-datenmodell-betrieb.md) |
 | 14 | Automatisierungen, Szenen und Fahrzeuglogik | [kapitel-14-automatisierungen-szenen-fahrzeuglogik.md](kapitel-14-automatisierungen-szenen-fahrzeuglogik.md) |
+| 15 | Sicherheit, Benutzer, Berechtigungen und Zugriffskontrolle | [kapitel-15-sicherheit-benutzer-berechtigungen.md](kapitel-15-sicherheit-benutzer-berechtigungen.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
 
 Laut Kapitel 11 enthält **Kapitel 18** den eigentlichen Entwicklungsauftrag.
+Kapitel 15 bestätigt: es folgen noch Kapitel 16 und 17, danach Kapitel 18 mit
+dem finalen Auftrag.
 
 ## Referenzen
 
