@@ -25,8 +25,11 @@ mit dem letzten Kapitel.
 | 8 | Dashboard, Navigation und User Experience | [kapitel-08-dashboard-navigation-ux.md](kapitel-08-dashboard-navigation-ux.md) |
 | 9 | Fahrzeugfunktionen und Systemmodule | [kapitel-09-fahrzeugfunktionen-systemmodule.md](kapitel-09-fahrzeugfunktionen-systemmodule.md) |
 | 10 | Systemarchitektur und Kommunikation | [kapitel-10-systemarchitektur-kommunikation.md](kapitel-10-systemarchitektur-kommunikation.md) |
+| 11 | Netzwerk- und Kommunikationsinfrastruktur | [kapitel-11-netzwerk-kommunikationsinfrastruktur.md](kapitel-11-netzwerk-kommunikationsinfrastruktur.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
+
+Laut Kapitel 11 enthält **Kapitel 18** den eigentlichen Entwicklungsauftrag.
 
 ## Referenzen
 
