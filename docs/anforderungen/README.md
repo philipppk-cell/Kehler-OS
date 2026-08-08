@@ -21,5 +21,6 @@ mit dem letzten Kapitel.
 | 4 | Softwarearchitektur | [kapitel-04-softwarearchitektur.md](kapitel-04-softwarearchitektur.md) |
 | 5 | Kommunikationsarchitektur und Schnittstellen | [kapitel-05-kommunikationsarchitektur-schnittstellen.md](kapitel-05-kommunikationsarchitektur-schnittstellen.md) |
 | 6 | Datenmodell und Datenhaltung | [kapitel-06-datenmodell-datenhaltung.md](kapitel-06-datenmodell-datenhaltung.md) |
+| 7 | Designsystem und visuelle Identität | [kapitel-07-designsystem-visuelle-identitaet.md](kapitel-07-designsystem-visuelle-identitaet.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
