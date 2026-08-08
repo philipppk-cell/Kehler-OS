@@ -19,5 +19,6 @@ mit dem letzten Kapitel.
 | 2 | Gesamtarchitektur des Systems | [kapitel-02-gesamtarchitektur.md](kapitel-02-gesamtarchitektur.md) |
 | 3 | Hardwareplattform und Systemkomponenten | [kapitel-03-hardwareplattform-systemkomponenten.md](kapitel-03-hardwareplattform-systemkomponenten.md) |
 | 4 | Softwarearchitektur | [kapitel-04-softwarearchitektur.md](kapitel-04-softwarearchitektur.md) |
+| 5 | Kommunikationsarchitektur und Schnittstellen | [kapitel-05-kommunikationsarchitektur-schnittstellen.md](kapitel-05-kommunikationsarchitektur-schnittstellen.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
