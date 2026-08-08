@@ -1,0 +1,338 @@
+# Offene Hardwareanforderungen
+
+Diese Datei sammelt alle realen Hardwareinformationen, die Kehler OS für die
+produktive Integration benötigt und die aus den Kapiteln 1–18 **nicht** hervorgehen.
+
+Grundregel (Kapitel 12 §77, Kapitel 18 §97): **Fehlende Hardwaredaten werden
+niemals erfunden.** Solange ein Punkt hier offen ist, wird die betroffene
+Funktion ausschließlich abstrahiert und simuliert. Eine reale mechanische oder
+sicherheitsrelevante Ansteuerung wird nicht aktiviert (Kapitel 18 §136).
+
+## Legende
+
+| Status | Bedeutung |
+| --- | --- |
+| `OFFEN` | Information fehlt vollständig |
+| `TEILWEISE` | Teilinformation vorhanden, Details fehlen |
+| `GEKLÄRT` | beantwortet, Datum und Antwort im Abschnitt vermerkt |
+
+| Blocker | Bedeutung |
+| --- | --- |
+| `BLOCKIEREND` | ohne diese Information kann die Funktion nicht real betrieben werden |
+| `NICHT BLOCKIEREND` | Entwicklung läuft simuliert weiter, Nachtrag jederzeit möglich |
+
+---
+
+## A – Siemens S7-1511-1 PN
+
+### A1 · Transportweg zur SPS — `OFFEN` · `BLOCKIEREND` für Phase 9
+
+Es gibt zwei technisch saubere Wege. Die Entscheidung hat reale Kosten- und
+Projektierungsfolgen und kann nicht von der Software allein getroffen werden.
+
+**Option 1 – OPC UA (empfohlen)**
+Die S7-1500 besitzt einen integrierten OPC-UA-Server. Er benötigt eine
+kostenpflichtige SIMATIC-Runtime-Lizenz (Größenklasse abhängig von der Anzahl
+der Nodes). Vorteile: benannte, selbstbeschreibende Nodes statt roher Adressen,
+Verschlüsselung und Zertifikats-Authentifizierung, keine Notwendigkeit,
+Bausteinschutz zu lockern.
+
+**Option 2 – S7-Kommunikation (PUT/GET, via snap7)**
+Kostenfrei, benötigt aber in TIA Portal:
+- „Zugriff über PUT/GET-Kommunikation erlauben“ aktiviert
+- den betroffenen Datenbausteinen den „optimierten Bausteinzugriff“ **deaktiviert**
+- keine Transportverschlüsselung → Absicherung muss vollständig über
+  Netzsegmentierung erfolgen (Kapitel 15 §47)
+
+**Benötigte Antwort:** Welche Option? Falls OPC UA: liegt die Lizenz vor bzw.
+soll sie beschafft werden?
+
+**Zwischenlösung:** Der `PlcAdapter` ist als Interface definiert; beide
+Transporte lassen sich dahinter implementieren, ohne dass Fachmodule,
+State Store oder UI davon berührt werden.
+
+### A2 · Netzwerkparameter der SPS — `OFFEN` · `BLOCKIEREND` für Phase 9
+
+- IP-Adresse der CPU (PROFINET-Schnittstelle)
+- Subnetz / Gateway
+- Rack und Slot (bei S7-Kommunikation, üblicherweise Rack 0 / Slot 1)
+- bei OPC UA: Endpoint-URL, Security-Policy, Zertifikat, Benutzer/Passwort
+
+### A3 · Datenpunkt-Mapping — `OFFEN` · `BLOCKIEREND` für Phase 9
+
+Für **jede** Funktion, die real angebunden werden soll, wird benötigt:
+
+| Feld | Beispielinhalt |
+| --- | --- |
+| logische Kehler-OS-ID | `vehicle.garage.door` |
+| Richtung | read / write / read+write |
+| SPS-Adresse bzw. OPC-UA-NodeId | *(vom Projektverantwortlichen)* |
+| Datentyp | Bool / Int / Real / Word |
+| Bedeutung von TRUE/FALSE bzw. Wertebereich | z. B. TRUE = verriegelt |
+| Rückmeldeadresse (falls getrennt vom Befehl) | |
+
+Die Struktur dieser Tabelle ist bereits als leeres, kommentiertes
+Konfigurationsschema hinterlegt (siehe `config/hardware/`). Sie wird
+ausgefüllt, nicht neu erfunden.
+
+### A4 · Ein-/Ausgangsbelegung — `OFFEN` · `NICHT BLOCKIEREND`
+
+Vollständige Liste der bestückten DI-/DO-/AI-Baugruppen mit Kanalbelegung.
+Wird für die Diagnose- und Serviceansicht benötigt, nicht für den Normalbetrieb.
+
+### A5 · Sicherheitsverriegelungen in der SPS — `OFFEN` · `BLOCKIEREND` für Phase 11
+
+Kapitel 12 §7 und Kapitel 15 §25 verlangen, dass sicherheitsrelevante
+Bedingungen in der Steuerung selbst wirken und nicht nur in der Oberfläche.
+
+Benötigt wird eine Aufstellung, **welche Verriegelungen die SPS bereits
+selbst durchsetzt**, insbesondere:
+
+- Darf die Hydraulik bei laufendem Motor / gelöster Handbremse fahren?
+- Wird das Garagentor bei Bewegungshindernis hardwareseitig gestoppt?
+- Existiert ein hardwareseitiger Not-Halt, und was schaltet er ab?
+- Blockiert die SPS das Ausfahren der Stufen bzw. der Markise unter bestimmten
+  Bedingungen?
+
+> **ASSUMPTION (bis zur Klärung):** Kehler OS geht davon aus, dass **keine**
+> dieser Verriegelungen existiert, und behandelt jede mechanische Bewegung als
+> ungesichert. Entsprechende Befehle bleiben deaktiviert, bis die Frage
+> beantwortet ist.
+
+---
+
+## B – Victron
+
+### B1 · Schnittstelle des Cerbo GX — `TEILWEISE` · `BLOCKIEREND` für Phase 10
+
+Der Cerbo GX bietet lokal zwei dokumentierte Wege:
+
+- **MQTT** (lokaler Broker auf dem Cerbo, in den Einstellungen zu aktivieren) —
+  push-basiert, damit ideal für Realtime und geringe Last. Erfordert
+  regelmäßige Keepalive-Nachrichten, sonst stoppt der Broker die Publikation.
+- **Modbus TCP** — dokumentierte Registerliste, polling-basiert.
+
+**Empfehlung:** MQTT als Primärweg, Modbus TCP als Rückfallebene für einzelne
+Register, die über MQTT nicht sauber verfügbar sind.
+
+**Benötigte Antwort:**
+- IP-Adresse des Cerbo GX
+- Ist der lokale MQTT-Broker aktiviert? Mit oder ohne TLS/Authentifizierung?
+- VRM-Portal-ID (Bestandteil aller MQTT-Topics)
+
+### B2 · Reale Gerätekonfiguration — `OFFEN` · `NICHT BLOCKIEREND`
+
+- exakte MultiPlus-Variante und Nennleistung
+- Batterietyp, nutzbare Kapazität in Ah/kWh, BMS-Typ
+- Anzahl und Typ der MPPT-Solarregler, installierte Modulleistung
+- Landstromabsicherung (A)
+
+Wird für sinnvolle Skalen, Warnschwellen und Autarkieberechnung benötigt.
+Bis dahin sind alle Grenzwerte Konfiguration mit neutralen Vorgaben.
+
+### B3 · Schreibzugriffe — `OFFEN` · `NICHT BLOCKIEREND`
+
+Kapitel 12 §32 verlangt eine ausdrückliche Trennung von READ und WRITE.
+
+**Benötigte Antwort:** Soll Kehler OS überhaupt in das Victron-System
+schreiben (z. B. Eingangsstrombegrenzung, Wechselrichter ein/aus)? Falls nein,
+wird der Adapter dauerhaft read-only betrieben — das ist die sicherere
+Voreinstellung und derzeit implementiert.
+
+---
+
+## C – Tanks
+
+### C1 · Sensorik — `OFFEN` · `BLOCKIEREND` für reale Anzeige
+
+Pro Tank (Frisch-, Grau-, Schwarzwasser):
+
+- Sensortyp (Druck, kapazitiv, Ultraschall, resistiv, Schwimmer)
+- elektrisches Signal (4–20 mA / 0–10 V / Widerstand)
+- Messbereich und Kennlinie
+- an welchem Analogeingang angeschlossen
+
+### C2 · Tankgeometrie — `OFFEN` · `BLOCKIEREND` für reale Anzeige
+
+- nutzbare Kapazität je Tank in Litern
+- ist der Tank geometrisch linear? Falls nein: Stützpunkte für die
+  Kalibrierkurve (Kapitel 12 §37)
+
+> Kapitel 18 §98 verbietet ausdrücklich, hier Werte zu erfinden. Die
+> Kapazitäten sind reine Konfiguration und im Auslieferungszustand leer;
+> die UI zeigt dann „Nicht konfiguriert“.
+
+### C3 · Warnschwellen — `OFFEN` · `NICHT BLOCKIEREND`
+
+Ab welchem Füllstand soll gewarnt werden (Frischwasser niedrig, Grau-/
+Schwarzwasser hoch, kritisch)? Bis zur Klärung gelten neutrale Vorgabewerte,
+die jederzeit in der Konfiguration änderbar sind.
+
+---
+
+## D – Nivellierung
+
+### D1 · Neigungssensorik — `OFFEN` · `BLOCKIEREND` für Phase 11
+
+- Sensormodell und Schnittstelle
+- Anzahl der Messpunkte
+- Einbaulage und Vorzeichenkonvention (welche Richtung ist „positiv“?)
+- Auflösung und Genauigkeit
+
+### D2 · Hydraulik — `OFFEN` · `BLOCKIEREND` für Phase 11
+
+- Ventilbelegung der vier Zylinder (ausfahren/einfahren je Zylinder)
+- Endlagenrückmeldung vorhanden? Pro Zylinder?
+- Drucksensorik vorhanden?
+- maximale zulässige Fahrzeit je Bewegung (für Timeout-Auslegung)
+- Wer regelt die automatische Nivellierung — SPS oder Kehler OS?
+
+> **Diese Gruppe wird bewusst zuletzt integriert** (Kapitel 18 §91): Hydraulik
+> ist ausdrücklich **nicht** das erste reale Testobjekt.
+
+---
+
+## E – Aufbaufunktionen
+
+### E1 · Garagentor — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+
+- Endschalter für AUF und ZU vorhanden? Beide?
+- Ist eine Zwischenposition messbar oder nur AUF/ZU?
+- Antriebsart, Laufzeit, Stopp-Möglichkeit während der Fahrt
+- Hindernis-/Klemmschutz vorhanden?
+
+Ohne Endlagenrückmeldung kann Kehler OS die Zustände `OPENING`/`CLOSING` nicht
+belastbar darstellen und beschränkt sich auf `UNKNOWN` (Kapitel 18 §32, §106).
+
+### E2 · Türen und Fenster — `OFFEN` · `NICHT BLOCKIEREND`
+
+- Anzahl und Bezeichnung der überwachten Türen
+- Anzahl und Bezeichnung der überwachten Fenster
+- Kontakttyp (Öffner/Schließer)
+
+### E3 · Verriegelungen — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+
+- Zentralverriegelung: ein Sammelsignal oder Einzelschlösser?
+- **Gibt es je Schloss eine Rückmeldung?** (Kapitel 12 §46 — ohne Rückmeldung
+  bleibt der Zustand `UNKNOWN`)
+- Schrankverriegelungen: Anzahl, Bezeichnung, Rückmeldung vorhanden?
+
+### E4 · Stufen und Markise — `OFFEN` · `NICHT BLOCKIEREND`
+
+- Endlagenrückmeldung vorhanden?
+- Laufzeiten
+- Ist die Markise über Kehler OS steuerbar oder nur überwachbar?
+
+---
+
+## F – Licht
+
+### F1 · Lichtkreise — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+
+- Liste aller Lichtkreise mit gewünschter Bezeichnung und Raumzuordnung
+- je Kreis: nur schaltbar oder dimmbar?
+- bei dimmbar: Ansteuerung (0–10 V, PWM, DALI) und Wertebereich
+
+> Kapitel 18 §25: RGB wird **nicht** angenommen und erscheint nicht in der
+> Oberfläche, solange kein Lichtkreis als RGB-fähig konfiguriert ist.
+
+---
+
+## G – Klima
+
+### G1 · Heiz-/Klimageräte — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+
+- Hersteller und Modell von Heizung, Klimaanlage, Lüftung
+- Schnittstelle (potentialfreier Kontakt, Bus, proprietär)
+- **Besitzt das Gerät eine eigene Regelung?** (Kapitel 12 §67 / Kapitel 18 §29 —
+  vorhandene Regelintelligenz soll nicht nachgebaut werden)
+- ist ein Sollwert vorgebbar oder nur Ein/Aus?
+
+### G2 · Temperatursensoren — `OFFEN` · `NICHT BLOCKIEREND`
+
+Liste der Sensoren mit Einbauort, Typ und Anschluss.
+
+---
+
+## H – Kameras
+
+### H1 · Bestand — `OFFEN` · `NICHT BLOCKIEREND`
+
+Kapitel 12 §51 und Kapitel 18 §33: Es wird **keine** installierte Kamera
+angenommen. Sobald Kameras existieren, werden benötigt: Anzahl, Modell,
+Stream-URL/Protokoll (RTSP/ONVIF), Auflösung, Zugangsdaten, Einbauort.
+
+---
+
+## I – Plattform und Netzwerk
+
+### I1 · Speichermedium des Raspberry Pi — `OFFEN` · `BLOCKIEREND` für Produktion
+
+Kapitel 12 §23 warnt vor Datenträgerbelastung durch Dauerbetrieb.
+
+**Empfehlung:** Betrieb von einer SSD (USB 3.0 oder NVMe via HAT), **nicht**
+von einer microSD-Karte. Dauerhafte Schreibvorgänge einer Zeitreihen-Datenbank
+sind für SD-Karten ungeeignet.
+
+**Benötigte Antwort:** Welches Speichermedium ist verbaut bzw. geplant?
+
+### I2 · Stromversorgung und Pufferung — `OFFEN` · `NICHT BLOCKIEREND`
+
+- Wie wird der Pi versorgt (24 V → 5 V Wandler)?
+- Existiert eine USV/Pufferung (Kapitel 11 §36, Kapitel 17 §40)?
+- Gibt es ein Signal „Versorgung fällt gleich aus“ für ein kontrolliertes
+  Herunterfahren?
+
+### I3 · Netzwerk — `OFFEN` · `NICHT BLOCKIEREND`
+
+- IP-Bereich des Fahrzeugnetzes
+- Router-/Switch-/Access-Point-Modelle
+- Unterstützt der Switch VLANs (für die Segmentierung nach Kapitel 15 §40)?
+
+### I4 · Hauptdisplay — `OFFEN` · `BLOCKIEREND` für finales Layout
+
+- Modell, Auflösung, physische Größe, Seitenverhältnis
+- Anschluss (HDMI/DSI) und Touch-Anbindung (USB/I²C)
+- Ist die Helligkeit softwareseitig steuerbar (Kapitel 7 §26)?
+
+> Bis zur Klärung wird das Layout auf dem Seitenverhältnis der Designreferenz
+> entwickelt und responsiv gehalten.
+
+### I5 · Zeitbasis ohne Internet — `OFFEN` · `NICHT BLOCKIEREND`
+
+Besitzt der Pi eine gepufferte Echtzeituhr (RTC-Modul)? Ohne RTC und ohne
+Internet ist nach einem Stromausfall keine korrekte Zeit verfügbar, was die
+Historie beeinträchtigt (Kapitel 16 §85).
+
+---
+
+## J – Betriebszustände
+
+### J1 · Quelle für den Fahrmodus — `OFFEN` · `BLOCKIEREND` für fahrmodusabhängige Warnungen
+
+Kapitel 14 §35 verbietet ausdrücklich, den Fahrzustand zu erraten.
+
+**Benötigte Antwort:** Welches reale Signal zeigt an, dass das Fahrzeug fährt
+bzw. fahrbereit ist? Denkbar wären Zündung, Handbremse, Motorlauf, Tachosignal,
+Getriebestellung — aber nur, wenn eines davon tatsächlich auf die SPS geführt ist.
+
+Ohne diese Information bleibt der Fahrzeugmodus manuell umschaltbar, und
+fahrmodusabhängige Warnungen (z. B. „Garage offen während der Fahrt“) sind
+inaktiv statt unzuverlässig.
+
+---
+
+## Zusammenfassung nach Dringlichkeit
+
+**Für die erste reale Inbetriebnahme (Phase 9) zwingend:**
+A1 Transportweg · A2 Netzwerkparameter · A3 Mapping der zuerst angebundenen
+Funktion · A5 vorhandene Sicherheitsverriegelungen · I1 Speichermedium
+
+**Danach, für den sinnvollen Alltagsbetrieb:**
+B1 Cerbo-Schnittstelle · C1/C2 Tanksensorik und Kapazitäten · F1 Lichtkreise ·
+E1/E3 Garagen- und Verriegelungsrückmeldungen · I4 Display
+
+**Zuletzt und bewusst nicht zuerst:**
+D1/D2 Nivellierung und Hydraulik
+
+**Alles Übrige** läuft simuliert weiter und blockiert die Entwicklung nicht.

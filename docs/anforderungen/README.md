@@ -6,10 +6,10 @@ Hier werden die Kapitel der Anforderungsbeschreibung **im Wortlaut** abgelegt,
 so wie sie übermittelt wurden. Es findet keine Interpretation, keine Zusammenfassung
 und keine Umformulierung statt.
 
-**Status: Es ist noch kein Entwicklungsauftrag erteilt.**
-Es wurde bisher kein Code geschrieben, keine Architektur entworfen und keine
-Designentscheidung getroffen. Der Entwicklungsauftrag folgt laut Kapitel 1 erst
-mit dem letzten Kapitel.
+**Status: Spezifikation vollständig – Entwicklung freigegeben (Kapitel 18).**
+Die Kapitel 1–18 bilden gemeinsam die verbindliche Projektspezifikation. Sie
+werden hier unverändert aufbewahrt und dienen als Referenz für alle
+Implementierungs- und Architekturentscheidungen.
 
 ## Kapitelübersicht
 
@@ -32,10 +32,11 @@ mit dem letzten Kapitel.
 | 15 | Sicherheit, Benutzer, Berechtigungen und Zugriffskontrolle | [kapitel-15-sicherheit-benutzer-berechtigungen.md](kapitel-15-sicherheit-benutzer-berechtigungen.md) |
 | 16 | Datenhaltung, Historie, Logs und Diagnose | [kapitel-16-datenhaltung-historie-logs-diagnose.md](kapitel-16-datenhaltung-historie-logs-diagnose.md) |
 | 17 | Performance, Stabilität, Fehlerbehandlung, Deployment und Zukunftssicherheit | [kapitel-17-performance-stabilitaet-deployment-zukunftssicherheit.md](kapitel-17-performance-stabilitaet-deployment-zukunftssicherheit.md) |
+| 18 | Finaler Entwicklungsauftrag | [kapitel-18-finaler-entwicklungsauftrag.md](kapitel-18-finaler-entwicklungsauftrag.md) |
 
-Mit Kapitel 17 ist die Anforderungsphase abgeschlossen. Es fehlt nur noch
-**Kapitel 18 – Finaler Entwicklungsauftrag**. Erst dieses Kapitel erteilt den
-Auftrag, tatsächlich zu entwickeln.
+Die Spezifikation ist mit Kapitel 18 vollständig. Die daraus abgeleitete
+Architektur- und Analysedokumentation liegt unter [`../architektur/`](../architektur/)
+und [`../analyse/`](../analyse/).
 
 ## Referenzen
 
