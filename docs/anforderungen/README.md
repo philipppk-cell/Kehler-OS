@@ -31,12 +31,11 @@ mit dem letzten Kapitel.
 | 14 | Automatisierungen, Szenen und Fahrzeuglogik | [kapitel-14-automatisierungen-szenen-fahrzeuglogik.md](kapitel-14-automatisierungen-szenen-fahrzeuglogik.md) |
 | 15 | Sicherheit, Benutzer, Berechtigungen und Zugriffskontrolle | [kapitel-15-sicherheit-benutzer-berechtigungen.md](kapitel-15-sicherheit-benutzer-berechtigungen.md) |
 | 16 | Datenhaltung, Historie, Logs und Diagnose | [kapitel-16-datenhaltung-historie-logs-diagnose.md](kapitel-16-datenhaltung-historie-logs-diagnose.md) |
+| 17 | Performance, Stabilität, Fehlerbehandlung, Deployment und Zukunftssicherheit | [kapitel-17-performance-stabilitaet-deployment-zukunftssicherheit.md](kapitel-17-performance-stabilitaet-deployment-zukunftssicherheit.md) |
 
-Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
-
-Laut Kapitel 11 enthält **Kapitel 18** den eigentlichen Entwicklungsauftrag.
-Kapitel 15 bestätigt: es folgen noch Kapitel 16 und 17, danach Kapitel 18 mit
-dem finalen Auftrag.
+Mit Kapitel 17 ist die Anforderungsphase abgeschlossen. Es fehlt nur noch
+**Kapitel 18 – Finaler Entwicklungsauftrag**. Erst dieses Kapitel erteilt den
+Auftrag, tatsächlich zu entwickeln.
 
 ## Referenzen
 
