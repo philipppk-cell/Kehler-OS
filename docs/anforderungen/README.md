@@ -30,6 +30,7 @@ mit dem letzten Kapitel.
 | 13 | Zustandsverwaltung und Datenmodell im laufenden Betrieb | [kapitel-13-zustandsverwaltung-datenmodell-betrieb.md](kapitel-13-zustandsverwaltung-datenmodell-betrieb.md) |
 | 14 | Automatisierungen, Szenen und Fahrzeuglogik | [kapitel-14-automatisierungen-szenen-fahrzeuglogik.md](kapitel-14-automatisierungen-szenen-fahrzeuglogik.md) |
 | 15 | Sicherheit, Benutzer, Berechtigungen und Zugriffskontrolle | [kapitel-15-sicherheit-benutzer-berechtigungen.md](kapitel-15-sicherheit-benutzer-berechtigungen.md) |
+| 16 | Datenhaltung, Historie, Logs und Diagnose | [kapitel-16-datenhaltung-historie-logs-diagnose.md](kapitel-16-datenhaltung-historie-logs-diagnose.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
 
