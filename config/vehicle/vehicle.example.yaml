@@ -1,0 +1,91 @@
+# Kehler OS – Fahrzeugkonfiguration (Schemabeispiel)
+#
+# Beschreibt das konkrete Fahrzeug: Räume, Tanks, Lichtkreise, Klimazonen.
+# Getrennt von Zustand und Capabilities (Kapitel 13 §58/§59).
+#
+# Kapazitäten und Schwellen sind bewusst leer. Kapitel 18 §98 verbietet
+# ausdrücklich, hier Werte zu erfinden. Ein leerer Wert führt in der Oberfläche
+# zu "Nicht konfiguriert", nicht zu einer erfundenen Zahl.
+
+version: 1
+
+vehicle:
+  name: null                # frei wählbarer Anzeigename
+  base: null                # z. B. Fahrgestellbezeichnung
+
+# Räume dienen der Gruppierung und der räumlichen Statusdarstellung
+areas:
+  - id: cab
+    name_key: area.cab
+  - id: living
+    name_key: area.living
+  - id: kitchen
+    name_key: area.kitchen
+  - id: bedroom
+    name_key: area.bedroom
+  - id: bathroom
+    name_key: area.bathroom
+  - id: garage
+    name_key: area.garage
+  - id: tech
+    name_key: area.tech
+  - id: exterior
+    name_key: area.exterior
+
+# Die Anzahl der Tanks ist nicht fest verdrahtet (Kapitel 18 §26)
+tanks:
+  - id: water.tank.fresh
+    name_key: tank.fresh
+    kind: fresh
+    capacity_l: null        # <TODO: Punkt C2>
+    thresholds:             # <TODO: Punkt C3>
+      warning_below_percent: null
+      critical_below_percent: null
+
+  - id: water.tank.grey
+    name_key: tank.grey
+    kind: grey
+    capacity_l: null
+    thresholds:
+      warning_above_percent: null
+      critical_above_percent: null
+
+  - id: water.tank.black
+    name_key: tank.black
+    kind: black
+    capacity_l: null
+    thresholds:
+      warning_above_percent: null
+      critical_above_percent: null
+
+# Lichtkreise. Capabilities bestimmen, was die Oberfläche anbietet:
+# ohne "dim" erscheint kein Regler (Kapitel 12 §55).
+# RGB wird nicht angenommen (Kapitel 18 §25) und würde hier explizit stehen.
+lights: []
+  # - id: light.interior.living
+  #   name_key: light.living
+  #   area: living
+  #   capabilities: [switch]        # optional: [switch, dim]
+
+climate_zones: []
+  # - id: climate.zone.living
+  #   name_key: climate.living
+  #   area: living
+  #   capabilities: [read]          # optional: [read, setpoint, heat, vent]
+
+# Vier hydraulische Zylinder (Kapitel 12 §38).
+# Bleibt deaktiviert, bis die Punkte D1 und D2 geklärt sind.
+leveling:
+  enabled: false
+  jacks: [front_left, front_right, rear_left, rear_right]
+  tilt_sensor: null         # <TODO: Punkt D1>
+
+cameras: []                 # keine Kamera angenommen (Punkt H1)
+
+# Fahrzeugmodi. DRIVING wird nur automatisch gesetzt, wenn eine reale
+# Datenquelle bestätigt ist (Punkt J1) – sonst bleibt der Modus manuell,
+# und fahrmodusabhängige Warnungen sind inaktiv statt unzuverlässig.
+modes:
+  available: [PARKED, CAMPING, NIGHT, DRIVING, SERVICE]
+  default: PARKED
+  driving_source: null      # <TODO: Punkt J1>

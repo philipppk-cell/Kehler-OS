@@ -1,0 +1,54 @@
+# Kehler OS – Geräte (Schemabeispiel)
+#
+# Physische Geräte und ihre Verbindung. Enthält bewusst keine echten Adressen
+# oder Zugangsdaten (Kapitel 18 §97). Secrets stehen NIE hier, sondern in der
+# Umgebungskonfiguration bzw. im Secret-Store (Kapitel 15 §49/§50).
+
+version: 1
+
+devices:
+
+  - id: plc
+    name: Siemens S7-1511-1 PN
+    kind: PLC
+    vendor: Siemens
+    model: S7-1511-1 PN
+    # Transport: opcua | s7 | simulated      (siehe ADR 0002)
+    # Solange die Entscheidung offen ist (Punkt A1), gilt: simulated
+    transport: simulated
+    connection:
+      host: null              # <TODO: IP der CPU>
+      # nur bei transport: s7
+      rack: 0
+      slot: 1
+      # nur bei transport: opcua
+      endpoint: null          # <TODO: opc.tcp://…>
+      security_policy: null
+      # Zugangsdaten kommen aus dem Secret-Store, nicht aus dieser Datei
+      credentials_ref: null
+    poll_interval_ms: 500
+    reconnect:
+      initial_delay_ms: 1000
+      max_delay_ms: 60000
+      backoff_factor: 2
+
+  - id: victron
+    name: Victron Cerbo GX
+    kind: ENERGY
+    vendor: Victron Energy
+    model: Cerbo GX
+    # Transport: mqtt | modbus | simulated   (siehe ADR 0003)
+    transport: simulated
+    connection:
+      host: null              # <TODO: IP des Cerbo GX>
+      mqtt_port: 1883
+      portal_id: null         # <TODO: VRM-Portal-ID, Teil aller Topics>
+      tls: false
+      credentials_ref: null
+    # Der Cerbo stoppt die Publikation ohne regelmäßigen Keepalive
+    keepalive_interval_s: 30
+    # Read-only, bis ein Schreibbedarf bestätigt ist (Punkt B3)
+    allow_write: false
+
+# Kameras werden erst eingetragen, wenn tatsächlich welche installiert sind.
+# Kapitel 12 §51 und Kapitel 18 §33: keine Kamera wird angenommen.

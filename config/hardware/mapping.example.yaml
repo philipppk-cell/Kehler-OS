@@ -1,0 +1,120 @@
+# Kehler OS – Hardware-Mapping (Schemabeispiel)
+#
+# Verbindet logische Kehler-OS-IDs mit realen Hardwarereferenzen.
+# Dies ist die EINZIGE Stelle im Projekt, an der Hardwareadressen stehen.
+#
+# WICHTIG: Diese Datei enthält bewusst KEINE echten Adressen (Kapitel 18 §97).
+# Die Felder `ref` sind Platzhalter und müssen aus der realen SPS-Projektierung
+# übernommen werden. Siehe docs/OPEN_HARDWARE_REQUIREMENTS.md, Punkt A3.
+
+version: 1
+
+# Der Inhalt von `ref` hängt vom gewählten Transport ab (siehe ADR 0002):
+#   opcua : NodeId,  z. B.  "ns=3;s=\"DB_Kehler\".\"Garage\".\"Auf\""
+#   s7    : Adresse, z. B.  "DB10.DBX4.2"
+# Oberhalb der Adapterschicht sieht diesen Wert kein Code.
+
+datapoints:
+
+  # ── Lesend: digitale Eingänge ────────────────────────────────────────────
+  # Empfohlener Einstieg in die reale Integration (Kapitel 18 §92):
+  # zuerst ausschließlich lesen, nichts schalten.
+
+  - id: vehicle.door.main.contact
+    device: plc
+    direction: read
+    type: bool
+    ref: "<TODO: Adresse/NodeId>"
+    # true bedeutet:
+    semantics: { "true": CLOSED, "false": OPEN }
+    expected_interval_s: 1
+
+  - id: vehicle.garage.door.limit_closed
+    device: plc
+    direction: read
+    type: bool
+    ref: "<TODO>"
+    semantics: { "true": CLOSED, "false": NOT_CLOSED }
+    expected_interval_s: 1
+
+  - id: vehicle.garage.door.limit_open
+    device: plc
+    direction: read
+    type: bool
+    ref: "<TODO>"
+    semantics: { "true": OPEN, "false": NOT_OPEN }
+    expected_interval_s: 1
+    # Fehlt einer der beiden Endschalter, kann das System OPENING/CLOSING
+    # nicht belastbar ableiten und meldet UNKNOWN (Kapitel 18 §32/§106).
+
+  # ── Lesend: analoge Eingänge ─────────────────────────────────────────────
+
+  - id: water.tank.fresh.level
+    device: plc
+    direction: read
+    type: real
+    ref: "<TODO>"
+    raw:
+      # elektrischer Rohbereich des Sensors, NICHT der Füllstand
+      min: null          # z. B. 4.0 bei 4–20 mA
+      max: null          # z. B. 20.0
+      unit: null         # mA | V | Ohm
+    scaled:
+      unit: percent
+      min: 0
+      max: 100
+    plausibility:
+      # Werte außerhalb dieses Bereichs gelten als INVALID, nicht als Messwert
+      min: -2
+      max: 102
+    calibration: water.tank.fresh     # Verweis in calibration.yaml
+    expected_interval_s: 30
+
+  # ── Schreibend: ungefährliche Ausgänge ───────────────────────────────────
+  # Erst nach erfolgreichem Lesetest aktivieren.
+
+  - id: light.exterior.entry
+    device: plc
+    direction: write
+    type: bool
+    ref: "<TODO>"
+    # Getrennte Rückmeldeadresse, falls vorhanden. Ohne Rückmeldung bleibt der
+    # Zustand nach dem Schalten UNKNOWN (Kapitel 18 §37).
+    feedback_ref: "<TODO oder null>"
+    command_timeout_ms: 2000
+
+  # ── Schreibend: Aktoren mit Bewegung ─────────────────────────────────────
+  # Zuletzt integrieren. Hydraulik ausdrücklich nicht zuerst (Kapitel 18 §91).
+
+  - id: vehicle.garage.door
+    device: plc
+    direction: write
+    type: command
+    refs:
+      open:  "<TODO>"
+      close: "<TODO>"
+      stop:  "<TODO>"
+    feedback:
+      closed: vehicle.garage.door.limit_closed
+      open:   vehicle.garage.door.limit_open
+    # Aus der realen Laufzeit ableiten, nicht schätzen
+    command_timeout_ms: null
+    # Kein automatischer Retry bei Bewegungsbefehlen (Kapitel 14 §17)
+    retry: false
+
+# ── Fail-Safe-Verhalten ────────────────────────────────────────────────────
+# Kapitel 15 §61 verbietet die pauschale Annahme "bei Fehler alles AUS".
+# Hier wird je Gerät festgehalten, WAS DIE SPS TUT – nicht, was Kehler OS
+# möchte. Bei Ausfall des Raspberry Pi ist Kehler OS nicht mehr beteiligt.
+# Solange dies nicht bestätigt ist (Punkt A5), bleibt der Wert `unknown` und
+# die Diagnose zeigt ihn als unbekannt an.
+
+failsafe:
+  vehicle.garage.door:
+    on_plc_comm_loss: unknown      # hold | stop | close | open | unknown
+    on_pi_failure:    unknown
+    on_power_loss:    unknown
+  light.exterior.entry:
+    on_plc_comm_loss: unknown
+    on_pi_failure:    unknown
+    on_power_loss:    unknown

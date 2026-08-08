@@ -1,0 +1,37 @@
+# Reale Konfiguration: enthält fahrzeugspezifische Daten und wird nicht
+# versioniert. Nur die *.example.yaml gehören ins Repository.
+config/hardware/*.yaml
+!config/hardware/*.example.yaml
+config/vehicle/*.yaml
+!config/vehicle/*.example.yaml
+config/environments/*.local.yaml
+
+# Secrets gehören niemals ins Repository (Kapitel 15 §49/§50)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Daten und Laufzeit
+*.db
+*.db-wal
+*.db-shm
+data/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# System
+.DS_Store
