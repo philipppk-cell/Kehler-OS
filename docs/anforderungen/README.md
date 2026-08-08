@@ -27,6 +27,7 @@ mit dem letzten Kapitel.
 | 10 | Systemarchitektur und Kommunikation | [kapitel-10-systemarchitektur-kommunikation.md](kapitel-10-systemarchitektur-kommunikation.md) |
 | 11 | Netzwerk- und Kommunikationsinfrastruktur | [kapitel-11-netzwerk-kommunikationsinfrastruktur.md](kapitel-11-netzwerk-kommunikationsinfrastruktur.md) |
 | 12 | Hardwareintegration: Siemens SPS, Raspberry Pi, Victron und Sensorik | [kapitel-12-hardwareintegration.md](kapitel-12-hardwareintegration.md) |
+| 13 | Zustandsverwaltung und Datenmodell im laufenden Betrieb | [kapitel-13-zustandsverwaltung-datenmodell-betrieb.md](kapitel-13-zustandsverwaltung-datenmodell-betrieb.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
 
