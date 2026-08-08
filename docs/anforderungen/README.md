@@ -23,6 +23,7 @@ mit dem letzten Kapitel.
 | 6 | Datenmodell und Datenhaltung | [kapitel-06-datenmodell-datenhaltung.md](kapitel-06-datenmodell-datenhaltung.md) |
 | 7 | Designsystem und visuelle Identität | [kapitel-07-designsystem-visuelle-identitaet.md](kapitel-07-designsystem-visuelle-identitaet.md) |
 | 8 | Dashboard, Navigation und User Experience | [kapitel-08-dashboard-navigation-ux.md](kapitel-08-dashboard-navigation-ux.md) |
+| 9 | Fahrzeugfunktionen und Systemmodule | [kapitel-09-fahrzeugfunktionen-systemmodule.md](kapitel-09-fahrzeugfunktionen-systemmodule.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
 
