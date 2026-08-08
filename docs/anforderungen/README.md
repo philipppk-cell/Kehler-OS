@@ -20,5 +20,6 @@ mit dem letzten Kapitel.
 | 3 | Hardwareplattform und Systemkomponenten | [kapitel-03-hardwareplattform-systemkomponenten.md](kapitel-03-hardwareplattform-systemkomponenten.md) |
 | 4 | Softwarearchitektur | [kapitel-04-softwarearchitektur.md](kapitel-04-softwarearchitektur.md) |
 | 5 | Kommunikationsarchitektur und Schnittstellen | [kapitel-05-kommunikationsarchitektur-schnittstellen.md](kapitel-05-kommunikationsarchitektur-schnittstellen.md) |
+| 6 | Datenmodell und Datenhaltung | [kapitel-06-datenmodell-datenhaltung.md](kapitel-06-datenmodell-datenhaltung.md) |
 
 Weitere Kapitel werden hier ergänzt, sobald sie übermittelt werden.
