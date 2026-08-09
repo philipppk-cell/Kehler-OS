@@ -57,6 +57,7 @@ Visualisierung, Logik, Historie, Automatisierung.
 | Realtime | WebSocket mit Snapshot und Deltas | [ADR 0005](docs/architektur/adr/0005-realtime-transport.md) |
 | Frontend | React · TypeScript · Vite · Motion · CSS-Tokens | [ADR 0006](docs/architektur/adr/0006-frontend-stack.md) |
 | Prozessmodell | ein Prozess, modularer Monolith | [ADR 0007](docs/architektur/adr/0007-prozessmodell.md) |
+| Fahrzeugansicht | drehbares 3D-Modell, gerendert nur bei Änderung; SVG als Rückfall | [ADR 0008](docs/architektur/adr/0008-fahrzeugdarstellung-3d.md) |
 
 ---
 

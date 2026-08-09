@@ -70,6 +70,31 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   veraltet gekennzeichnet, Zustände als unbekannt geführt, Bedienelemente
   gesperrt und keine Entwarnung im Warnungsbereich.
 
+### Hinzugefügt — drehbare 3D-Fahrzeugansicht
+
+- **Das Fahrzeug wird dreidimensional dargestellt und lässt sich mit dem
+  Finger frei drehen** (ein Finger dreht, zwei Finger ändern den Abstand,
+  eine Schaltfläche stellt die Ausgangsansicht her). Damit sind alle vier
+  Seiten erreichbar — Garage im Heck, Eingangstür und Markise rechts,
+  Solarfeld auf dem Dach.
+- **Gerendert wird nur bei Änderung.** Es gibt keine Renderschleife: Ein Bild
+  entsteht beim Drehen, beim Auslaufen der Bewegung oder bei einem
+  Zustandswechsel. Ein stillstehendes Dashboard kostet keine Grafiklast.
+- Die Geometrie entsteht im Code aus einer Maßtabelle statt aus einer
+  Modelldatei — dadurch bleibt sie lesbar und korrigierbar, und im Repository
+  liegt kein Binärartefakt.
+- **Rückfallebene ohne WebGL:** die bisherige SVG-Seitenansicht mit denselben
+  Zuständen. Sie überbrückt außerdem das Nachladen der 3D-Ansicht.
+- Die Ehrlichkeitsregeln gelten unverändert: unbekannte Stellung heißt
+  durchscheinendes Bauteil in Ruhelage ohne Bewegung, nicht konfigurierte
+  Hardware wird gar nicht erzeugt. Die Markisenkassette gehört zum Aufbau —
+  nur das ausgefahrene Tuch ist ein Zustand.
+- Fahrzeugreferenz aus den Fotos dokumentiert; Gesamtlänge (11,5 m) und
+  Gesamthöhe (4,0 m) sind angegeben, alle übrigen Maße sind einzeln als
+  Schätzung gekennzeichnet (Punkt K1).
+- [ADR 0008](docs/architektur/adr/0008-fahrzeugdarstellung-3d.md) mit der
+  Begründung, warum die 3D-Absage aus ADR 0006 revidiert wurde.
+
 ### Geändert
 
 - **ADR 0006 korrigiert:** Zustand und TanStack Query entfallen. Der

@@ -97,6 +97,12 @@ Hardwarezustand zu behaupten (Kapitel 7 §15, Kapitel 18 §37).
 
 ## Fahrzeugvisualisierung
 
+> **Überholt durch [ADR 0008](0008-fahrzeugdarstellung-3d.md).** Das Fahrzeug
+> wird im Dashboard dreidimensional und drehbar dargestellt; die hier
+> beschriebene SVG-Ansicht ist die Rückfallebene ohne WebGL. Die Begründung
+> für die Revision — und warum das Leistungsargument unten weiterhin gilt und
+> technisch beantwortet wird — steht in ADR 0008.
+
 **Inline-SVG mit benannten Ebenen, gesteuert über Zustandswerte.**
 
 Gewählt gegenüber Canvas oder 3D (Three.js), weil:

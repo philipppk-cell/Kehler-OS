@@ -38,14 +38,18 @@
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6);
+  align-items: stretch;
+  justify-content: stretch;
 }
 
-/* Das Fahrzeug ist im Zeichenbereich nach rechts gesetzt (siehe
-   VehicleView), damit die Statuskarte über freier Fläche liegt und nicht
-   ausgerechnet die Garage verdeckt, die sie beschreibt. */
+/* Kein Innenabstand: Die 3D-Ansicht braucht die volle Fläche, damit der
+   Finger überall greift. Den Abstand zum Rand hält die Darstellung selbst —
+   die SVG-Ansicht über ihren Zeichenbereich, die 3D-Ansicht über den
+   Betrachtungsabstand.
+
+   Beide setzen das Fahrzeug außerdem etwas nach rechts, damit die
+   Statuskarte über freier Fläche liegt und nicht ausgerechnet die Garage
+   verdeckt, die sie beschreibt. */
 
 /* Die Statuskarte liegt auf dem Fahrzeug, wie in der Designreferenz. */
 .dash__status {

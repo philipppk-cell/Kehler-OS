@@ -45,6 +45,12 @@ const de: Record<string, string> = {
   "dash.warnings": "Warnungen",
   "dash.noWarnings": "Keine Warnungen",
   "dash.warningsUnknown": "Ohne Verbindung nicht beurteilbar",
+
+  // Fahrzeugansicht
+  "vehicle3d.label": "Fahrzeugansicht mit dem Zustand der Aufbaufunktionen",
+  "vehicle3d.dragHint": "Zum Drehen wischen",
+  "vehicle3d.reset": "Ansicht zurücksetzen",
+  "vehicle3d.resetHint": "Zurück zur Ausgangsansicht",
   "dash.quickAccess": "Schnellzugriff",
   "dash.energy": "Energie",
   "dash.water": "Wasser",

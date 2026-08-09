@@ -81,6 +81,11 @@ Sonderfälle sind gegen einen laufenden Server geprüft, nicht nur behauptet:
 | Fehler | eigener Zustand, getrennt von Unbekannt |
 | Nicht konfiguriert | ruhiger Hinweis, keine Bedienung, das Teil wird am Fahrzeug **nicht** gezeichnet |
 
+Die Fahrzeugvisualisierung ist auf Wunsch des Fahrzeughalters **dreidimensional
+und drehbar** ([ADR 0008](architektur/adr/0008-fahrzeugdarstellung-3d.md)).
+Gerendert wird nur bei Änderung; ohne WebGL übernimmt die SVG-Seitenansicht.
+Offen bleibt die Messung der Bildrate auf dem realen Display (Punkt I4).
+
 Bewusst **nicht** enthalten: Karten für Nivellierung und Verbrauch. Die
 Nivellierung ist ausdrücklich nach 1.0 verschoben (Kapitel 18 §91), und für
 eine Verbrauchsanzeige fehlen die Tankkapazitäten (offener Punkt C2) — sie

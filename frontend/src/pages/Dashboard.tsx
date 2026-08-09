@@ -22,7 +22,8 @@ import {
   IconStep,
   IconWarning,
 } from "../design/icons";
-import { VehicleView, type Part } from "../vehicle/VehicleView";
+import type { Part } from "../vehicle/VehicleView";
+import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
 import type { EntityView } from "../realtime/types";
 import { sendCommand } from "../api/client";
@@ -45,7 +46,7 @@ export function Dashboard() {
     <div className="dash">
       <section className="dash__hero">
         <div className="dash__vehicle">
-          <VehicleView state={useVehicleState()} />
+          <VehicleDisplay state={useVehicleState()} />
         </div>
         <VehicleStatusCard />
       </section>

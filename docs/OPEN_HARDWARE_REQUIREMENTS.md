@@ -349,6 +349,35 @@ inaktiv statt unzuverlässig.
 
 ---
 
+## K – Fahrzeugdarstellung
+
+### K1 · Abmessungen des Fahrzeugs — `TEILWEISE` · `NICHT BLOCKIEREND`
+
+**Beantwortet (2026-08-09):** Gesamtlänge **11,5 m**, Gesamthöhe **4,0 m**.
+
+Die dreidimensionale Fahrzeugdarstellung im Dashboard ist im Übrigen aus Fotos
+nachgebildet (siehe
+[Fahrzeugreferenz](anforderungen/referenzen/fahrzeug-referenz.md)). Fotos
+liefern Proportionen, keine Maße. Für ein durchgehend maßhaltiges Modell
+fehlen noch:
+
+- Gesamtbreite *(derzeit mit 2,55 m angesetzt — das zulässige Höchstmaß)*
+- Radstand und Achsabstand des Tandems
+- Überhang vorn und hinten
+- Höhe des Wohnbodens über Grund
+- Reifengröße
+
+> **ASSUMPTION (bis zur Klärung):** Die Werte in
+> `frontend/src/vehicle3d/dimensions.ts` sind aus den Fotos **geschätzt**. Sie
+> stehen dort an genau einer Stelle und sind als Schätzung gekennzeichnet. Die
+> Korrektur ist ein Zahlenaustausch, keine Modellüberarbeitung.
+>
+> Das Modell ist ausschließlich Anzeige. Aus ihm wird nichts berechnet — keine
+> Durchfahrtshöhe, kein Wendekreis, kein Gewicht. Ein geschätztes Maß kann
+> daher zu keiner falschen Aussage über das Fahrzeug führen.
+
+---
+
 ## Zusammenfassung nach Dringlichkeit
 
 **Für die erste reale Inbetriebnahme (Phase 9) zwingend:**
