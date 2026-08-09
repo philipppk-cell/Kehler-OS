@@ -35,5 +35,6 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ### Offen
 
 - Bilddatei der Designreferenz fehlt im Repository (nur Beschreibung vorhanden)
-- SPS-Transportweg nicht entschieden (OPC-UA-Lizenz erforderlich?)
 - keine realen Hardwareparameter vorhanden — Entwicklung läuft simuliert
+- Übersteuerungsverhalten bei manuellem Eingriff in eine Automatisierung (W5)
+- Abfahrtscheck: bleibt er als reine Prüfung erhalten? (W11)
