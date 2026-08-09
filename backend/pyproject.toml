@@ -1,0 +1,53 @@
+[project]
+name = "kehleros"
+version = "0.1.0"
+description = "Kehler OS – Betriebssystem für ein Expeditions-LKW-Wohnmobil"
+requires-python = ">=3.11"
+# 3.11 ist die Version, die Raspberry Pi OS (Bookworm) mitbringt.
+# Damit läuft das System ohne zusätzliche Python-Installation auf dem Zielgerät.
+
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+# Die SPS-Anbindung kommt erst mit M8 dazu (python-snap7), die
+# Victron-Anbindung mit M9 (aiomqtt). Beide werden erst aufgenommen, wenn die
+# offenen Hardwarepunkte geklärt sind – siehe docs/OPEN_HARDWARE_REQUIREMENTS.md.
+
+[project.scripts]
+kehleros = "kehleros.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["kehleros*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 90
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+warn_redundant_casts = true

@@ -7,8 +7,9 @@ einzigen Oberfläche zusammen — Energie, Wasser, Klima, Licht, Aufbaufunktione
 Nivellierung, Diagnose und Automatisierung. Für den Benutzer entsteht ein
 zusammenhängendes System, keine Sammlung einzelner Apps.
 
-**Status:** Phase 1 – Analyse und Architektur. Es läuft noch keine reale
-Hardwareanbindung.
+**Status:** Backend-Kern und Simulation laufen. Das System ist ohne Fahrzeug
+startbar und vollständig bedienbar — die reale Hardwareanbindung folgt, sobald
+die offenen Punkte geklärt sind.
 
 ---
 
@@ -68,6 +69,7 @@ Visualisierung, Logik, Historie, Automatisierung.
 | [Architekturentscheidungen](docs/architektur/adr/) | ADRs mit Abwägung und Konsequenzen |
 | [Offene Hardwareanforderungen](docs/OPEN_HARDWARE_REQUIREMENTS.md) | was für die reale Integration noch fehlt |
 | [Widersprüche und offene Punkte](docs/analyse/widersprueche-und-offene-punkte.md) | Analyse der Spezifikation |
+| [Entwicklung](docs/DEVELOPMENT.md) | Einrichten, starten, testen, Fehler simulieren |
 | [Roadmap](docs/ROADMAP.md) | Meilensteine und Funktionsstatus |
 | [Anforderungen](docs/anforderungen/) | Kapitel 1–18 im Wortlaut |
 | [Changelog](CHANGELOG.md) | Versionshistorie |

@@ -1,0 +1,349 @@
+"""Die Befehlskette.
+
+Ein Befehl ist eine *Absicht*. Er wird geprüft, an einen Adapter übergeben und
+gilt erst dann als erfüllt, wenn die Hardware den Zustand bestätigt hat. Der
+Befehl selbst schreibt niemals in den State Store (Kapitel 12 §67,
+Kapitel 18 §35/§37).
+
+Ablauf::
+
+    REQUESTED → VALIDATING → SENT → ACKNOWLEDGED → COMPLETED
+                     │         │          │
+                     │         │          └──▶ TIMEOUT
+                     │         └─────────────▶ FAILED
+                     └───────────────────────▶ REJECTED
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from collections.abc import Callable
+from typing import Protocol
+
+from ..domain.enums import (
+    CommandPhase,
+    LinkState,
+    Quality,
+    RejectionReason,
+    Severity,
+)
+from ..domain.models import Command, CommandSpec, Entity, Event, RequestedState
+from .event_bus import EventBus
+from .registry import Registry
+from .state_store import StateStore
+
+log = logging.getLogger(__name__)
+
+
+class AdapterError(RuntimeError):
+    """Der Adapter konnte den Befehl nicht ausführen."""
+
+
+class CommandTarget(Protocol):
+    """Was der Command Bus von einem Adapter braucht."""
+
+    name: str
+
+    def owns(self, entity_id: str) -> bool: ...
+
+    async def execute(self, command: Command, spec: CommandSpec) -> None: ...
+
+
+Authorizer = Callable[[Command, Entity, CommandSpec], RejectionReason | None]
+"""Gibt ``None`` zurück, wenn der Befehl erlaubt ist, sonst den Ablehnungsgrund."""
+
+SafetyCheck = Callable[[Command, Entity, CommandSpec], str | None]
+"""Gibt ``None`` zurück, wenn keine Sicherheitsbedingung entgegensteht.
+
+Dies ist **keine** technische Schutzfunktion. Die eigentliche Verriegelung
+gehört in die Steuerung; diese Prüfung verhindert lediglich, dass Kehler OS
+offensichtlich Unzulässiges überhaupt erst absetzt (Kapitel 12 §7,
+Kapitel 15 §24).
+"""
+
+
+def _allow_all(
+    command: Command, entity: Entity, spec: CommandSpec
+) -> RejectionReason | None:
+    """Vorgabe bis zur Benutzerverwaltung in M7.
+
+    Der Haken existiert bewusst von Anfang an: Kapitel 18 §120 verbietet,
+    erst zu bauen und später abzusichern.
+    """
+    return None
+
+
+def _no_safety_condition(
+    command: Command, entity: Entity, spec: CommandSpec
+) -> str | None:
+    return None
+
+
+class CommandBus:
+    """Nimmt Befehle entgegen, prüft sie und verfolgt ihr Ergebnis."""
+
+    def __init__(
+        self,
+        registry: Registry,
+        state_store: StateStore,
+        event_bus: EventBus,
+        *,
+        authorizer: Authorizer | None = None,
+        safety_check: SafetyCheck | None = None,
+    ) -> None:
+        self._registry = registry
+        self._state = state_store
+        self._events = event_bus
+        self._authorize = authorizer or _allow_all
+        self._safety = safety_check or _no_safety_condition
+        self._targets: list[CommandTarget] = []
+        self._locks: dict[str, asyncio.Lock] = {}
+
+    def register_target(self, target: CommandTarget) -> None:
+        self._targets.append(target)
+
+    # ── Öffentliche Schnittstelle ───────────────────────────────────────────
+
+    async def submit(self, command: Command) -> Command:
+        """Führt einen Befehl vollständig aus und gibt ihn beendet zurück."""
+        command.phase = CommandPhase.VALIDATING
+
+        checked = self._validate(command)
+        if checked is None:
+            await self._announce(command)
+            return command
+
+        entity, spec, target = checked
+        lock = self._locks.setdefault(command.entity_id, asyncio.Lock())
+
+        # Solange eine Bewegung läuft, wird ein zweiter Fahrbefehl abgewiesen
+        # statt überlagert (Kapitel 13 §21).
+        if lock.locked():
+            command.reject(
+                RejectionReason.BUSY,
+                f"Für {command.entity_id} läuft bereits ein Befehl",
+            )
+            await self._announce(command)
+            return command
+
+        async with lock:
+            await self._dispatch(command, entity, spec, target)
+
+        await self._announce(command)
+        return command
+
+    # ── Prüfung ─────────────────────────────────────────────────────────────
+
+    def _validate(
+        self, command: Command
+    ) -> tuple[Entity, CommandSpec, CommandTarget] | None:
+        """Alle Prüfungen vor dem ersten Hardwarekontakt.
+
+        Serverseitig und unabhängig davon, was die Oberfläche anzeigt — ein
+        ausgeblendeter Knopf ist keine Zugriffskontrolle (Kapitel 15 §42).
+        """
+        entity = self._registry.get(command.entity_id)
+        if entity is None:
+            command.reject(
+                RejectionReason.UNKNOWN_ENTITY,
+                f"Entity '{command.entity_id}' ist nicht registriert",
+            )
+            return None
+
+        if not entity.configured:
+            command.reject(
+                RejectionReason.NOT_CONFIGURED,
+                f"Für '{entity.id}' ist keine Hardware zugeordnet",
+            )
+            return None
+
+        spec = entity.spec_for(command.verb)
+        if spec is None:
+            command.reject(
+                RejectionReason.MISSING_CAPABILITY,
+                f"'{entity.id}' kann '{command.verb}' nicht "
+                f"(verfügbar: {', '.join(entity.capabilities) or 'keine'})",
+            )
+            return None
+
+        unexpected = set(command.params) - set(spec.params)
+        if unexpected:
+            command.reject(
+                RejectionReason.INVALID_PARAMS,
+                f"Unerwartete Parameter: {', '.join(sorted(unexpected))}",
+            )
+            return None
+
+        denial = self._authorize(command, entity, spec)
+        if denial is not None:
+            command.reject(denial, "Berechtigungsprüfung fehlgeschlagen")
+            return None
+
+        blocked = self._safety(command, entity, spec)
+        if blocked is not None:
+            command.reject(RejectionReason.SAFETY_CONDITION, blocked)
+            return None
+
+        target = self._target_for(entity.id)
+        if target is None:
+            command.reject(
+                RejectionReason.DEVICE_UNAVAILABLE,
+                f"Kein Adapter zuständig für '{entity.id}'",
+            )
+            return None
+
+        current = self._state.get(entity.id)
+        if current is not None and current.link in _UNREACHABLE:
+            command.reject(
+                RejectionReason.DEVICE_UNAVAILABLE,
+                f"Gerät nicht erreichbar ({current.link.value})",
+            )
+            return None
+
+        return entity, spec, target
+
+    def _target_for(self, entity_id: str) -> CommandTarget | None:
+        for target in self._targets:
+            if target.owns(entity_id):
+                return target
+        return None
+
+    # ── Ausführung ──────────────────────────────────────────────────────────
+
+    async def _dispatch(
+        self,
+        command: Command,
+        entity: Entity,
+        spec: CommandSpec,
+        target: CommandTarget,
+    ) -> None:
+        # Erst zuhören, dann senden — sonst kann eine sehr schnelle
+        # Rückmeldung verpasst werden.
+        subscription = self._state.subscribe()
+        baseline = self._state.require(entity.id).seq
+
+        self._state.set_requested(
+            entity.id,
+            RequestedState(value=spec.expected_value(command), command_id=command.id),
+        )
+
+        try:
+            command.phase = CommandPhase.SENT
+            try:
+                await target.execute(command, spec)
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                log.warning("Adapter %s lehnte %s ab: %s", target.name, command.name, exc)
+                command.fail(CommandPhase.FAILED, str(exc))
+                return
+
+            command.phase = CommandPhase.ACKNOWLEDGED
+
+            confirmed = await self._await_confirmation(
+                subscription, entity.id, spec, command, baseline
+            )
+            if confirmed:
+                command.complete()
+            else:
+                # Kein Erfolg vortäuschen: Ohne Bestätigung bleibt offen, was
+                # die Hardware getan hat (Kapitel 18 §20/§37).
+                command.fail(
+                    CommandPhase.TIMEOUT,
+                    f"Keine Rückmeldung innerhalb von {spec.timeout_ms} ms",
+                )
+        finally:
+            self._state.unsubscribe(subscription)
+            self._state.set_requested(entity.id, None)
+
+    async def _await_confirmation(
+        self,
+        subscription,
+        entity_id: str,
+        spec: CommandSpec,
+        command: Command,
+        baseline_seq: int,
+    ) -> bool:
+        """Wartet, bis die Hardware den Zielzustand bestätigt.
+
+        Zwischenzustände sind ausdrücklich erlaubt: Ein Garagentor darf über
+        ``OPENING`` nach ``OPEN`` laufen. Gewartet wird auf den Zielzustand,
+        nicht auf die erste beste Änderung.
+        """
+        if self._satisfies(entity_id, spec, command, baseline_seq):
+            return True
+
+        timeout = spec.timeout_ms / 1000
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout
+
+        while True:
+            remaining = deadline - loop.time()
+            if remaining <= 0:
+                return False
+            try:
+                delta = await asyncio.wait_for(subscription.get(), timeout=remaining)
+            except TimeoutError:
+                return False
+            if delta.entity_id != entity_id:
+                continue
+            if self._satisfies(entity_id, spec, command, baseline_seq):
+                return True
+
+    def _satisfies(
+        self,
+        entity_id: str,
+        spec: CommandSpec,
+        command: Command,
+        baseline_seq: int,
+    ) -> bool:
+        current = self._state.get(entity_id)
+        if current is None:
+            return False
+        value = current.state
+        if value.quality is not Quality.VALID:
+            return False
+
+        expected = spec.expected_value(command)
+        if expected is None:
+            # Kein vorhersagbarer Zielzustand: Eine bestätigte Änderung genügt.
+            return current.seq > baseline_seq
+        return value.value == expected
+
+    # ── Nachbereitung ───────────────────────────────────────────────────────
+
+    async def _announce(self, command: Command) -> None:
+        """Meldet das Ergebnis als Ereignis — Grundlage für Audit und Historie."""
+        severity = (
+            Severity.INFO if command.phase.is_success else Severity.WARNING
+        )
+        await self._events.publish(
+            Event(
+                type=f"command.{command.phase.value.lower()}",
+                entity_id=command.entity_id,
+                severity=severity,
+                correlation_id=command.correlation_id,
+                data={
+                    "command_id": command.id,
+                    "verb": command.verb,
+                    "params": dict(command.params),
+                    "trigger": command.trigger.value,
+                    "actor": command.actor,
+                    "client": command.client,
+                    "phase": command.phase.value,
+                    "rejection": command.rejection.value if command.rejection else None,
+                    "detail": command.detail,
+                    "duration_ms": command.duration_ms,
+                },
+            )
+        )
+
+
+_UNREACHABLE = frozenset(
+    {
+        LinkState.OFFLINE,
+        LinkState.ERROR,
+        LinkState.NOT_CONFIGURED,
+    }
+)

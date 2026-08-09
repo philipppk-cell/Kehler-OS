@@ -20,23 +20,26 @@ mit fertiger Hardwareintegration verwechselt wird.
 
 ## Meilensteine
 
-### M1 – Architektur und Grundgerüst · `IN PROGRESS`
+### M1 – Architektur und Grundgerüst · `SIMULATED`
 
 Analyse, Technologieentscheidungen, Datenmodell, Projektstruktur, Backend- und
 Frontend-Skelett, Konfiguration, Logging, Testgerüst, Entwicklungsumgebung.
 
-**Fertig, wenn:** das System startet, sich verbindet, einen leeren aber
-konsistenten Zustand ausliefert und die Testkette läuft.
+**Erreicht.** Das Backend startet, liefert einen konsistenten Zustand über
+REST und WebSocket, verarbeitet Befehle mit vollständigem Lebenszyklus und
+wird von 69 Tests abgedeckt.
 
-### M2 – Simulation · `PLANNED`
+### M2 – Simulation · `SIMULATED`
 
 Vollständiger Simulationsadapter mit Zustandsmaschinen, plausiblen Verläufen
 und **gezielt auslösbaren Fehlerbildern** (SPS offline, Victron-Timeout,
 ungültiger Sensor, blockierte Garage). Ohne Fehlersimulation ist die
 Simulation wertlos (Kapitel 18 §65).
 
-**Fertig, wenn:** Dashboard, Befehlskette, Warnungen, Realtime und alle
-Fehlerzustände ohne reale Hardware durchspielbar sind.
+**Weitgehend erreicht.** Der Simulationsadapter erfüllt dieselbe
+Schnittstelle wie die realen Adapter und erzeugt Sensordefekt, ungültige Werte,
+verstummte Sensoren und blockierte Mechanik. Offen bleibt nur, was das
+Dashboard betrifft — das entsteht in M4.
 
 ### M3 – Designsystem · `PLANNED`
 
@@ -152,8 +155,10 @@ Wird ab M2 fortlaufend gepflegt.
 
 | Bereich | Status |
 | --- | --- |
-| Architektur und Datenmodell | `IN PROGRESS` |
-| Simulation | `PLANNED` |
+| Architektur und Datenmodell | `SIMULATED` |
+| Backend-Kern (State, Commands, Events) | `SIMULATED` |
+| Simulation mit Fehlerbildern | `SIMULATED` |
+| REST- und Realtime-Schnittstelle | `SIMULATED` |
 | Designsystem | `PLANNED` |
 | Dashboard | `PLANNED` |
 | alle Fachmodule | `PLANNED` |

@@ -20,6 +20,31 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - Anforderungskapitel 1–18 im Wortlaut archiviert
 - Beschreibung der verbindlichen Dashboard-Designreferenz
 
+### Hinzugefügt — M1/M2: Backend-Kern und Simulation
+
+- **Domänenmodell:** Zustandswerte mit Qualität, Quelle und getrennten
+  Zeitstempeln; Entities mit Capabilities; Befehle mit vollständigem
+  Lebenszyklus; Ereignisse und Warnungen.
+- **State Store** als einzige Wahrheit. Startet vollständig `UNKNOWN` und wird
+  nie aus einer Datenbank wiederhergestellt. Werte altern selbsttätig zu
+  `STALE` und `UNKNOWN`, wenn Aktualisierungen ausbleiben.
+- **Command Bus** mit serverseitiger Prüfung vor jedem Hardwarekontakt,
+  Serialisierung je Entity, entitätsspezifischen Timeouts und Bestätigung
+  durch die Hardware. Ein Befehl gilt nie als erfolgreich, solange die
+  Hardware nichts gemeldet hat.
+- **Adapterschicht** mit einheitlicher Schnittstelle; Simulationsadapter als
+  gleichrangige Implementierung, inklusive gezielt auslösbarer Fehlerbilder
+  (Sensordefekt, ungültiger Wert, verstummter Sensor, blockierte Mechanik).
+- **Supervisor** mit Fehlergrenzen je Dienst, Backoff und
+  Crash-Loop-Erkennung.
+- **REST- und WebSocket-Schnittstelle** unter `/api/v1`: Snapshot beim
+  Verbinden, danach Deltas mit Sequenznummern. Statuscodes bilden das
+  tatsächliche Befehlsergebnis ab.
+- **Konfiguration** als validiertes YAML; Capabilities werden aus dem
+  Entity-Typ abgeleitet. Demokonfiguration für die Simulation, ausdrücklich
+  ohne erfundene Tankkapazitäten oder Hardwareadressen.
+- 69 Tests mit Schwerpunkt auf Fehlerzuständen; Lint sauber.
+
 ### Entschieden (2026-08-09)
 
 - **SPS-Transport:** S7-Kommunikation über snap7 statt OPC UA — keine Lizenz.
