@@ -5,7 +5,13 @@
 
 ## Entscheidung
 
-**Python 3.12+ mit asyncio, FastAPI (Starlette/uvicorn) und Pydantic v2.**
+**Python 3.11+ mit asyncio, FastAPI (Starlette/uvicorn) und Pydantic v2.**
+
+> Nachtrag aus der Umsetzung: Ursprünglich war 3.12 vorgesehen. 3.11 ist die
+> bessere Wahl, weil Raspberry Pi OS (Bookworm) genau diese Version mitbringt —
+> damit ist auf dem Zielgerät keine zusätzliche Python-Installation nötig, die
+> später eigenständig gepflegt werden müsste. Sprachlich wird nichts vermisst;
+> `StrEnum` und die moderne Typsyntax sind in 3.11 vorhanden.
 
 ## Kontext
 

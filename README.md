@@ -50,9 +50,9 @@ Visualisierung, Logik, Historie, Automatisierung.
 
 | Ebene | Wahl | Begründung |
 | --- | --- | --- |
-| Backend | Python 3.12 · asyncio · FastAPI · Pydantic v2 | [ADR 0001](docs/architektur/adr/0001-backend-sprache-und-framework.md) |
-| SPS-Transport | OPC UA empfohlen, S7/snap7 als Alternative | [ADR 0002](docs/architektur/adr/0002-plc-transport.md) |
-| Victron | lokales MQTT, Modbus TCP als Rückfall, read-only | [ADR 0003](docs/architektur/adr/0003-victron-transport.md) |
+| Backend | Python 3.11 · asyncio · FastAPI · Pydantic v2 | [ADR 0001](docs/architektur/adr/0001-backend-sprache-und-framework.md) |
+| SPS-Transport | S7-Kommunikation über snap7 (entschieden) | [ADR 0002](docs/architektur/adr/0002-plc-transport.md) |
+| Victron | lokales MQTT, Modbus als Rückfall; schreibend nur 2 Funktionen | [ADR 0003](docs/architektur/adr/0003-victron-transport.md) |
 | Datenhaltung | SQLite (getrennt für Betrieb und Historie), Konfiguration als YAML | [ADR 0004](docs/architektur/adr/0004-datenhaltung.md) |
 | Realtime | WebSocket mit Snapshot und Deltas | [ADR 0005](docs/architektur/adr/0005-realtime-transport.md) |
 | Frontend | React · TypeScript · Vite · Motion · CSS-Tokens | [ADR 0006](docs/architektur/adr/0006-frontend-stack.md) |
