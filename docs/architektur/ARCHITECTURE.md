@@ -295,7 +295,7 @@ kehler-os/
 │       ├── adapters/      base · simulation · plc · victron · camera
 │       ├── modules/       Licht · Energie · Wasser · Klima · Fahrzeug · …
 │       ├── services/      History · Audit · Diagnose · Konfiguration · Backup
-│       ├── automation/    Engine · Trigger · Bedingungen · Aktionen · Szenen
+│       ├── automation/    Engine · Trigger · Bedingungen · Aktionen
 │       ├── api/           REST-Routen · WebSocket · Auth · Schemas
 │       └── platform/      Logging · Supervisor · Zeit · Health
 ├── frontend/

@@ -25,7 +25,24 @@ sicherheitsrelevante Ansteuerung wird nicht aktiviert (Kapitel 18 §136).
 
 ## A – Siemens S7-1511-1 PN
 
-### A1 · Transportweg zur SPS — `OFFEN` · `BLOCKIEREND` für Phase 9
+### A1 · Transportweg zur SPS — `GEKLÄRT` (2026-08-09)
+
+**Antwort:** Keine OPC-UA-Lizenz. Es wird die **S7-Kommunikation (PUT/GET)
+über snap7** verwendet. Details und Sicherheitsfolgen in
+[ADR 0002](architektur/adr/0002-plc-transport.md).
+
+**Daraus folgt für die SPS-Projektierung (TIA Portal):**
+- „Zugriff über PUT/GET-Kommunikation durch entfernten Partner erlauben“ aktivieren
+- bei allen betroffenen Datenbausteinen den **optimierten Bausteinzugriff deaktivieren**
+- Verbindung über ISO-on-TCP, Port 102
+
+**Wichtige Folge:** Dieser Weg kennt keine Verschlüsselung. Die Absicherung
+liegt damit vollständig auf der Netztrennung — Punkt I3 ist dadurch
+aufgewertet und nicht mehr optional.
+
+<details>
+<summary>Ursprüngliche Abwägung (historisch)</summary>
+
 
 Es gibt zwei technisch saubere Wege. Die Entscheidung hat reale Kosten- und
 Projektierungsfolgen und kann nicht von der Software allein getroffen werden.
@@ -51,12 +68,13 @@ soll sie beschafft werden?
 Transporte lassen sich dahinter implementieren, ohne dass Fachmodule,
 State Store oder UI davon berührt werden.
 
+</details>
+
 ### A2 · Netzwerkparameter der SPS — `OFFEN` · `BLOCKIEREND` für Phase 9
 
 - IP-Adresse der CPU (PROFINET-Schnittstelle)
 - Subnetz / Gateway
-- Rack und Slot (bei S7-Kommunikation, üblicherweise Rack 0 / Slot 1)
-- bei OPC UA: Endpoint-URL, Security-Policy, Zertifikat, Benutzer/Passwort
+- Rack und Slot (üblicherweise Rack 0 / Slot 1 — bitte bestätigen)
 
 ### A3 · Datenpunkt-Mapping — `OFFEN` · `BLOCKIEREND` für Phase 9
 
@@ -66,7 +84,7 @@ Für **jede** Funktion, die real angebunden werden soll, wird benötigt:
 | --- | --- |
 | logische Kehler-OS-ID | `vehicle.garage.door` |
 | Richtung | read / write / read+write |
-| SPS-Adresse bzw. OPC-UA-NodeId | *(vom Projektverantwortlichen)* |
+| SPS-Adresse | *(vom Projektverantwortlichen)* |
 | Datentyp | Bool / Int / Real / Word |
 | Bedeutung von TRUE/FALSE bzw. Wertebereich | z. B. TRUE = verriegelt |
 | Rückmeldeadresse (falls getrennt vom Befehl) | |
@@ -130,14 +148,19 @@ Register, die über MQTT nicht sauber verfügbar sind.
 Wird für sinnvolle Skalen, Warnschwellen und Autarkieberechnung benötigt.
 Bis dahin sind alle Grenzwerte Konfiguration mit neutralen Vorgaben.
 
-### B3 · Schreibzugriffe — `OFFEN` · `NICHT BLOCKIEREND`
+### B3 · Schreibzugriffe — `GEKLÄRT` (2026-08-09)
 
-Kapitel 12 §32 verlangt eine ausdrückliche Trennung von READ und WRITE.
+**Antwort:** Schreibend ausschließlich für **zwei** Funktionen:
 
-**Benötigte Antwort:** Soll Kehler OS überhaupt in das Victron-System
-schreiben (z. B. Eingangsstrombegrenzung, Wechselrichter ein/aus)? Falls nein,
-wird der Adapter dauerhaft read-only betrieben — das ist die sicherere
-Voreinstellung und derzeit implementiert.
+1. Eingangsstrombegrenzung (Landstrom)
+2. Wechselrichter ein/aus
+
+Alles andere bleibt read-only. Umsetzung als Whitelist mit Wertebereichsprüfung,
+Bestätigungspflicht beim Abschalten des Wechselrichters und vollständiger
+Protokollierung — siehe [ADR 0003](architektur/adr/0003-victron-transport.md).
+
+> Für den Maximalwert der Strombegrenzung wird die reale Absicherung des
+> Landstromanschlusses benötigt (Punkt B2).
 
 ---
 
@@ -266,15 +289,14 @@ Stream-URL/Protokoll (RTSP/ONVIF), Auflösung, Zugangsdaten, Einbauort.
 
 ## I – Plattform und Netzwerk
 
-### I1 · Speichermedium des Raspberry Pi — `OFFEN` · `BLOCKIEREND` für Produktion
+### I1 · Speichermedium des Raspberry Pi — `GEKLÄRT` (2026-08-09)
 
-Kapitel 12 §23 warnt vor Datenträgerbelastung durch Dauerbetrieb.
+**Antwort:** **SSD.** Damit ist die Dauerschreiblast der Zeitreihen-Datenbank
+unkritisch und die Datenhaltung aus [ADR 0004](architektur/adr/0004-datenhaltung.md)
+uneingeschränkt tragfähig.
 
-**Empfehlung:** Betrieb von einer SSD (USB 3.0 oder NVMe via HAT), **nicht**
-von einer microSD-Karte. Dauerhafte Schreibvorgänge einer Zeitreihen-Datenbank
-sind für SD-Karten ungeeignet.
-
-**Benötigte Antwort:** Welches Speichermedium ist verbaut bzw. geplant?
+Offen bleibt lediglich die Anbindung (USB 3.0 oder NVMe via HAT) — für die
+Installationsdokumentation, nicht blockierend.
 
 ### I2 · Stromversorgung und Pufferung — `OFFEN` · `NICHT BLOCKIEREND`
 
@@ -283,11 +305,16 @@ sind für SD-Karten ungeeignet.
 - Gibt es ein Signal „Versorgung fällt gleich aus“ für ein kontrolliertes
   Herunterfahren?
 
-### I3 · Netzwerk — `OFFEN` · `NICHT BLOCKIEREND`
+### I3 · Netzwerk — `OFFEN` · `BLOCKIEREND` für den Produktivbetrieb
+
+> **Durch die Entscheidung in A1 aufgewertet.** Da die S7-Kommunikation
+> unverschlüsselt ist, trägt die Netztrennung die Sicherheit (Kapitel 15 §47).
 
 - IP-Bereich des Fahrzeugnetzes
 - Router-/Switch-/Access-Point-Modelle
-- Unterstützt der Switch VLANs (für die Segmentierung nach Kapitel 15 §40)?
+- **Unterstützt der Switch VLANs?** Falls nein, brauchen wir eine andere
+  Trennung — etwa eine zweite Netzwerkschnittstelle am Pi, an der die SPS
+  allein hängt.
 
 ### I4 · Hauptdisplay — `OFFEN` · `BLOCKIEREND` für finales Layout
 
@@ -325,8 +352,10 @@ inaktiv statt unzuverlässig.
 ## Zusammenfassung nach Dringlichkeit
 
 **Für die erste reale Inbetriebnahme (Phase 9) zwingend:**
-A1 Transportweg · A2 Netzwerkparameter · A3 Mapping der zuerst angebundenen
-Funktion · A5 vorhandene Sicherheitsverriegelungen · I1 Speichermedium
+A2 Netzwerkparameter · A3 Mapping der zuerst angebundenen Funktion ·
+A5 vorhandene Sicherheitsverriegelungen · I3 Netztrennung
+
+*(A1 und I1 sind geklärt.)*
 
 **Danach, für den sinnvollen Alltagsbetrieb:**
 B1 Cerbo-Schnittstelle · C1/C2 Tanksensorik und Kapazitäten · F1 Lichtkreise ·

@@ -185,7 +185,7 @@ Command
 ├── entity_id       vehicle.garage.door
 ├── verb            open
 ├── params          { }
-├── trigger         USER | AUTOMATION | SCENE | SYSTEM | AI
+├── trigger         USER | AUTOMATION | SYSTEM | AI
 ├── actor           Benutzer- oder Automatisierungskennung
 ├── client          Gerätekennung des auslösenden Clients
 ├── requested_at    Zeitpunkt
@@ -312,7 +312,7 @@ Kapitel 15 §52):
 Wer      actor + client
 Was      entity_id + verb + params
 Wann     requested_at / occurred_at
-Warum    trigger (USER, AUTOMATION, SCENE, SYSTEM, AI) + Regel-ID
+Warum    trigger (USER, AUTOMATION, SYSTEM, AI) + Regel-ID
 Ergebnis phase + result
 ```
 

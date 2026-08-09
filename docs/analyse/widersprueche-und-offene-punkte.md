@@ -25,13 +25,13 @@ jüngste und im Entwicklungsauftrag verbindliche ist.
   geführt. Ihre Inhalte erscheinen dort, wo sie gebraucht werden: Sicherheit als
   aggregierter Status auf dem Dashboard und in Fahrzeug/Diagnose, Wartung in
   einem eigenen Bereich unter Einstellungen.
-- **Navigation** (im Sinne von Kartenführung) wird zurückgestellt. Sie ist in
-  keinem späteren Kapitel weiter ausgeführt, benötigt Kartendaten und
-  Standortdaten, die laut Kapitel 15 §85 derzeit nicht vorausgesetzt sind.
+- **Navigation** (im Sinne von Kartenführung) **entfällt vollständig.**
+  Entscheidung des Projektverantwortlichen vom 2026-08-09. Es wird kein
+  Navigationsmodul entwickelt, keine Kartenintegration vorbereitet und keine
+  Standortverarbeitung eingebaut.
 - **KI-Assistent** ist laut Kapitel 18 §113/§117 ausdrücklich letzte Ebene.
 
-**Status:** entschieden, dokumentiert. Rückfrage nur nötig, falls Navigation
-oder ein eigener Sicherheitsbereich doch zur ersten Version gehören sollen.
+**Status:** `GEKLÄRT` (2026-08-09).
 
 ---
 
@@ -101,8 +101,11 @@ respektieren sie; Sicherheits- und Systemregeln übersteuern sie weiterhin
 (Kapitel 14 §95). Die Übersteuerung ist in der Oberfläche sichtbar und
 jederzeit aufhebbar — damit ist das Verhalten transparent im Sinne von §40.
 
-**Status:** offen. Wird vor Phase 7 (Automation Engine) benötigt, blockiert die
-vorherigen Phasen nicht.
+**Status:** **weiterhin offen.** Die Frage wurde am 2026-08-09 gestellt, aber am
+Szenen-Beispiel erläutert („die Nachtszene schaltet das Außenlicht aus“) — die
+Antwort bezog sich auf die Szenen (siehe W10), nicht auf das
+Übersteuerungsverhalten. Die Frage stellt sich für **Automatisierungsregeln**
+unverändert und wird vor M6 erneut gestellt.
 
 ---
 
@@ -174,9 +177,79 @@ mit **realer** SPS- und Victron-Anbindung laufen, Automatisierungen und Szenen
 verfügbar sind und Backup/Restore erprobt ist. Nivellierung, Kameras und KI
 folgen danach.
 
-**Status:** offen, Vorschlag in [`../ROADMAP.md`](../ROADMAP.md) abgebildet.
+**Status:** `GEKLÄRT` (2026-08-09). Der Vorschlag wurde angenommen.
+Nivellierung, Kameras und KI ausdrücklich **nach** Version 1.0.
 
 ---
+
+## W10 – Szenen entfallen (Abweichung von der Spezifikation)
+
+Dokumentiert im Format nach Kapitel 18 §138.
+
+**Requirement**
+Szenen sind in mehreren Kapiteln als Funktion vorgesehen: Kapitel 6 §19
+(Szenen als Konfiguration), Kapitel 9 §6 und §45 (Licht-Szenen, Szenen wie
+Nacht/Abfahrt/Ankunft), Kapitel 13 §50/§51 (Szenen mit Teilfehlern),
+Kapitel 14 §18–§27 (Szenenkonzept, System- und Benutzerszenen),
+Kapitel 18 §46.
+
+**Problem**
+Der Projektverantwortliche hat am 2026-08-09 entschieden: *„Ich möchte keine
+Szenen in meinem Betriebssystem.“*
+
+Dies ist keine technische Unmöglichkeit, sondern eine bewusste
+Produktentscheidung des Eigentümers. Sie hat Vorrang vor der früheren
+Spezifikation, weil sie später getroffen wurde und dasselbe Projekt betrifft.
+
+**Alternative**
+Szenen werden vollständig gestrichen:
+
+- kein Szenenkonzept, keine Szenenverwaltung, keine Szenen-Datenmodelle
+- keine Licht-Szenen (Kapitel 9 §6)
+- keine vordefinierten Abläufe ANKUNFT / ABFAHRT / NACHT / ALLES AUS
+- keine Unterscheidung `SYSTEM_SCENE` / `USER_SCENE`
+- kein Teilfehler-Ergebnis `PARTIAL_FAILURE` für Szenen
+
+**Erhalten bleiben** — weil sie eigenständige Konzepte sind und nicht
+mitgestrichen wurden:
+
+- **Automatisierungsregeln** (Trigger → Bedingungen → Aktionen). Sie waren Teil
+  des bestätigten Umfangs für Version 1.0 und sind in Kapitel 14 klar von
+  Szenen getrennt.
+- **Schnellzugriffe** auf dem Dashboard. Sie lösen jeweils **eine** Aktion aus
+  und sind damit keine Szene (Kapitel 8 §12/§13).
+- **Fahrzeugmodi.** Kapitel 14 §32 stellt ausdrücklich fest, dass ein Modus
+  keine Szene ist, sondern ein länger bestehender Betriebszustand.
+
+**Reason**
+Es ist das System des Eigentümers. Ein ungenutztes Funktionskonzept wäre
+zusätzliche Komplexität ohne Nutzen und widerspräche Kapitel 1 (Einfachheit)
+sowie Kapitel 18 §4.
+
+**Impact**
+- Meilenstein M6 verliert den Szenenteil und heißt nur noch
+  „Automatisierungen“.
+- Das Datenmodell enthält keine Szenenobjekte. Der Command Lifecycle wird
+  dadurch einfacher, weil das Teilfehler-Ergebnis für Mehrfachaktionen entfällt.
+- **Offen:** Ob der Abfahrtscheck erhalten bleibt. Er steht in Kapitel 14 unter
+  den Szenen, ist funktional aber eine reine Prüfung ohne Aktionen
+  (Kapitel 14 §21 „Prüfung statt blindem Befehl“). Siehe W11.
+
+---
+
+## W11 – Abfahrtscheck: bleibt er?
+
+Kapitel 14 §47 und Kapitel 18 §47 beschreiben einen Abfahrtscheck, der reale
+Rückmeldungen prüft und in `FAHRZEUG BEREIT` bzw. `NICHT ABFAHRBEREIT` mündet.
+Kapitel 14 stellt ihn im Szenenkapitel dar — er ist aber ausdrücklich als
+**Prüfung** definiert, nicht als Befehlsbündel.
+
+**Vorschlag:** erhalten, aber ausschließlich als **lesende Prüfung**. Er
+schaltet nichts, sondern zeigt je System ✓ / ✕ / unbekannt und ein
+Gesamtergebnis. Damit ist er keine Szene und trotzdem die sicherheitlich
+wertvollste Funktion aus diesem Bereich.
+
+**Status:** offen, wird vor M6 benötigt.
 
 ## Bewusst von der Spezifikation offen gelassen
 

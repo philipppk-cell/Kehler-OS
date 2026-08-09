@@ -13,19 +13,17 @@ devices:
     kind: PLC
     vendor: Siemens
     model: S7-1511-1 PN
-    # Transport: opcua | s7 | simulated      (siehe ADR 0002)
-    # Solange die Entscheidung offen ist (Punkt A1), gilt: simulated
+    # Transport: s7 | simulated              (entschieden in ADR 0002)
+    # Bleibt simuliert, bis A2 und A3 vorliegen.
     transport: simulated
     connection:
-      host: null              # <TODO: IP der CPU>
-      # nur bei transport: s7
+      host: null              # <TODO: IP der CPU, Punkt A2>
       rack: 0
       slot: 1
-      # nur bei transport: opcua
-      endpoint: null          # <TODO: opc.tcp://…>
-      security_policy: null
-      # Zugangsdaten kommen aus dem Secret-Store, nicht aus dieser Datei
-      credentials_ref: null
+      port: 102               # ISO-on-TCP
+    # Voraussetzung in TIA Portal (siehe ADR 0002):
+    #   - PUT/GET-Kommunikation erlauben
+    #   - optimierter Bausteinzugriff bei den genutzten DBs deaktiviert
     poll_interval_ms: 500
     reconnect:
       initial_delay_ms: 1000
@@ -47,8 +45,24 @@ devices:
       credentials_ref: null
     # Der Cerbo stoppt die Publikation ohne regelmäßigen Keepalive
     keepalive_interval_s: 30
-    # Read-only, bis ein Schreibbedarf bestätigt ist (Punkt B3)
-    allow_write: false
+    # Schreiben ist auf genau zwei Funktionen begrenzt (Punkt B3, ADR 0003).
+    # Es gibt keine generische Schreibfunktion – was hier nicht steht,
+    # kann der Adapter nicht setzen.
+    writable:
+      - id: energy.shore_power.current_limit
+        path: null            # <TODO: in Phase 10 am realen Gerät verifizieren>
+        unit: A
+        min: 0
+        max: null             # <TODO: reale Absicherung des Landstroms, Punkt B2>
+        requires_permission: energy.control
+        confirm: false
+      - id: energy.inverter.mode
+        path: null            # <TODO: in Phase 10 am realen Gerät verifizieren>
+        values: [ON, OFF]
+        requires_permission: energy.control
+        # Abschalten kappt die 230-V-Versorgung im Fahrzeug
+        confirm: true
+        risk: HIGH
 
 # Kameras werden erst eingetragen, wenn tatsächlich welche installiert sind.
 # Kapitel 12 §51 und Kapitel 18 §33: keine Kamera wird angenommen.

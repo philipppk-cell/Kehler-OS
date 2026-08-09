@@ -62,7 +62,7 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 
 1. **Wasser** — drei Tanks, Schwellen, Kalibrierung, Historie
 2. **Energie** — Batterie, Solar, Landstrom, Energiefluss, Historie
-3. **Licht** — Kreise, Gruppen, Szenen
+3. **Licht** — Kreise, Gruppen
 4. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung
 5. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen
 6. **Garage**
@@ -82,9 +82,12 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 
 ### M6 – Automatisierungen · `PLANNED`
 
-Deterministische Engine (Trigger, Bedingungen, Aktionen), Szenen, Hysterese,
-Entprellung, Verzögerungen, Cooldown, Schleifenerkennung, Historie, Dry Run,
-Abfahrtscheck.
+Deterministische Engine (Trigger, Bedingungen, Aktionen), Hysterese,
+Entprellung, Verzögerungen, Cooldown, Schleifenerkennung, Historie, Dry Run.
+
+> **Ohne Szenen.** Entscheidung vom 2026-08-09, dokumentiert als W10 in
+> [`analyse/widersprueche-und-offene-punkte.md`](analyse/widersprueche-und-offene-punkte.md).
+> Der Abfahrtscheck ist als reine Prüfung vorgesehen — Bestätigung offen (W11).
 
 ### M7 – Benutzer und Sicherheit · `PLANNED`
 
@@ -125,14 +128,17 @@ Kiosk-Betrieb, Autostart, Update- und Rollback-Weg, vollständige Dokumentation.
 
 ## Abgrenzung Version 1.0
 
+**Bestätigt am 2026-08-09.**
+
 **Enthalten:** Dashboard, Wasser, Energie, Licht, Klima, Fahrzeug, Garage,
-Einstellungen, Diagnose, Automatisierungen und Szenen, Benutzer und
-Berechtigungen, reale SPS- und Victron-Anbindung, Backup/Restore, Kiosk-Betrieb.
+Einstellungen, Diagnose, Automatisierungen, Benutzer und Berechtigungen,
+reale SPS- und Victron-Anbindung, Backup/Restore, Kiosk-Betrieb.
 
-**Nach 1.0:** Nivellierung mit realer Hydraulik, Kameras, Fernzugriff,
-KI-Assistent, Predictive Maintenance, Wetterstation.
+**Nach 1.0:** Nivellierung mit realer Hydraulik, Kameras, KI-Assistent,
+Fernzugriff, Predictive Maintenance, Wetterstation.
 
-> Vorschlag, siehe [`analyse/widersprueche-und-offene-punkte.md`](analyse/widersprueche-und-offene-punkte.md) W9.
+**Gestrichen:** Szenen (W10) und Navigation (W1) — beides Entscheidungen des
+Projektverantwortlichen, nicht technische Einschränkungen.
 
 ---
 

@@ -1,81 +1,94 @@
 # ADR 0002 – Transportweg zur Siemens S7-1511-1 PN
 
-**Status:** vorläufig · Entscheidung offen (siehe `OPEN_HARDWARE_REQUIREMENTS.md` A1)
+**Status:** angenommen · entschieden am 2026-08-09 durch den Projektverantwortlichen
 **Bezug:** Kapitel 5 §6, Kapitel 12 §4, Kapitel 15 §47, Kapitel 18 §10
+**Ersetzt:** die vorläufige Fassung, die OPC UA empfahl
 
 ## Entscheidung
 
-**Der Adapter wird transportunabhängig gebaut. Empfohlen wird OPC UA;
-S7-Kommunikation über snap7 bleibt als vollwertige Alternative implementierbar.
-Die endgültige Wahl trifft der Projektverantwortliche, weil sie reale Kosten
-verursacht.**
+**S7-Kommunikation (PUT/GET) über `python-snap7`.**
 
-## Kontext
+OPC UA wurde geprüft und verworfen, weil der integrierte OPC-UA-Server der
+S7-1500 eine kostenpflichtige SIMATIC-Runtime-Lizenz benötigt. Der
+Projektverantwortliche hat entschieden, diese Lizenz nicht zu beschaffen.
 
-Die S7-1511-1 PN bietet für einen externen Rechner zwei etablierte Wege.
-Kapitel 18 §10 verlangt, die Methode anhand der realen Konfiguration zu wählen
-— die noch nicht vorliegt. Kapitel 18 §96 verlangt zugleich, deswegen nicht
-stehenzubleiben.
+Das ist eine legitime wirtschaftliche Entscheidung. Sie ist fachlich tragfähig —
+sie verlagert allerdings die Sicherheit vom Protokoll in die Netzarchitektur,
+was unten Konsequenzen hat.
 
-## Abwägung
+## Was das für die SPS-Projektierung bedeutet
 
-### OPC UA — empfohlen
+Damit ein externer Rechner über PUT/GET lesen und schreiben kann, muss in
+TIA Portal Folgendes eingestellt sein:
 
-Die CPU hat einen integrierten OPC-UA-Server. Für dieses Projekt spricht:
+1. **CPU → Schutz & Security → Verbindungsmechanismen:**
+   „Zugriff über PUT/GET-Kommunikation durch entfernten Partner erlauben“
+   aktivieren.
+2. **Für jeden Datenbaustein, auf den Kehler OS zugreift:**
+   Eigenschaften → **„Optimierter Bausteinzugriff“ deaktivieren.**
+   Nur dann sind die Daten absolut adressierbar (`DB10.DBX4.2`), was PUT/GET
+   voraussetzt.
+3. Die Verbindung läuft über ISO-on-TCP, Port 102. Typischerweise Rack 0,
+   Slot 1 — ist bei der Inbetriebnahme zu bestätigen.
 
-- **Benannte Nodes statt roher Adressen.** Das Mapping wird lesbar und
-  überlebt Umstrukturierungen im SPS-Programm besser als absolute Adressen.
-- **Verschlüsselung und Authentifizierung** sind Teil des Protokolls. Kapitel 15
-  §46 verlangt gesicherte Kommunikation, wo technisch möglich — hier ist sie es.
-- **Der optimierte Bausteinzugriff kann aktiv bleiben.** Das SPS-Programm muss
-  nicht verschlechtert werden, um von außen lesbar zu sein.
-- Der Client `asyncua` ist ausgereift, asynchron und reines Python.
+> **Hinweis für die spätere Wartung:** Wird ein Datenbaustein nachträglich
+> wieder auf optimierten Zugriff gestellt, bricht die Verbindung zu genau
+> diesen Datenpunkten ab. Das gehört in die Wartungsdokumentation.
 
-Dagegen: Der Server benötigt eine kostenpflichtige SIMATIC-Runtime-Lizenz.
-Das ist keine technische, sondern eine wirtschaftliche Hürde — und deshalb
-keine Entscheidung, die die Software allein treffen darf.
+## Sicherheitsfolge — und wie sie aufgefangen wird
 
-### S7-Kommunikation über snap7 — Alternative
+S7-Kommunikation über PUT/GET kennt **keine Transportverschlüsselung und keine
+Authentifizierung**. Wer im selben Netzsegment ist und die Adressen kennt, kann
+mit der SPS sprechen.
 
-Kostenfrei und weit verbreitet. Erfordert in TIA Portal jedoch:
+Kapitel 15 §47 sieht genau diesen Fall vor und verlangt, die Sicherheit dann
+über die Gesamtarchitektur herzustellen. Konkret heißt das für dieses Projekt:
 
-- „Zugriff über PUT/GET-Kommunikation erlauben“
-- **Deaktivierung des optimierten Bausteinzugriffs** für alle betroffenen DBs
-- keine Transportsicherheit → die Absicherung muss vollständig über
-  Netzsegmentierung erfolgen (Kapitel 15 §47 sieht diesen Fall ausdrücklich vor)
-
-Fachlich funktioniert das einwandfrei. Es verlagert aber Sicherheit vom
-Protokoll in die Netzarchitektur und macht das Mapping empfindlicher gegenüber
-Änderungen am SPS-Programm.
-
-### Modbus TCP — verworfen
-
-Wäre nur über zusätzliche Projektierung in der SPS verfügbar und böte keinen
-Vorteil gegenüber den beiden nativen Wegen.
+- **Die SPS ist ausschließlich für den Raspberry Pi erreichbar.** Kein Client,
+  kein Gäste-WLAN, kein sonstiges Netzgerät bekommt eine Route dorthin.
+  → Kapitel 15 §114
+- **Netzsegmentierung wird von „wäre schön“ zur tragenden Maßnahme.** Damit
+  steigt die Wichtigkeit des offenen Punkts I3 (VLAN-Fähigkeit des Switches)
+  erheblich. Kann der Switch keine VLANs, brauchen wir eine andere
+  Trennung — etwa eine zweite Netzwerkschnittstelle am Pi, an der die SPS
+  allein hängt.
+- **Kein Remote-Zugriff erreicht die SPS jemals direkt.** Fernzugriff endet
+  immer am Kehler-OS-Backend, das Authentifizierung, Autorisierung und
+  Validierung durchsetzt. → Kapitel 15 §36/§37
+- Das Backend bleibt der einzige kontrollierte Weg zur Hardware.
+  → Kapitel 15 §115
 
 ## Umsetzung
 
 ```
 PlcAdapter (Interface)
-├── OpcUaPlcTransport      asyncua
-├── S7PlcTransport         python-snap7
+├── S7PlcTransport         python-snap7   ← gewählt
 └── SimulatedPlcTransport  interne Zustandsmaschine
 ```
 
-Über dem Transport liegt eine gemeinsame Mapping-Schicht, die semantische IDs
-auf Transportreferenzen abbildet. Die Referenz ist im Mapping ein
-undurchsichtiger String — beim einen Transport eine NodeId, beim anderen eine
-Adresse. Kein Code oberhalb der Adapterschicht sieht ihn.
+Die Transportabstraktion bleibt trotz der getroffenen Entscheidung bestehen.
+Sie kostet praktisch nichts und hält den Weg offen, falls später doch OPC UA
+oder ein anderes Verfahren gewünscht wird. Über dem Transport liegt die
+Mapping-Schicht; oberhalb der Adapterschicht sieht kein Code eine Adresse.
 
-Damit kostet ein späterer Wechsel des Transports genau eine
-Konfigurationsänderung plus ein neues Mapping — und keine Änderung an Modulen,
-Automatisierung oder UI.
+**Betriebliche Feinheiten von snap7**, die der Adapter behandeln muss:
+
+- Die Bibliothek ist blockierend. Alle Aufrufe laufen deshalb in einem
+  Executor, damit die Event-Loop nicht einfriert (Kapitel 17 §11).
+- Es gibt keine Ereignisbenachrichtigung — gelesen wird zyklisch. Die
+  Abfragerate wird je Datenpunkt konfiguriert, damit die SPS nicht unnötig
+  belastet wird (Kapitel 5 §18, Kapitel 12 §74).
+- Zusammenhängende Datenpunkte werden möglichst in einem Lesezugriff
+  gebündelt, statt jeden einzeln abzufragen.
+- Ein Verbindungsabbruch wird erkannt und mit exponentiellem Backoff neu
+  aufgebaut; die betroffenen Datenpunkte gehen dabei auf `UNKNOWN`, nicht auf
+  einen Standardwert.
 
 ## Konsequenzen
 
-- Bis A1 beantwortet ist, läuft ausschließlich `SimulatedPlcTransport`.
-- Für die produktive Nutzung müssen zusätzlich A2 (Netzwerkparameter) und A3
-  (Mapping) vorliegen. Ohne sie wird kein realer Ausgang geschaltet.
-- Fällt die Wahl auf snap7, ist die Netzsegmentierung (Kapitel 15 §40) keine
-  Kür mehr, sondern die tragende Sicherheitsmaßnahme. Das wird dann in der
-  Installationsdokumentation entsprechend hervorgehoben.
+- **Offen und blockierend bleiben** A2 (IP, Rack, Slot) und A3 (Mapping).
+- **Punkt I3 ist aufgewertet:** Die Netztrennung ist jetzt sicherheitstragend
+  und keine Kür mehr.
+- Die TIA-Portal-Einstellungen aus dem Abschnitt oben gehören in
+  `docs/HARDWARE_INTEGRATION.md` und in die Wartungsdokumentation.
+- Bis A2/A3 vorliegen, läuft ausschließlich `SimulatedPlcTransport`.
