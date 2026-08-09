@@ -168,7 +168,6 @@ Aggregierte Zustände fassen mehrere Entities zusammen:
 ```
 vehicle.lock.summary  →  ALL_LOCKED | PARTIALLY_LOCKED | UNLOCKED | UNKNOWN
 system.health         →  HEALTHY | DEGRADED | WARNING | CRITICAL
-vehicle.readiness     →  READY_TO_DRIVE | NOT_READY | UNKNOWN
 ```
 
 Ein einziges `UNKNOWN` unter den Bestandteilen führt niemals zu einem

@@ -85,9 +85,13 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 Deterministische Engine (Trigger, Bedingungen, Aktionen), Hysterese,
 Entprellung, Verzögerungen, Cooldown, Schleifenerkennung, Historie, Dry Run.
 
-> **Ohne Szenen.** Entscheidung vom 2026-08-09, dokumentiert als W10 in
+> **Ohne Szenen und ohne Abfahrtscheck.** Entscheidungen vom 2026-08-09,
+> dokumentiert als W10 und W11 in
 > [`analyse/widersprueche-und-offene-punkte.md`](analyse/widersprueche-und-offene-punkte.md).
-> Der Abfahrtscheck ist als reine Prüfung vorgesehen — Bestätigung offen (W11).
+>
+> Bei manuellem Eingriff gewinnt der Benutzerbefehl: Er setzt eine sichtbare,
+> zeitlich begrenzte Übersteuerung, die Komfortregeln respektieren und
+> Sicherheitsregeln übersteuern (W5).
 
 ### M7 – Benutzer und Sicherheit · `PLANNED`
 

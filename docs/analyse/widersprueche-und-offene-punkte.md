@@ -101,11 +101,20 @@ respektieren sie; Sicherheits- und Systemregeln übersteuern sie weiterhin
 (Kapitel 14 §95). Die Übersteuerung ist in der Oberfläche sichtbar und
 jederzeit aufhebbar — damit ist das Verhalten transparent im Sinne von §40.
 
-**Status:** **weiterhin offen.** Die Frage wurde am 2026-08-09 gestellt, aber am
-Szenen-Beispiel erläutert („die Nachtszene schaltet das Außenlicht aus“) — die
-Antwort bezog sich auf die Szenen (siehe W10), nicht auf das
-Übersteuerungsverhalten. Die Frage stellt sich für **Automatisierungsregeln**
-unverändert und wird vor M6 erneut gestellt.
+**Status:** `GEKLÄRT` (2026-08-09, nach Rückfrage).
+
+**Entscheidung: Der manuelle Befehl gewinnt.** Eine Benutzeraktion setzt auf der
+betroffenen Entity eine **manuelle Übersteuerung**:
+
+- Sie ist in der Oberfläche sichtbar und jederzeit aufhebbar (Kapitel 14 §40:
+  kein grundloses Gegenschalten).
+- Sie endet beim nächsten Fahrzeugmoduswechsel, spätestens nach einer
+  konfigurierbaren Dauer.
+- **Komfortregeln** respektieren sie und greifen so lange nicht ein.
+- **Sicherheits- und Systemregeln übersteuern sie weiterhin** — die
+  Prioritätsordnung aus Kapitel 14 §95 bleibt unangetastet:
+  Sicherheit > Systemschutz > Benutzerbefehl > Komfortautomation.
+- Jede Übersteuerung erscheint in der Historie mit Auslöser und Dauer.
 
 ---
 
@@ -237,19 +246,42 @@ sowie Kapitel 18 §4.
 
 ---
 
-## W11 – Abfahrtscheck: bleibt er?
+## W11 – Abfahrtscheck entfällt (Abweichung von der Spezifikation)
 
-Kapitel 14 §47 und Kapitel 18 §47 beschreiben einen Abfahrtscheck, der reale
+Dokumentiert im Format nach Kapitel 18 §138.
+
+**Requirement**
+Kapitel 14 §21/§47 und Kapitel 18 §47 beschreiben einen Abfahrtscheck, der reale
 Rückmeldungen prüft und in `FAHRZEUG BEREIT` bzw. `NICHT ABFAHRBEREIT` mündet.
-Kapitel 14 stellt ihn im Szenenkapitel dar — er ist aber ausdrücklich als
-**Prüfung** definiert, nicht als Befehlsbündel.
+Kapitel 14 §22 nennt zusätzlich einen aggregierten Zustand `READY_TO_DRIVE`.
 
-**Vorschlag:** erhalten, aber ausschließlich als **lesende Prüfung**. Er
-schaltet nichts, sondern zeigt je System ✓ / ✕ / unbekannt und ein
-Gesamtergebnis. Damit ist er keine Szene und trotzdem die sicherheitlich
-wertvollste Funktion aus diesem Bereich.
+**Problem**
+Entscheidung des Projektverantwortlichen vom 2026-08-09: **weglassen.**
 
-**Status:** offen, wird vor M6 benötigt.
+**Alternative**
+Es wird keine eigene Abfahrtscheck-Ansicht und kein aggregierter Zustand
+`vehicle.readiness` entwickelt.
+
+Die zugrunde liegenden Informationen bleiben vollständig erhalten und sichtbar:
+Markise, Stufen, Garage, Türen, Fenster und Verriegelungen erscheinen mit ihrem
+tatsächlichen Zustand auf dem Dashboard, in der Fahrzeugvisualisierung und auf
+der Fahrzeugseite. Was fehlt, ist ausschließlich die zusammenfassende
+Ja/Nein-Bewertung.
+
+**Reason**
+Der Eigentümer möchte ein schlankes System ohne zusätzliche Bewertungsebene.
+Die Einzelzustände sind ohnehin unmittelbar erkennbar.
+
+**Impact**
+- `vehicle.readiness` entfällt aus dem Datenmodell.
+- M6 verliert den Abfahrtscheck.
+- **Hinweis für später:** Sobald der Fahrmodus eine reale Datenquelle bekommt
+  (Punkt J1), lassen sich fahrmodusabhängige Warnungen ergänzen — etwa
+  „Markise ausgefahren“ während der Fahrt. Das ist eine Warnung im bestehenden
+  Warnsystem und kein Abfahrtscheck; die Entscheidung hier steht dem nicht
+  entgegen.
+
+**Status:** `GEKLÄRT` (2026-08-09).
 
 ## Bewusst von der Spezifikation offen gelassen
 

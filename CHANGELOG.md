@@ -31,10 +31,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Schnellzugriffe und Fahrzeugmodi bleiben.
 - **Navigation entfällt vollständig** (W1).
 - **Umfang Version 1.0 bestätigt.** Nivellierung, Kameras und KI danach (W9).
+- **Manueller Eingriff gewinnt** gegenüber Komfortautomatisierungen: sichtbare,
+  zeitlich begrenzte Übersteuerung; Sicherheitsregeln übersteuern sie (W5).
+- **Abfahrtscheck entfällt** (W11). Die Einzelzustände bleiben sichtbar.
 
 ### Offen
 
 - Bilddatei der Designreferenz fehlt im Repository (nur Beschreibung vorhanden)
 - keine realen Hardwareparameter vorhanden — Entwicklung läuft simuliert
-- Übersteuerungsverhalten bei manuellem Eingriff in eine Automatisierung (W5)
-- Abfahrtscheck: bleibt er als reine Prüfung erhalten? (W11)
+- Übersteuerungsdauer und Bindung an den Moduswechsel im Detail (vor M6)
