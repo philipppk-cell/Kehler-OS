@@ -23,8 +23,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from ..adapters.simulation import Fault as SimulationFault
 from ..application import Application
 from ..core.alerts import derive_alerts
+from ..core.water import TankView
+from ..core.water import summarise as water_summary
 from ..domain.enums import CommandPhase, Trigger
 from ..domain.models import Command
 from . import serialization as ser
@@ -43,6 +46,13 @@ class CommandRequest(BaseModel):
     verb: str
     params: dict[str, Any] = Field(default_factory=dict)
     client: str | None = None
+
+
+class FaultRequest(BaseModel):
+    """Ein gezielt ausgelöstes Fehlerbild — nur in der Simulation."""
+
+    entity_id: str
+    fault: str
 
 
 def create_app(application: Application) -> FastAPI:
@@ -108,6 +118,37 @@ def create_app(application: Application) -> FastAPI:
             for adapter in application.adapters
         ]
 
+    @router.post("/diagnostics/simulation/fault")
+    async def inject_fault(request: FaultRequest) -> dict[str, Any]:
+        """Löst ein Fehlerbild in der Simulation aus.
+
+        Kapitel 18 §65: Eine Simulation ohne auslösbare Fehlerbilder ist
+        wertlos — die Zustände, die im Alltag am seltensten auftreten, sind im
+        Ernstfall die wichtigsten. Ohne diesen Zugang lassen sie sich nur
+        prüfen, indem man auf sie wartet.
+
+        **Im Produktivbetrieb nicht vorhanden.** Der Weg existiert nur,
+        solange kein reales Fahrzeug angesteuert wird — er darf niemals einen
+        Fehler an echter Hardware vortäuschen (Kapitel 15 §96).
+        """
+        if not application.settings.is_simulated:
+            raise HTTPException(
+                status_code=404,
+                detail="Fehlerinjektion gibt es nur in der Simulation",
+            )
+
+        for adapter in application.adapters:
+            inject = getattr(adapter, "inject", None)
+            if inject is None or request.entity_id not in adapter.entity_ids:
+                continue
+            try:
+                inject(request.entity_id, SimulationFault(request.fault))
+            except ValueError as error:
+                raise HTTPException(status_code=422, detail=str(error)) from error
+            return {"entity_id": request.entity_id, "fault": request.fault}
+
+        raise HTTPException(status_code=404, detail="Unbekannte Entity")
+
     @router.get("/alerts")
     async def alerts() -> list[dict[str, Any]]:
         """Aktuelle Warnungen.
@@ -129,6 +170,31 @@ def create_app(application: Application) -> FastAPI:
             }
             for alert in derive_alerts(application.state, application.registry)
         ]
+
+    @router.get("/water")
+    async def water() -> dict[str, Any]:
+        """Wasserstände einschließlich Gesamtmenge Frischwasser.
+
+        Die Summe über beide Frischwassertanks entsteht hier und nicht in der
+        Oberfläche: Sie wird über Liter gebildet, nicht über Prozent, und sie
+        entfällt vollständig, sobald ein Tank keinen belastbaren Wert liefert
+        (siehe ``core/water.py``).
+        """
+        summary = water_summary(
+            {state.entity_id: state for state in application.state},
+            application.registry,
+        )
+        return {
+            "fresh": {
+                "quality": summary.fresh.quality.value,
+                "capacity_l": summary.fresh.capacity_l,
+                "litres": summary.fresh.litres,
+                "free_l": summary.fresh.free_l,
+                "percent": summary.fresh.percent,
+                "tanks": [_tank_json(tank) for tank in summary.fresh.tanks],
+            },
+            "waste": [_tank_json(tank) for tank in summary.waste],
+        }
 
     # ── Entities ────────────────────────────────────────────────────────────
 
@@ -250,3 +316,19 @@ def _status_for(phase: CommandPhase) -> int:
         CommandPhase.FAILED: 502,
         CommandPhase.TIMEOUT: 504,
     }.get(phase, 202)
+
+
+def _tank_json(tank: TankView) -> dict[str, Any]:
+    """Ein Tank für die Oberfläche.
+
+    ``litres`` ist ``None``, wenn Füllstand oder Kapazität fehlen — nicht 0.
+    """
+    return {
+        "entity_id": tank.entity_id,
+        "name_key": tank.name_key,
+        "quality": tank.quality.value,
+        "percent": tank.percent,
+        "capacity_l": tank.capacity_l,
+        "litres": tank.litres,
+        "free_l": tank.free_l,
+    }

@@ -39,6 +39,14 @@ def new_id() -> str:
     return uuid.uuid4().hex
 
 
+_WITHOUT_VALUE = frozenset({Quality.UNKNOWN, Quality.INVALID, Quality.ERROR})
+"""Qualitäten, die keinen Zahlenwert tragen dürfen.
+
+Sie alle bedeuten „hier liegt nichts Belastbares vor". ``STALE`` fehlt
+bewusst — dazu ``StateValue.__post_init__``.
+"""
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Zustandswert
 # ─────────────────────────────────────────────────────────────────────────────
@@ -66,7 +74,16 @@ class StateValue:
     def __post_init__(self) -> None:
         # Ein nicht belastbarer Wert darf keinen Zahlenwert vortäuschen.
         # Das ist die technische Durchsetzung von Kapitel 18 §38.
-        if self.quality is not Quality.VALID and self.value is not None:
+        #
+        # ``STALE`` ist ausdrücklich ausgenommen: Es bedeutet „alt, aber
+        # echt“. Genau dafür existiert der Zustand neben ``UNKNOWN``. Würde
+        # auch er den Wert verwerfen, wären beide inhaltlich gleich und die
+        # dreistufige Alterung aus Kapitel 13 §9 (gültig → veraltet →
+        # unbekannt) hätte keine mittlere Stufe mehr.
+        #
+        # Die Kennzeichnung übernimmt die Oberfläche: Ein veralteter Wert
+        # wird angezeigt und sichtbar als veraltet markiert.
+        if self.quality in _WITHOUT_VALUE and self.value is not None:
             object.__setattr__(self, "value", None)
 
     # ── Fabriken ────────────────────────────────────────────────────────────
@@ -115,8 +132,12 @@ class StateValue:
 
         Der ursprüngliche ``measured_at`` bleibt erhalten — man muss sehen
         können, wie alt die letzte echte Messung war.
+
+        Der Wert bleibt ebenfalls erhalten; ob er das darf, entscheidet
+        ``__post_init__`` anhand der neuen Qualität. Bei ``STALE`` bleibt er,
+        bei ``UNKNOWN`` fällt er weg.
         """
-        return replace(self, value=None, quality=quality)
+        return replace(self, quality=quality)
 
     def age_seconds(self, now: datetime | None = None) -> float:
         reference = self.measured_at or self.received_at
@@ -213,6 +234,14 @@ class Entity:
     configured: bool = True
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt „Nicht konfiguriert“ (Kapitel 18 §101)."""
+
+    capacity_l: float | None = None
+    """Nutzbare Kapazität eines Tanks in Litern.
+
+    Ohne Angabe zeigt die Oberfläche ausschließlich Prozent. Eine Kapazität
+    wird nicht geschätzt — eine Literzahl ist eine Aussage über das Fahrzeug
+    (Kapitel 18 §98).
+    """
 
     @property
     def capabilities(self) -> tuple[str, ...]:

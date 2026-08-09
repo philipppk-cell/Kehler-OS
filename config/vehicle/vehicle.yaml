@@ -1,27 +1,35 @@
 # ════════════════════════════════════════════════════════════════════════════
-#  DEMONSTRATIONSKONFIGURATION — NICHT DAS REALE FAHRZEUG
+#  FAHRZEUGBESCHREIBUNG
 # ════════════════════════════════════════════════════════════════════════════
 #
-# Diese Datei existiert ausschließlich, damit Kehler OS ohne das Wohnmobil
-# entwickelt und vorgeführt werden kann. Sie beschreibt eine plausible, aber
-# frei gewählte Ausstattung.
+# Diese Datei sagt, WELCHE Funktionen das Fahrzeug besitzt — nicht, an welcher
+# Klemme sie hängen. Hardwareadressen stehen in `config/hardware/` und werden
+# nicht versioniert.
 #
-# Sie wird NUR in den Betriebsarten `development` und `simulation` geladen.
-# Im Produktivbetrieb kommt `vehicle.yaml` zum Einsatz, die aus den realen
-# Hardwaredaten entsteht.
+# Sie gilt in allen Betriebsarten. Simulation und Produktivbetrieb
+# unterscheiden sich im Adapter, nicht im Fahrzeug: Ein Wohnmobil hat dieselben
+# Tanks, ob die Werte nun aus der SPS oder aus dem Simulator kommen.
 #
-# Bewusst NICHT enthalten (Kapitel 18 §97/§98):
-#   - Tankkapazitäten in Litern  → offener Punkt C2
-#   - Warnschwellen              → offener Punkt C3
-#   - Hardwareadressen           → offener Punkt A3
+# ── Herkunft der Angaben ────────────────────────────────────────────────────
+#
+# Jeder Eintrag ist mit einer der beiden Kennzeichnungen versehen:
+#
+#   BESTÄTIGT   vom Fahrzeughalter genannt oder auf den Fotos zu sehen
+#   VORLÄUFIG   plausibel angenommen, damit die Entwicklung weiterlaufen kann.
+#               Diese Einträge sind zu prüfen, bevor reale Hardware angebunden
+#               wird (Kapitel 18 §97/§98).
+#
+# Bewusst NICHT enthalten:
+#   - Warnschwellen   → offener Punkt C3, noch nicht festgelegt
+#   - Hardwareadressen → offener Punkt A3
 #   - RGB-Beleuchtung, Dachluken, Alarmanlage, Satellit, Kameras
 #     (nicht bestätigte Hardware — Kapitel 18 §34)
 #
-# Die Nivellierung fehlt hier absichtlich: Hydraulik ist ausdrücklich nicht
-# das erste Testobjekt (Kapitel 18 §91).
+# Die Nivellierung fehlt absichtlich: Hydraulik ist ausdrücklich nicht das
+# erste Testobjekt (Kapitel 18 §91).
 
-version: 1
-name: Simulationsfahrzeug
+version: 2
+name: Kehler
 
 areas:
   - { id: cab,      name_key: area.cab }
@@ -36,13 +44,27 @@ areas:
 entities:
 
   # ── Wasser ────────────────────────────────────────────────────────────────
-  # Ohne capacity_l zeigt die Oberfläche nur Prozent. Eine Literangabe wird
-  # nicht geraten.
+  # BESTÄTIGT: zwei Frischwassertanks (550 l und 450 l), Grauwasser 280 l,
+  # Schwarzwasser 370 l.
+  #
+  # Mit bekannter Kapazität zeigt die Oberfläche Liter statt nur Prozent.
+  # Sie geht dabei von einem linearen Tank aus — ob das stimmt, ist offener
+  # Punkt C2 (Kalibrierkurve). Solange keine Stützpunkte vorliegen, ist die
+  # Literangabe eine Umrechnung des Füllstands und keine Messung.
 
-  - id: water.tank.fresh
-    name_key: tank.fresh
+  - id: water.tank.fresh.large
+    name_key: tank.fresh_large
     type: measurement
     unit: percent
+    capacity_l: 550
+    deadband: 0.5
+    expected_interval_s: 30
+
+  - id: water.tank.fresh.small
+    name_key: tank.fresh_small
+    type: measurement
+    unit: percent
+    capacity_l: 450
     deadband: 0.5
     expected_interval_s: 30
 
@@ -50,6 +72,7 @@ entities:
     name_key: tank.grey
     type: measurement
     unit: percent
+    capacity_l: 280
     deadband: 0.5
     expected_interval_s: 30
 
@@ -57,9 +80,12 @@ entities:
     name_key: tank.black
     type: measurement
     unit: percent
+    capacity_l: 370
     deadband: 0.5
     expected_interval_s: 30
 
+  # VORLÄUFIG: dass es eine schaltbare Wasserpumpe gibt, ist anzunehmen —
+  # bestätigt ist es nicht.
   - id: water.pump.main
     name_key: water.pump
     type: switch
@@ -67,6 +93,11 @@ entities:
     timeout_ms: 2000
 
   # ── Energie ───────────────────────────────────────────────────────────────
+  # BESTÄTIGT: Victron-Anlage mit Solar auf dem Dach (zehn Module, auf den
+  # Fotos sichtbar), 24-V-Lithiumsystem.
+  # VORLÄUFIG: die genaue Aufteilung der Messwerte. Sie folgt erst aus der
+  # Cerbo-Anbindung (offener Punkt B1/B2).
+  #
   # Read-only. Victron bleibt Energiemanagement und Schutzinstanz
   # (Kapitel 12 §33).
 
@@ -92,6 +123,9 @@ entities:
     expected_interval_s: 10
 
   # ── Klima ─────────────────────────────────────────────────────────────────
+  # VORLÄUFIG: Weder die Geräte noch die Sensoren sind bekannt (Punkt G1/G2).
+  # Die Einträge halten die Struktur offen.
+  #
   # IST und SOLL sind getrennte Entities (Kapitel 13 §35): Die Messung ist
   # ein Messwert, der Sollwert ist eine Einstellung.
 
@@ -119,6 +153,9 @@ entities:
     expected_interval_s: 60
 
   # ── Licht ─────────────────────────────────────────────────────────────────
+  # VORLÄUFIG: Die Liste der Lichtkreise ist angenommen, nicht bestätigt
+  # (offener Punkt F1). Sie wird ersetzt, sobald die echten Kreise vorliegen.
+  #
   # Nur schaltbar. Kein Kreis ist als dimmbar konfiguriert, deshalb zeigt die
   # Oberfläche keinen Regler (Kapitel 12 §55).
 
@@ -141,6 +178,9 @@ entities:
     timeout_ms: 1500
 
   # ── Aufbau ────────────────────────────────────────────────────────────────
+  # BESTÄTIGT durch die Fotos: Heckklappe (oben angeschlagen, hebt nach oben),
+  # Eingangstür rechts, Markise auf der rechten Dachkante.
+  # VORLÄUFIG: die Einstiegsstufe und sämtliche Laufzeiten.
 
   - id: vehicle.garage.door
     name_key: vehicle.garage_door

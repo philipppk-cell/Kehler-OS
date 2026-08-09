@@ -23,7 +23,7 @@ REPO = Path(__file__).resolve().parents[2]
 
 @pytest.fixture
 def app() -> Application:
-    vehicle = load_vehicle(REPO / "config/vehicle/vehicle.simulation.yaml")
+    vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
     return Application(Settings(), vehicle)
 
 
@@ -68,7 +68,7 @@ class TestEntities:
         assert verben == {"open", "close", "stop"}
 
     def test_messwert_hat_keine_bedienelemente(self, client: TestClient):
-        eintrag = client.get(f"{API_PREFIX}/entities/water.tank.fresh").json()
+        eintrag = client.get(f"{API_PREFIX}/entities/water.tank.fresh.large").json()
         assert eintrag["definition"]["capabilities"] == []
 
     def test_unbekannte_entity_ergibt_404(self, client: TestClient):
@@ -91,7 +91,7 @@ class TestBefehle:
     def test_fehlende_capability_ergibt_konflikt(self, client: TestClient):
         antwort = client.post(
             f"{API_PREFIX}/commands",
-            json={"entity_id": "water.tank.fresh", "verb": "open"},
+            json={"entity_id": "water.tank.fresh.large", "verb": "open"},
         )
         assert antwort.status_code == 409
         assert antwort.json()["rejection"] == "MISSING_CAPABILITY"

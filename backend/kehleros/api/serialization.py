@@ -38,6 +38,7 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
         "area": entity.area,
         "unit": entity.unit,
         "configured": entity.configured,
+        "capacity_l": entity.capacity_l,
         "capabilities": [
             {
                 "verb": spec.verb,

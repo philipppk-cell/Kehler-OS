@@ -19,7 +19,7 @@ pip install -e ".[dev]"
 ## Starten
 
 ```bash
-python -m kehleros.main --vehicle ../config/vehicle/vehicle.simulation.yaml
+python -m kehleros.main --vehicle ../config/vehicle/vehicle.yaml
 ```
 
 Danach:

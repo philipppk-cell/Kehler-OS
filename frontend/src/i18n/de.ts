@@ -53,6 +53,7 @@ const de: Record<string, string> = {
   "alert.deviceOffline": "Das Gerät ist derzeit nicht erreichbar",
   "alert.sensorFaulty": "Der gemeldete Wert ist nicht verwertbar",
   "alert.sensorStale": "Seit längerem keine Rückmeldung",
+  "alert.sensorLost": "Liefert keine Werte mehr",
 
   // Fahrzeugansicht
   "vehicle3d.label": "Fahrzeugansicht mit dem Zustand der Aufbaufunktionen",
@@ -80,9 +81,29 @@ const de: Record<string, string> = {
 
   // Wasser
   "tank.fresh": "Frischwasser",
+  "tank.fresh_large": "Frischwasser groß",
+  "tank.fresh_small": "Frischwasser klein",
   "tank.grey": "Grauwasser",
   "tank.black": "Schwarzwasser",
   "water.pump": "Wasserpumpe",
+
+  // Wasserseite
+  "water.title": "Wasser",
+  "water.freshTotal": "Frischwasser gesamt",
+  "water.waste": "Abwasser",
+  "water.supply": "Versorgung",
+  "water.remaining": "verfügbar",
+  "water.filled": "belegt",
+  "water.capacity": "Fassungsvermögen",
+  "water.totalUnknown": "Gesamtstand nicht ermittelbar",
+  "water.totalUnknownHint":
+    "Solange ein Tank keinen belastbaren Wert liefert, wäre jede Gesamtangabe eine Schätzung.",
+  "water.notesTitle": "Was hier noch fehlt",
+  "water.noThresholds":
+    "Für Warnungen sind noch keine Schwellen festgelegt — deshalb sind alle Balken neutral eingefärbt.",
+  "water.linearHint":
+    "Liter sind aus dem Füllstand umgerechnet. Ohne Kalibrierkurve wird ein gleichmäßig geformter Tank angenommen.",
+  "water.historyLater": "Verlauf entsteht in einem späteren Schritt",
 
   // Klima
   "climate.inside": "Innen",

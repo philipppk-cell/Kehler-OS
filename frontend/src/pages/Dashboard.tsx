@@ -25,7 +25,8 @@ import {
 import type { Part } from "../vehicle/VehicleView";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
-import type { EntityView } from "../realtime/types";
+import { Quality, type EntityView } from "../realtime/types";
+import { useWater, type TankView as WaterTank } from "../water/useWater";
 import { sendCommand } from "../api/client";
 import { t } from "../i18n/de";
 import "./dashboard.css";
@@ -349,40 +350,73 @@ function socTone(value: unknown): Tone {
   return "ok";
 }
 
+/**
+ * Die Wasserkarte im Dashboard.
+ *
+ * Sie zeigt die **Gesamtmenge Frischwasser** über beide Tanks — das ist die
+ * Alltagsfrage. Die Einzeltanks stehen auf der Wasserseite (Kapitel 8 §1).
+ *
+ * Alle Balken sind neutral eingefärbt. Orange oder Rot würde eine Bewertung
+ * behaupten, die das System nicht treffen kann: Die Schwellen sind noch nicht
+ * konfiguriert (offener Punkt C3). Farbe ohne Bedeutung wäre Dekoration und
+ * widerspricht Kapitel 7 §5.
+ */
 function WaterCard({ emphasis }: { emphasis: boolean }) {
-  // Alle Tanks werden neutral dargestellt. Orange oder Rot würde eine
-  // Bewertung behaupten, die das System nicht treffen kann: Die Schwellen
-  // sind noch nicht konfiguriert (offener Punkt C3). Farbe ohne Bedeutung
-  // wäre Dekoration und widerspricht Kapitel 7 §5.
-  const tanks = [
-    { id: "water.tank.fresh", label: t("tank.fresh") },
-    { id: "water.tank.grey", label: t("tank.grey") },
-    { id: "water.tank.black", label: t("tank.black") },
-  ];
+  const water = useWater();
+  const { connection } = useAppState();
+  const online = connection === "online";
+  const fresh = water?.fresh;
+  const total = online && fresh?.litres !== null && fresh !== undefined;
 
   return (
     <Card title={t("dash.water")} emphasis={emphasis}>
+      <div className="metric">
+        {total ? (
+          <span className="value value--metric">
+            <span className="numeric">{Math.round(fresh.litres!)}</span>
+            <span className="value__unit">L</span>
+          </span>
+        ) : (
+          <span className="value value--metric value--unknown">
+            —<span className="value__hint">{t("state.unknown")}</span>
+          </span>
+        )}
+        <span className="metric__caption">{t("water.freshTotal")}</span>
+      </div>
+
       <div className="tanks">
-        {tanks.map((tank) => (
-          <TankRow key={tank.id} id={tank.id} label={tank.label} />
+        {(water?.waste ?? []).map((tank) => (
+          <WasteRow key={tank.entity_id} tank={tank} online={online} />
         ))}
       </div>
     </Card>
   );
 }
 
-function TankRow({ id, label }: { id: string; label: string }) {
-  const entity = useEntity(id);
+function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
+  const usable =
+    online && tank.percent !== null &&
+    (tank.quality === Quality.Valid || tank.quality === Quality.Stale);
+  const percent = usable ? Math.max(0, Math.min(100, tank.percent!)) : 0;
 
   return (
     <div className="tank">
       <div className="tank__head">
-        <span className="tank__label">{label}</span>
-        <Value entity={entity} size="inline" />
+        <span className="tank__label">{t(tank.name_key, tank.entity_id)}</span>
+        <span className="value value--inline">
+          {usable ? (
+            <>
+              <span className="numeric">{Math.round(tank.percent!)}</span>
+              <span className="value__unit">%</span>
+            </>
+          ) : (
+            <span className="value--unknown">—</span>
+          )}
+        </span>
       </div>
-      <Bar entity={entity} tone="accent" />
-      {/* Liter werden erst gezeigt, wenn eine Kapazität konfiguriert ist.
-          Sie wird nicht geraten (Kapitel 18 §98, offener Punkt C2). */}
+      <div className={`bar${usable ? "" : " bar--unknown"}`}>
+        <div className="bar__fill bar__fill--accent" style={{ width: `${percent}%` }} />
+      </div>
     </div>
   );
 }

@@ -95,6 +95,43 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - [ADR 0008](docs/architektur/adr/0008-fahrzeugdarstellung-3d.md) mit der
   Begründung, warum die 3D-Absage aus ADR 0006 revidiert wurde.
 
+### Hinzugefügt — M5: Wasser
+
+- **Vier Tanks mit realen Kapazitäten** (Frischwasser 550 l und 450 l,
+  Grauwasser 280 l, Schwarzwasser 370 l). Damit zeigt die Oberfläche Liter
+  statt nur Prozent. Punkt C2 ist für die Kapazitäten geklärt.
+- **Gesamtmenge Frischwasser** über beide Tanks — im Backend gerechnet, weil
+  zwei Regeln darin Geschäftslogik sind: über Liter statt über Prozent
+  summieren, und **keine Summe, wenn ein Tank keinen belastbaren Wert
+  liefert**. Ein halber Gesamtstand sieht aus wie ein ganzer.
+- **Wasserseite** mit Gesamtmenge, Einzeltanks, Abwasser (belegt und frei),
+  Pumpenschalter und einem Abschnitt, der benennt, was noch fehlt.
+- **Fehlerinjektion über die API** (`/diagnostics/simulation/fault`), damit
+  sich die seltenen Zustände prüfen lassen, ohne auf sie zu warten
+  (Kapitel 18 §65). Im Produktivbetrieb nicht vorhanden.
+- Die Fahrzeugkonfiguration heißt jetzt `vehicle.yaml` statt
+  `vehicle.simulation.yaml` und gilt in allen Betriebsarten — sie enthält
+  reale Fahrzeugdaten. Jeder Eintrag ist als `BESTÄTIGT` oder `VORLÄUFIG`
+  gekennzeichnet. Hardwareadressen liegen weiterhin ungetrackt in
+  `config/hardware/`.
+
+### Behoben — Zustände, die sich widersprachen
+
+- **`STALE` verwarf seinen Wert.** Damit war „veraltet" inhaltlich nicht von
+  „unbekannt" zu unterscheiden und die dreistufige Alterung aus Kapitel 13 §9
+  hatte keine mittlere Stufe mehr. Jetzt behält ein veralteter Wert seine
+  Zahl und wird sichtbar gekennzeichnet; `UNKNOWN`, `INVALID` und `ERROR`
+  tragen weiterhin keinen Wert.
+- **Ein verstummter Sensor erzeugte keine Warnung.** `UNKNOWN` war von der
+  Warnungsableitung ausgenommen — ausgerechnet der schwerwiegendste
+  Sensorzustand blieb stumm. Jetzt wird unterschieden: „seit dem Start noch
+  nichts gemeldet" bleibt ohne Warnung, „hat gemeldet und ist verstummt"
+  ergibt eine Warnung.
+- **Systemzustand und Warnungen wurden getrennt abgeleitet und konnten sich
+  widersprechen.** Der Systemstatus meldete „Alles in Ordnung", während eine
+  Warnung in der Liste stand. Der Gesamtzustand ergibt sich jetzt aus
+  denselben Warnungen, die die Oberfläche anzeigt.
+
 ### Korrigiert — Fahrzeugmodell nach zusätzlichem Foto
 
 Eine Drohnenaufnahme mit Umgebung und geöffnetem Heck hat drei Fehler

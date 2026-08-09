@@ -4,11 +4,12 @@ config/hardware/*.yaml
 !config/hardware/*.example.yaml
 config/vehicle/*.yaml
 !config/vehicle/*.example.yaml
-# Ausnahme: die Demonstrationskonfiguration. Sie beschreibt ausdrücklich NICHT
-# das reale Fahrzeug und enthält keine Adressen, Kapazitäten oder Schwellen.
-# Sie gehört ins Repository, weil das System sonst ohne Wohnmobil nicht
-# startbar wäre.
-!config/vehicle/vehicle.simulation.yaml
+# Ausnahme: die Fahrzeugbeschreibung selbst. Sie sagt, WELCHE Funktionen das
+# Fahrzeug hat und wie groß die Tanks sind — das ist keine schützenswerte
+# Information, und ohne sie ist das System nicht startbar.
+# Hardwareadressen und Zugangsdaten stehen ausdrücklich NICHT hier, sondern
+# in config/hardware/ — und das bleibt ungetrackt.
+!config/vehicle/vehicle.yaml
 config/environments/*.local.yaml
 
 # Secrets gehören niemals ins Repository (Kapitel 15 §49/§50)

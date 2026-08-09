@@ -76,6 +76,7 @@ def _build_entity(config: EntityConfig) -> Entity:
         deadband=config.deadband,
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
+        capacity_l=config.capacity_l,
         commands=_commands_for(config),
     )
 

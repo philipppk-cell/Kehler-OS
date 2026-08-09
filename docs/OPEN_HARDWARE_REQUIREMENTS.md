@@ -168,22 +168,39 @@ Protokollierung — siehe [ADR 0003](architektur/adr/0003-victron-transport.md).
 
 ### C1 · Sensorik — `OFFEN` · `BLOCKIEREND` für reale Anzeige
 
-Pro Tank (Frisch-, Grau-, Schwarzwasser):
+Pro Tank — **es sind vier**: zwei Frischwasser, Grau-, Schwarzwasser:
 
 - Sensortyp (Druck, kapazitiv, Ultraschall, resistiv, Schwimmer)
 - elektrisches Signal (4–20 mA / 0–10 V / Widerstand)
 - Messbereich und Kennlinie
 - an welchem Analogeingang angeschlossen
 
-### C2 · Tankgeometrie — `OFFEN` · `BLOCKIEREND` für reale Anzeige
+### C2 · Tankgeometrie — `TEILWEISE` · `NICHT BLOCKIEREND`
 
-- nutzbare Kapazität je Tank in Litern
-- ist der Tank geometrisch linear? Falls nein: Stützpunkte für die
-  Kalibrierkurve (Kapitel 12 §37)
+**Beantwortet (2026-08-09) — Kapazitäten:**
 
-> Kapitel 18 §98 verbietet ausdrücklich, hier Werte zu erfinden. Die
-> Kapazitäten sind reine Konfiguration und im Auslieferungszustand leer;
-> die UI zeigt dann „Nicht konfiguriert“.
+| Tank | Kapazität |
+| --- | --- |
+| Frischwasser groß | 550 l |
+| Frischwasser klein | 450 l |
+| **Frischwasser gesamt** | **1000 l** |
+| Grauwasser | 280 l |
+| Schwarzwasser | 370 l |
+
+Damit zeigt die Oberfläche Liter statt nur Prozent. Die Werte stehen in
+`config/vehicle/vehicle.yaml` und sind durch einen Test festgehalten, damit
+ein Zahlendreher auffällt.
+
+**Weiterhin offen — Kalibrierkurve:**
+
+Sind die Tanks geometrisch linear? Falls nein, werden Stützpunkte benötigt
+(Kapitel 12 §37).
+
+> **ASSUMPTION (bis zur Klärung):** Die Umrechnung Prozent → Liter nimmt einen
+> gleichmäßig geformten Tank an. Die Wasserseite weist sichtbar darauf hin,
+> dass die Literangabe eine Umrechnung des Füllstands ist und keine Messung.
+> Bei einem geformten Tank — etwa einem, der sich nach unten verjüngt — weicht
+> sie im mittleren Bereich am stärksten ab.
 
 ### C3 · Warnschwellen — `OFFEN` · `NICHT BLOCKIEREND`
 

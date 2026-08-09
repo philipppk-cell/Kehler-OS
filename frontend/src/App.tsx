@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Shell, type PageId } from "./shell/Shell";
 import { Dashboard } from "./pages/Dashboard";
+import { Wasser } from "./pages/Wasser";
 import { Placeholder } from "./pages/Placeholder";
 import { RealtimeClient, realtimeUrl } from "./realtime/client";
 import { fetchSystem } from "./api/client";
@@ -28,7 +29,13 @@ export function App() {
 
   return (
     <Shell page={page} onNavigate={setPage}>
-      {page === "dashboard" ? <Dashboard /> : <Placeholder title={t(`nav.${page}`)} />}
+      {page === "dashboard" ? (
+        <Dashboard />
+      ) : page === "water" ? (
+        <Wasser />
+      ) : (
+        <Placeholder title={t(`nav.${page}`)} />
+      )}
 
       {/* Fehlgeschlagene Befehle werden verständlich gemeldet — nie stumm
           verschluckt (Kapitel 17 §20/§22). */}

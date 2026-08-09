@@ -20,12 +20,19 @@ class TestUnbekannteWerte:
     def test_unbekannt_traegt_niemals_einen_wert(self):
         assert StateValue.unknown().value is None
 
-    def test_qualitaet_ungleich_valid_verwirft_den_wert(self):
+    def test_unbelastbare_qualitaet_verwirft_den_wert(self):
         # Selbst wenn jemand versucht, einen Wert mitzugeben: Ein nicht
         # belastbarer Zustand darf keine Zahl vortäuschen (Kapitel 18 §38).
-        for quality in (Quality.UNKNOWN, Quality.STALE, Quality.INVALID, Quality.ERROR):
+        for quality in (Quality.UNKNOWN, Quality.INVALID, Quality.ERROR):
             value = StateValue(value=42, quality=quality)
             assert value.value is None, f"{quality} hat einen Wert behalten"
+
+    def test_veraltet_behaelt_den_wert(self):
+        # STALE bedeutet „alt, aber echt". Würde auch dieser Zustand den Wert
+        # verwerfen, wäre er von UNKNOWN nicht zu unterscheiden und die
+        # dreistufige Alterung aus Kapitel 13 §9 hätte keine mittlere Stufe.
+        value = StateValue(value=42, quality=Quality.STALE)
+        assert value.value == 42
 
     def test_startzustand_ist_unbekannt(self, state: StateStore):
         # Nach einem Neustart wird nichts aus der Datenbank übernommen

@@ -18,11 +18,12 @@ from .adapters.base import Adapter
 from .adapters.simulation import SimulationAdapter
 from .config.loader import build_entities, load_settings, load_vehicle
 from .config.models import Settings, VehicleConfig
+from .core.alerts import derive_alerts
 from .core.command_bus import CommandBus
 from .core.event_bus import EventBus
 from .core.registry import Registry
 from .core.state_store import StateStore
-from .domain.enums import Environment, LinkState, Severity, SystemHealth
+from .domain.enums import Environment, Severity, SystemHealth
 from .domain.models import Event
 from .platform.supervisor import ServiceState, Supervisor
 
@@ -210,8 +211,17 @@ class Application:
     def health(self) -> SystemHealth:
         """Leitet den Gesamtzustand aus den Einzelzuständen ab.
 
-        ``CRITICAL`` bleibt bewusst selten — zu viele kritische Meldungen
-        entwerten die Priorität (Kapitel 13 §55).
+        **Der Gesamtzustand ergibt sich aus denselben Warnungen, die die
+        Oberfläche anzeigt.** Das ist bewusst so und nicht nur bequem: Wären
+        es zwei getrennte Ableitungen, könnten sie sich widersprechen — und
+        genau das ist passiert. Ein verstummter Tanksensor stand als Warnung
+        in der Liste, während der Systemstatus „Alles in Ordnung“ meldete.
+        Eine Zusammenfassung, die beruhigt, während darunter eine Warnung
+        steht, ist schlimmer als gar keine.
+
+        ``CRITICAL`` bleibt trotzdem selten — zu viele kritische Meldungen
+        entwerten die Priorität (Kapitel 13 §55). Deshalb hebt eine einzelne
+        Sensorwarnung den Gesamtzustand nur auf ``DEGRADED``.
         """
         statuses = self.supervisor.status()
         if not statuses:
@@ -226,12 +236,16 @@ class Application:
         if any(s.state is ServiceState.RESTARTING for s in statuses.values()):
             return SystemHealth.WARNING
 
-        offline = [
-            entity_state
-            for entity_state in self.state
-            if entity_state.link in (LinkState.OFFLINE, LinkState.ERROR)
-        ]
-        if offline:
-            return SystemHealth.DEGRADED
+        alerts = derive_alerts(self.state, self.registry)
+        severities = {alert.severity for alert in alerts}
 
+        if Severity.CRITICAL in severities:
+            return SystemHealth.CRITICAL
+        if Severity.WARNING in severities:
+            return SystemHealth.DEGRADED
+        if Severity.NOTICE in severities:
+            return SystemHealth.WARNING
+
+        # INFO bleibt ohne Wirkung: „Nicht konfiguriert“ ist ein offener
+        # Punkt in der Einrichtung, keine Störung im Betrieb.
         return SystemHealth.HEALTHY

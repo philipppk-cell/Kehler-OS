@@ -89,6 +89,25 @@ def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
                 )
             )
 
+        elif quality is Quality.UNKNOWN and entity_state.state.measured_at:
+            # Ein Wert, der einmal da war und weggefallen ist.
+            #
+            # Die Bedingung `measured_at` ist der ganze Punkt: Beim Start ist
+            # alles unbekannt, weil noch nichts gemeldet wurde — daraus eine
+            # Warnung je Entity zu machen, wäre eine Wand aus Meldungen ohne
+            # Aussage. Ein Sensor dagegen, der geliefert hat und dann
+            # verstummt ist, trägt einen Messzeitpunkt. Das ist der Fall, der
+            # gemeldet gehört (Kapitel 13 §9).
+            alerts.append(
+                Alert(
+                    type="sensor.lost",
+                    entity_id=entity.id,
+                    severity=Severity.WARNING,
+                    message_key="alert.sensorLost",
+                    params={"name_key": entity.name_key},
+                )
+            )
+
     # Wichtigstes zuerst — das Dashboard zeigt oben, was zählt
     # (Kapitel 8 §9).
     order = {

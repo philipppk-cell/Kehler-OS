@@ -18,7 +18,7 @@ from .platform.logging import setup_logging
 
 log = logging.getLogger(__name__)
 
-DEFAULT_VEHICLE = Path("config/vehicle/vehicle.simulation.yaml")
+DEFAULT_VEHICLE = Path("config/vehicle/vehicle.yaml")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

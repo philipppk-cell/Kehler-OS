@@ -95,7 +95,19 @@ ließe sich nur mit geratenen Werten füllen.
 
 In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 
-1. **Wasser** — drei Tanks, Schwellen, Kalibrierung, Historie
+1. **Wasser** · `SIMULATED` — **vier** Tanks (zwei Frischwasser à 550 l und
+   450 l, Grauwasser 280 l, Schwarzwasser 370 l), Gesamtmenge Frischwasser,
+   Literanzeige, Pumpe.
+
+   **Erreicht.** Die Gesamtmenge entsteht im Backend über Liter statt über
+   Prozent und entfällt vollständig, sobald ein Tank keinen belastbaren Wert
+   liefert — geprüft gegen einen laufenden Server mit gezielt verstummtem
+   Sensor.
+
+   Noch offen und **nicht** erfunden: Schwellen (Punkt C3, deshalb sind alle
+   Balken neutral) und die Kalibrierkurve (Punkt C2, deshalb der sichtbare
+   Hinweis, dass Liter umgerechnet sind). Historie folgt mit der
+   Zeitreihen-Datenhaltung.
 2. **Energie** — Batterie, Solar, Landstrom, Energiefluss, Historie
 3. **Licht** — Kreise, Gruppen
 4. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung

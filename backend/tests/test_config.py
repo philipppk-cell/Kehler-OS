@@ -132,19 +132,41 @@ class TestMitgelieferteKonfiguration:
     """Die Demokonfiguration muss geladen werden können und ehrlich bleiben."""
 
     def test_simulationskonfiguration_laedt(self):
-        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.simulation.yaml")
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         entities = build_entities(vehicle)
         assert len(entities) > 10
 
-    def test_keine_erfundenen_tankkapazitaeten(self):
-        """Kapitel 18 §98: Kapazitäten werden nicht geraten."""
-        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.simulation.yaml")
-        tanks = [e for e in vehicle.entities if e.id.startswith("water.tank.")]
-        assert tanks, "Es sollten Tanks konfiguriert sein"
-        assert all(t.capacity_l is None for t in tanks)
+    def test_tankkapazitaeten_entsprechen_der_angabe(self):
+        """Die Kapazitäten sind vom Fahrzeughalter genannt (Punkt C2).
+
+        Der Test hält sie fest, damit ein Zahlendreher in der Konfiguration
+        auffällt — und nicht erst dann, wenn die Oberfläche eine falsche
+        Literzahl anzeigt.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        kapazitaeten = {
+            e.id: e.capacity_l
+            for e in vehicle.entities
+            if e.id.startswith("water.tank.")
+        }
+        assert kapazitaeten == {
+            "water.tank.fresh.large": 550,
+            "water.tank.fresh.small": 450,
+            "water.tank.grey": 280,
+            "water.tank.black": 370,
+        }
+
+    def test_keine_erfundenen_warnschwellen(self):
+        """Kapitel 18 §98: Schwellen werden nicht geraten (offener Punkt C3)."""
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        for entity in vehicle.entities:
+            assert entity.warn_below is None
+            assert entity.warn_above is None
+            assert entity.critical_below is None
+            assert entity.critical_above is None
 
     def test_beispiel_fuer_nicht_konfigurierte_hardware(self):
-        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.simulation.yaml")
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         offen = [e for e in vehicle.entities if not e.configured]
         assert offen, "Die Demokonfiguration soll den Fall 'nicht konfiguriert' zeigen"
 
