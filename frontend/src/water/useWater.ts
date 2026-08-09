@@ -25,6 +25,12 @@ export interface TankView {
   /** Belegter Inhalt in Litern. `null`, wenn Füllstand oder Kapazität fehlen. */
   litres: number | null;
   free_l: number | null;
+  /** Konfigurierte Warnschwellen. `null` heißt: für diesen Wert wird nicht
+   *  gewarnt — es gibt keine eingebauten Schwellen. */
+  warn_below: number | null;
+  warn_above: number | null;
+  /** Ob eine Schwelle überschritten ist. Vom Backend bewertet, nicht hier. */
+  breached: boolean;
 }
 
 export interface FreshGroup {
@@ -33,6 +39,8 @@ export interface FreshGroup {
   litres: number | null;
   free_l: number | null;
   percent: number | null;
+  warn_below: number | null;
+  breached: boolean;
   tanks: TankView[];
 }
 

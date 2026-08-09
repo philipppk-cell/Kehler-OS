@@ -88,8 +88,8 @@ Offen bleibt die Messung der Bildrate auf dem realen Display (Punkt I4).
 
 Bewusst **nicht** enthalten: Karten für Nivellierung und Verbrauch. Die
 Nivellierung ist ausdrücklich nach 1.0 verschoben (Kapitel 18 §91), und für
-eine Verbrauchsanzeige fehlen die Tankkapazitäten (offener Punkt C2) — sie
-ließe sich nur mit geratenen Werten füllen.
+eine Verbrauchsanzeige fehlt der Verlauf über die Zeit — sie käme mit der
+Zeitreihen-Datenhaltung, nicht mit einer weiteren Momentaufnahme.
 
 ### M5 – Fachmodule · `PLANNED`
 
@@ -104,10 +104,11 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    liefert — geprüft gegen einen laufenden Server mit gezielt verstummtem
    Sensor.
 
-   Noch offen und **nicht** erfunden: Schwellen (Punkt C3, deshalb sind alle
-   Balken neutral) und die Kalibrierkurve (Punkt C2, deshalb der sichtbare
-   Hinweis, dass Liter umgerechnet sind). Historie folgt mit der
-   Zeitreihen-Datenhaltung.
+   Warnschwellen sind gesetzt (Frischwasser unter 20 %, Abwasser über 80 %)
+   und im Balken als Markierung sichtbar. Die Tanks sind gleichmäßig geformt,
+   die Literangabe damit exakt — die Punkte C2 und C3 sind geschlossen.
+
+   Offen bleibt nur die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
 2. **Energie** — Batterie, Solar, Landstrom, Energiefluss, Historie
 3. **Licht** — Kreise, Gruppen
 4. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung

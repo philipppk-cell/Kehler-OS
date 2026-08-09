@@ -156,12 +156,33 @@ class TestMitgelieferteKonfiguration:
             "water.tank.black": 370,
         }
 
-    def test_keine_erfundenen_warnschwellen(self):
-        """Kapitel 18 §98: Schwellen werden nicht geraten (offener Punkt C3)."""
+    def test_warnschwellen_entsprechen_der_angabe(self):
+        """Die Schwellen sind vom Fahrzeughalter genannt (Punkt C3).
+
+        Frischwasser warnt nach unten, Abwasser nach oben. Die Richtung ist
+        das, was hier schiefgehen kann — eine vertauschte Schwelle würde
+        genau dann schweigen, wenn sie gebraucht wird.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        schwellen = {
+            e.id: (e.warn_below, e.warn_above)
+            for e in vehicle.entities
+            if e.id.startswith("water.tank.")
+        }
+        assert schwellen == {
+            "water.tank.fresh.large": (20, None),
+            "water.tank.fresh.small": (20, None),
+            "water.tank.grey": (None, 80),
+            "water.tank.black": (None, 80),
+        }
+
+    def test_keine_erfundenen_kritischen_schwellen(self):
+        """Kritische Schwellen wurden nicht genannt — also gibt es keine.
+
+        Kapitel 13 §55: Zu viele kritische Meldungen entwerten die Priorität.
+        """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         for entity in vehicle.entities:
-            assert entity.warn_below is None
-            assert entity.warn_above is None
             assert entity.critical_below is None
             assert entity.critical_above is None
 

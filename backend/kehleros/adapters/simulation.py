@@ -315,6 +315,32 @@ class SimulationAdapter(Adapter):
                 StateValue.invalid(unit=device.entity.unit, source=self.source),
             )
 
+    def set_level(self, entity_id: str, value: float) -> None:
+        """Setzt einen simulierten Messwert auf einen bestimmten Stand.
+
+        Ohne das ließen sich Schwellenwarnungen nur prüfen, indem man wartet,
+        bis der Simulator zufällig dorthin driftet — bei einem Tank, der um
+        60 % pendelt, also nie. Der Wert driftet danach normal weiter.
+
+        Wie die Fehlerinjektion existiert dieser Weg ausschließlich in der
+        Simulation.
+        """
+        device = self._devices.get(entity_id)
+        if device is None:
+            raise KeyError(f"Kein simuliertes Gerät für '{entity_id}'")
+        if device.kind not in ("measure", "setpoint"):
+            raise ValueError(f"'{entity_id}' ist kein Messwert")
+
+        low, high = device.bounds
+        device.value = max(low, min(high, float(value)))
+        log.info("Simulation: %s auf %.1f gesetzt", entity_id, device.value)
+
+        self._state.apply(
+            entity_id,
+            StateValue.valid(device.value, unit=device.entity.unit, source=self.source),
+            force=True,
+        )
+
     def clear_faults(self) -> None:
         for device in self._devices.values():
             device.fault = Fault.NONE

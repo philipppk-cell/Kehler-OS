@@ -77,6 +77,10 @@ def _build_entity(config: EntityConfig) -> Entity:
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
         capacity_l=config.capacity_l,
+        warn_below=config.warn_below,
+        warn_above=config.warn_above,
+        critical_below=config.critical_below,
+        critical_above=config.critical_above,
         commands=_commands_for(config),
     )
 

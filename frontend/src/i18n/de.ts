@@ -54,6 +54,10 @@ const de: Record<string, string> = {
   "alert.sensorFaulty": "Der gemeldete Wert ist nicht verwertbar",
   "alert.sensorStale": "Seit längerem keine Rückmeldung",
   "alert.sensorLost": "Liefert keine Werte mehr",
+  "alert.levelLow": "Nur noch {value} % — Warnschwelle {threshold} %",
+  "alert.levelHigh": "Bei {value} % — Warnschwelle {threshold} %",
+  "alert.levelCriticalLow": "Kritisch niedrig: {value} %",
+  "alert.levelCriticalHigh": "Kritisch hoch: {value} %",
 
   // Fahrzeugansicht
   "vehicle3d.label": "Fahrzeugansicht mit dem Zustand der Aufbaufunktionen",
@@ -98,11 +102,9 @@ const de: Record<string, string> = {
   "water.totalUnknown": "Gesamtstand nicht ermittelbar",
   "water.totalUnknownHint":
     "Solange ein Tank keinen belastbaren Wert liefert, wäre jede Gesamtangabe eine Schätzung.",
-  "water.notesTitle": "Was hier noch fehlt",
-  "water.noThresholds":
-    "Für Warnungen sind noch keine Schwellen festgelegt — deshalb sind alle Balken neutral eingefärbt.",
-  "water.linearHint":
-    "Liter sind aus dem Füllstand umgerechnet. Ohne Kalibrierkurve wird ein gleichmäßig geformter Tank angenommen.",
+  "water.notesTitle": "Hinweise",
+  "water.thresholdsSet":
+    "Gewarnt wird bei Frischwasser unter 20 % und bei Abwasser über 80 %. Die Markierung im Balken zeigt die Schwelle.",
   "water.historyLater": "Verlauf entsteht in einem späteren Schritt",
 
   // Klima
@@ -150,6 +152,16 @@ const de: Record<string, string> = {
   "page.comingSoon": "Dieser Bereich entsteht in einem späteren Schritt.",
 };
 
-export function t(key: string, fallback?: string): string {
-  return de[key] ?? fallback ?? key;
+export function t(
+  key: string,
+  fallback?: string,
+  params?: Record<string, string>,
+): string {
+  const text = de[key] ?? fallback ?? key;
+  if (!params) return text;
+
+  // Platzhalter der Form {name}. Fehlt ein Wert, bleibt der Platzhalter
+  // stehen — sichtbar falsch ist besser als eine Lücke, die aussieht, als
+  // gehöre sie so.
+  return text.replace(/\{(\w+)\}/g, (match, name: string) => params[name] ?? match);
 }

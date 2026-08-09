@@ -243,6 +243,18 @@ class Entity:
     (Kapitel 18 §98).
     """
 
+    warn_below: float | None = None
+    """Unterhalb dieses Wertes wird gewarnt — für Vorräte wie Frischwasser."""
+
+    warn_above: float | None = None
+    """Oberhalb dieses Wertes wird gewarnt — für Abwasser und Ähnliches."""
+
+    critical_below: float | None = None
+    critical_above: float | None = None
+    """Kritische Schwellen. Bleiben leer, solange sie nicht festgelegt sind —
+    eine kritische Meldung ohne Grundlage entwertet die Priorität
+    (Kapitel 13 §55)."""
+
     @property
     def capabilities(self) -> tuple[str, ...]:
         return tuple(spec.verb for spec in self.commands)

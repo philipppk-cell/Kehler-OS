@@ -115,6 +115,25 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   gekennzeichnet. Hardwareadressen liegen weiterhin ungetrackt in
   `config/hardware/`.
 
+### Hinzugefügt — Warnschwellen
+
+- **Schwellen sind konfiguriert und wirken** (Punkt C3 geklärt): Frischwasser
+  warnt unter 20 %, Grau- und Schwarzwasser über 80 %. Die Schwelle wird im
+  Balken als Markierung eingezeichnet — man sieht damit nicht nur, *dass* es
+  eng wird, sondern auch, wie weit es noch hin ist.
+- **Es gibt weiterhin keine eingebauten Schwellen.** Steht in der
+  Konfiguration keine, wird für diesen Wert nicht gewarnt und der Balken
+  bleibt neutral. Kritische Schwellen bleiben leer, weil sie nicht genannt
+  wurden.
+- **Die Tanks sind gleichmäßig geformt** (Punkt C2 vollständig geklärt). Die
+  Umrechnung Prozent → Liter ist damit exakt; eine Kalibrierkurve entfällt.
+- Warnungstexte nennen jetzt Wert und Schwelle („Nur noch 13 % —
+  Warnschwelle 20 %"). Die Übersetzungsschicht kann dafür Platzhalter
+  einsetzen.
+- **Messwerte lassen sich in der Simulation gezielt setzen**
+  (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
+  nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
+
 ### Behoben — Zustände, die sich widersprachen
 
 - **`STALE` verwarf seinen Wert.** Damit war „veraltet" inhaltlich nicht von

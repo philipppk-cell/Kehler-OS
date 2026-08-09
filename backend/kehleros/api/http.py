@@ -55,6 +55,13 @@ class FaultRequest(BaseModel):
     fault: str
 
 
+class LevelRequest(BaseModel):
+    """Ein gezielt gesetzter Messwert — nur in der Simulation."""
+
+    entity_id: str
+    value: float
+
+
 def create_app(application: Application) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -149,6 +156,32 @@ def create_app(application: Application) -> FastAPI:
 
         raise HTTPException(status_code=404, detail="Unbekannte Entity")
 
+    @router.post("/diagnostics/simulation/level")
+    async def set_level(request: LevelRequest) -> dict[str, Any]:
+        """Setzt einen simulierten Messwert auf einen bestimmten Stand.
+
+        Ohne das ließen sich Schwellenwarnungen nur prüfen, indem man wartet,
+        bis der Simulator zufällig dorthin driftet. Wie die Fehlerinjektion
+        existiert dieser Weg ausschließlich in der Simulation.
+        """
+        if not application.settings.is_simulated:
+            raise HTTPException(
+                status_code=404,
+                detail="Messwerte setzen gibt es nur in der Simulation",
+            )
+
+        for adapter in application.adapters:
+            set_level_fn = getattr(adapter, "set_level", None)
+            if set_level_fn is None or request.entity_id not in adapter.entity_ids:
+                continue
+            try:
+                set_level_fn(request.entity_id, request.value)
+            except (KeyError, ValueError) as error:
+                raise HTTPException(status_code=422, detail=str(error)) from error
+            return {"entity_id": request.entity_id, "value": request.value}
+
+        raise HTTPException(status_code=404, detail="Unbekannte Entity")
+
     @router.get("/alerts")
     async def alerts() -> list[dict[str, Any]]:
         """Aktuelle Warnungen.
@@ -191,6 +224,8 @@ def create_app(application: Application) -> FastAPI:
                 "litres": summary.fresh.litres,
                 "free_l": summary.fresh.free_l,
                 "percent": summary.fresh.percent,
+                "warn_below": summary.fresh.warn_below,
+                "breached": summary.fresh.breached,
                 "tanks": [_tank_json(tank) for tank in summary.fresh.tanks],
             },
             "waste": [_tank_json(tank) for tank in summary.waste],
@@ -331,4 +366,7 @@ def _tank_json(tank: TankView) -> dict[str, Any]:
         "capacity_l": tank.capacity_l,
         "litres": tank.litres,
         "free_l": tank.free_l,
+        "warn_below": tank.warn_below,
+        "warn_above": tank.warn_above,
+        "breached": tank.breached,
     }

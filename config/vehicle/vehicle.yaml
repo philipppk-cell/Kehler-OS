@@ -47,16 +47,21 @@ entities:
   # BESTÄTIGT: zwei Frischwassertanks (550 l und 450 l), Grauwasser 280 l,
   # Schwarzwasser 370 l.
   #
-  # Mit bekannter Kapazität zeigt die Oberfläche Liter statt nur Prozent.
-  # Sie geht dabei von einem linearen Tank aus — ob das stimmt, ist offener
-  # Punkt C2 (Kalibrierkurve). Solange keine Stützpunkte vorliegen, ist die
-  # Literangabe eine Umrechnung des Füllstands und keine Messung.
+  # BESTÄTIGT: Die Tanks sind gleichmäßig geformt. Die Umrechnung
+  # Prozent → Liter ist damit linear und korrekt; es braucht keine
+  # Kalibrierkurve.
+  #
+  # BESTÄTIGT: Warnschwellen — Frischwasser ab 20 % abwärts, Abwasser ab 80 %
+  # aufwärts. Kritische Schwellen sind bewusst NICHT gesetzt: Sie wurden nicht
+  # genannt, und eine kritische Meldung ohne Grundlage entwertet die
+  # Priorität (Kapitel 13 §55).
 
   - id: water.tank.fresh.large
     name_key: tank.fresh_large
     type: measurement
     unit: percent
     capacity_l: 550
+    warn_below: 20
     deadband: 0.5
     expected_interval_s: 30
 
@@ -65,6 +70,7 @@ entities:
     type: measurement
     unit: percent
     capacity_l: 450
+    warn_below: 20
     deadband: 0.5
     expected_interval_s: 30
 
@@ -73,6 +79,7 @@ entities:
     type: measurement
     unit: percent
     capacity_l: 280
+    warn_above: 80
     deadband: 0.5
     expected_interval_s: 30
 
@@ -81,6 +88,7 @@ entities:
     type: measurement
     unit: percent
     capacity_l: 370
+    warn_above: 80
     deadband: 0.5
     expected_interval_s: 30
 

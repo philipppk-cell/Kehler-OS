@@ -136,6 +136,7 @@
 /* ── Balken ────────────────────────────────────────────────────────────── */
 
 .bar {
+  position: relative;
   height: 6px;
   border-radius: var(--radius-full);
   background: var(--surface-sunken);
@@ -388,4 +389,21 @@
 .notconfigured__hint {
   font-size: var(--text-label);
   color: var(--text-disabled);
+}
+
+/* Markierung der Warnschwelle im Balken.
+
+   Sie beantwortet die Frage, die eine reine Einfärbung offenlässt: nicht nur
+   „ist es eng?", sondern „wie weit ist es noch hin?". */
+.bar__mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-1px);
+  /* Der Balken beschneidet seinen Inhalt — die Markierung bleibt deshalb
+     innerhalb der Höhe und arbeitet über Kontrast statt über Überstand. */
+  background: var(--text-primary);
+  opacity: 0.55;
+  pointer-events: none;
 }

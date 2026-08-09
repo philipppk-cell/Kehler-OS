@@ -175,7 +175,7 @@ Pro Tank — **es sind vier**: zwei Frischwasser, Grau-, Schwarzwasser:
 - Messbereich und Kennlinie
 - an welchem Analogeingang angeschlossen
 
-### C2 · Tankgeometrie — `TEILWEISE` · `NICHT BLOCKIEREND`
+### C2 · Tankgeometrie — `GEKLÄRT` (2026-08-09)
 
 **Beantwortet (2026-08-09) — Kapazitäten:**
 
@@ -191,22 +191,23 @@ Damit zeigt die Oberfläche Liter statt nur Prozent. Die Werte stehen in
 `config/vehicle/vehicle.yaml` und sind durch einen Test festgehalten, damit
 ein Zahlendreher auffällt.
 
-**Weiterhin offen — Kalibrierkurve:**
+**Beantwortet — Form:** Die Tanks sind **gleichmäßig geformt**. Die
+Umrechnung Prozent → Liter ist damit linear und korrekt; eine Kalibrierkurve
+wird nicht benötigt (Kapitel 12 §37).
 
-Sind die Tanks geometrisch linear? Falls nein, werden Stützpunkte benötigt
-(Kapitel 12 §37).
+### C3 · Warnschwellen — `GEKLÄRT` (2026-08-09)
 
-> **ASSUMPTION (bis zur Klärung):** Die Umrechnung Prozent → Liter nimmt einen
-> gleichmäßig geformten Tank an. Die Wasserseite weist sichtbar darauf hin,
-> dass die Literangabe eine Umrechnung des Füllstands ist und keine Messung.
-> Bei einem geformten Tank — etwa einem, der sich nach unten verjüngt — weicht
-> sie im mittleren Bereich am stärksten ab.
+**Antwort:** Frischwasser warnt **unter 20 %**, Grau- und Schwarzwasser
+**über 80 %**.
 
-### C3 · Warnschwellen — `OFFEN` · `NICHT BLOCKIEREND`
+Die Schwellen stehen in `config/vehicle/vehicle.yaml` und sind durch einen
+Test festgehalten — insbesondere ihre **Richtung**, denn eine vertauschte
+Schwelle schweigt genau dann, wenn sie gebraucht wird.
 
-Ab welchem Füllstand soll gewarnt werden (Frischwasser niedrig, Grau-/
-Schwarzwasser hoch, kritisch)? Bis zur Klärung gelten neutrale Vorgabewerte,
-die jederzeit in der Konfiguration änderbar sind.
+> **Kritische Schwellen sind bewusst NICHT gesetzt.** Sie wurden nicht
+> genannt, und eine kritische Meldung ohne Grundlage entwertet die Priorität
+> (Kapitel 13 §55). Das Datenmodell führt sie mit; sie bleiben leer, bis
+> jemand sie festlegt.
 
 ---
 

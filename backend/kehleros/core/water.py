@@ -58,11 +58,27 @@ class TankView:
     litres: float | None
     """Belegter Inhalt. ``None``, wenn Füllstand oder Kapazität fehlen."""
 
+    warn_below: float | None = None
+    warn_above: float | None = None
+
     @property
     def free_l(self) -> float | None:
         if self.capacity_l is None or self.litres is None:
             return None
         return max(0.0, self.capacity_l - self.litres)
+
+    @property
+    def breached(self) -> bool:
+        """Ob eine konfigurierte Schwelle überschritten ist.
+
+        Die Oberfläche färbt danach den Balken. Ohne Schwelle bleibt er
+        neutral — eine Farbe ohne Bedeutung wäre Dekoration.
+        """
+        if self.percent is None:
+            return False
+        if self.warn_below is not None and self.percent < self.warn_below:
+            return True
+        return self.warn_above is not None and self.percent > self.warn_above
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,11 +91,26 @@ class TankGroup:
     litres: float | None
     percent: float | None
 
+    warn_below: float | None = None
+    """Schwelle für die Gesamtmenge.
+
+    Sie wird **nur** übernommen, wenn alle Tanks der Gruppe dieselbe Schwelle
+    tragen. Bei unterschiedlichen Schwellen gibt es für die Summe keine —
+    welche davon für das Ganze gälte, ist eine Frage, die die Konfiguration
+    nicht beantwortet, und die Software beantwortet sie nicht an ihrer Stelle.
+    """
+
     @property
     def free_l(self) -> float | None:
         if self.capacity_l is None or self.litres is None:
             return None
         return max(0.0, self.capacity_l - self.litres)
+
+    @property
+    def breached(self) -> bool:
+        if self.percent is None or self.warn_below is None:
+            return False
+        return self.percent < self.warn_below
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,13 +163,25 @@ def _tank(entity: Entity, state: EntityState | None) -> TankView:
         percent=percent,
         capacity_l=entity.capacity_l,
         litres=litres,
+        warn_below=entity.warn_below,
+        warn_above=entity.warn_above,
     )
+
+
+def _shared_warn_below(tanks: tuple[TankView, ...]) -> float | None:
+    """Die gemeinsame Schwelle — oder keine."""
+    thresholds = {tank.warn_below for tank in tanks}
+    if len(thresholds) == 1:
+        return next(iter(thresholds))
+    return None
 
 
 def _group(tanks: list[TankView]) -> TankGroup:
     ordered = tuple(tanks)
     if not ordered:
         return TankGroup((), Quality.UNKNOWN, None, None, None)
+
+    warn_below = _shared_warn_below(ordered)
 
     # Schlechteste Qualität aller Summanden bestimmt die der Summe.
     quality = max((tank.quality for tank in ordered), key=lambda q: _RANK[q])
@@ -151,10 +194,10 @@ def _group(tanks: list[TankView]) -> TankGroup:
         # Kein Teilergebnis. Eine Summe über die „guten" Tanks wäre keine
         # Gesamtmenge, sondern eine Zahl ohne Bezug.
         capacity = sum(t.capacity_l for t in ordered if t.capacity_l) or None
-        return TankGroup(ordered, quality, capacity, None, None)
+        return TankGroup(ordered, quality, capacity, None, None, warn_below)
 
     capacity = sum(tank.capacity_l or 0.0 for tank in ordered)
     litres = sum(tank.litres or 0.0 for tank in ordered)
     percent = litres / capacity * 100.0 if capacity else None
 
-    return TankGroup(ordered, quality, capacity, litres, percent)
+    return TankGroup(ordered, quality, capacity, litres, percent, warn_below)

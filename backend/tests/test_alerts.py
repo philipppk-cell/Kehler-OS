@@ -93,3 +93,98 @@ class TestNichtKonfiguriert:
 
         assert alerts, "Die nicht konfigurierte Markise sollte auftauchen"
         assert all(a.severity is Severity.INFO for a in alerts)
+
+
+class TestSchwellen:
+    """Schwellenwarnungen.
+
+    Die Richtung ist hier das Entscheidende: Frischwasser warnt nach unten,
+    Abwasser nach oben. Eine vertauschte Schwelle schweigt genau dann, wenn
+    sie gebraucht wird.
+    """
+
+    def tank(self, **kwargs):
+        from kehleros.core.registry import Registry
+        from tests.conftest import make_entity
+
+        entity = make_entity(TANK, unit="percent")
+        reg = Registry()
+        reg.register(
+            type(entity)(
+                id=entity.id,
+                name_key=entity.name_key,
+                unit="percent",
+                **kwargs,
+            )
+        )
+        return reg
+
+    def store(self, registry, percent: float | None, quality=Quality.VALID):
+        store = StateStore(registry)
+        store.apply(
+            TANK,
+            StateValue(
+                value=percent,
+                unit="percent",
+                quality=quality,
+                source=Source.SIMULATION,
+                measured_at=utcnow(),
+            ),
+            force=True,
+        )
+        return store
+
+    def test_frischwasser_warnt_unter_der_schwelle(self):
+        reg = self.tank(warn_below=20)
+        alerts = derive_alerts(self.store(reg, 19.0), reg)
+
+        level = [a for a in alerts if a.type == "level.threshold"]
+        assert len(level) == 1
+        assert level[0].message_key == "alert.levelLow"
+        assert level[0].severity is Severity.WARNING
+        assert level[0].params["threshold"] == "20"
+
+    def test_frischwasser_schweigt_auf_der_schwelle(self):
+        """Genau 20 % ist noch nicht darunter."""
+        reg = self.tank(warn_below=20)
+        alerts = derive_alerts(self.store(reg, 20.0), reg)
+        assert not [a for a in alerts if a.type == "level.threshold"]
+
+    def test_abwasser_warnt_ueber_der_schwelle(self):
+        reg = self.tank(warn_above=80)
+        alerts = derive_alerts(self.store(reg, 81.0), reg)
+
+        level = [a for a in alerts if a.type == "level.threshold"]
+        assert len(level) == 1
+        assert level[0].message_key == "alert.levelHigh"
+
+    def test_abwasser_warnt_nicht_wenn_es_leer_ist(self):
+        """Ein leerer Abwassertank ist der Normalfall, keine Meldung."""
+        reg = self.tank(warn_above=80)
+        alerts = derive_alerts(self.store(reg, 4.0), reg)
+        assert not [a for a in alerts if a.type == "level.threshold"]
+
+    def test_ohne_schwelle_keine_warnung(self):
+        """Es gibt keine eingebauten Schwellen (Kapitel 18 §98)."""
+        reg = self.tank()
+        alerts = derive_alerts(self.store(reg, 1.0), reg)
+        assert not [a for a in alerts if a.type == "level.threshold"]
+
+    def test_unbekannter_wert_erzeugt_keine_schwellenwarnung(self):
+        """Ohne belastbaren Wert lässt sich keine Schwelle prüfen."""
+        reg = self.tank(warn_below=20)
+        store = StateStore(reg)
+        alerts = derive_alerts(store, reg)
+        assert not [a for a in alerts if a.type == "level.threshold"]
+
+    def test_veralteter_wert_wird_trotzdem_geprueft(self):
+        """Ein Tank, der vor Minuten bei 8 % stand, ist noch immer fast leer.
+
+        Die Unsicherheit meldet die Warnung über den veralteten Wert.
+        """
+        reg = self.tank(warn_below=20)
+        alerts = derive_alerts(self.store(reg, 8.0, Quality.STALE), reg)
+
+        typen = types_of(alerts)
+        assert "level.threshold" in typen
+        assert "sensor.stale" in typen

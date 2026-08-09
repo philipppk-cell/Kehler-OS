@@ -5,23 +5,72 @@ Warnung ist, ist Geschäftslogik und gehört nicht ins Frontend
 (Kapitel 4, Kapitel 18 §6).
 
 **Was hier bewertet wird**, ist ausschließlich, was das System sicher weiß:
-Sensordefekte, unerreichbare Geräte, unbekannte Zustände, fehlende
-Konfiguration.
+Sensordefekte, unerreichbare Geräte, verstummte Sensoren, fehlende
+Konfiguration — und überschrittene Schwellen, **soweit sie konfiguriert
+sind**.
 
-**Was hier bewusst nicht bewertet wird**, sind Schwellenwarnungen wie
-„Grauwasser zu voll“. Die Schwellen sind eine offene Frage (Punkt C3), und
-Kapitel 18 §98 verbietet, sie zu erfinden. Sobald sie konfiguriert sind,
-kommen sie hier dazu — nicht vorher.
+Der letzte Halbsatz ist die eigentliche Regel: Es gibt keine eingebauten
+Schwellen. Steht in der Konfiguration keine, wird für diesen Wert nicht
+gewarnt. Eine erfundene Schwelle wäre eine Aussage über das Fahrzeug, die
+niemand getroffen hat (Kapitel 18 §98).
 """
 
 from __future__ import annotations
 
 from ..domain.enums import AlertState, LinkState, Quality, Severity
-from ..domain.models import Alert
+from ..domain.models import Alert, Entity
 from .registry import Registry
 from .state_store import StateStore
 
 _UNREACHABLE = frozenset({LinkState.OFFLINE, LinkState.ERROR})
+_USABLE = frozenset({Quality.VALID, Quality.STALE})
+
+
+def _threshold_alerts(entity: Entity, value: object) -> list[Alert]:
+    """Warnungen aus den konfigurierten Schwellen.
+
+    **Es gibt nur Schwellen, die jemand festgelegt hat.** Fehlt eine, wird
+    nicht gewarnt — und keine erfunden (Kapitel 18 §98). Deshalb prüft diese
+    Funktion ausschließlich Felder, die in der Konfiguration stehen.
+
+    Die Richtung steckt in der Benennung und ist keine Auslegungssache:
+    ``warn_below`` für Vorräte, die zur Neige gehen (Frischwasser),
+    ``warn_above`` für Behälter, die volllaufen (Grau- und Schwarzwasser).
+    """
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return []
+
+    checks = (
+        (entity.critical_below, value < (entity.critical_below or 0), Severity.CRITICAL,
+         "alert.levelCriticalLow"),
+        (entity.critical_above, value > (entity.critical_above or 0), Severity.CRITICAL,
+         "alert.levelCriticalHigh"),
+        (entity.warn_below, value < (entity.warn_below or 0), Severity.WARNING,
+         "alert.levelLow"),
+        (entity.warn_above, value > (entity.warn_above or 0), Severity.WARNING,
+         "alert.levelHigh"),
+    )
+
+    for threshold, breached, severity, message_key in checks:
+        if threshold is None or not breached:
+            continue
+        # Die kritische Schwelle steht vor der Warnschwelle: Ist beides
+        # überschritten, wird nur die schwerere Meldung erzeugt.
+        return [
+            Alert(
+                type="level.threshold",
+                entity_id=entity.id,
+                severity=severity,
+                message_key=message_key,
+                params={
+                    "name_key": entity.name_key,
+                    "threshold": f"{threshold:g}",
+                    "value": f"{value:.0f}",
+                },
+            )
+        ]
+
+    return []
 
 
 def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
@@ -107,6 +156,13 @@ def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
                     params={"name_key": entity.name_key},
                 )
             )
+
+        # Schwellen werden nur an einem Wert geprüft, den es gibt. Ein
+        # veralteter Wert zählt dabei mit: Ein Tank, der vor fünf Minuten bei
+        # 8 % stand, ist auch jetzt noch fast leer. Die Unsicherheit meldet
+        # bereits die Warnung darüber.
+        if quality in _USABLE:
+            alerts.extend(_threshold_alerts(entity, entity_state.state.value))
 
     # Wichtigstes zuerst — das Dashboard zeigt oben, was zählt
     # (Kapitel 8 §9).

@@ -232,7 +232,9 @@ function AlertsCard({ alerts }: { alerts: AlertItem[] }) {
               <span className="alert__title">
                 {t(alert.params.name_key ?? "", alert.entity_id ?? "")}
               </span>
-              <span className="alert__text">{t(alert.message_key)}</span>
+              <span className="alert__text">
+                {t(alert.message_key, undefined, alert.params)}
+              </span>
             </li>
           ))}
         </ul>
@@ -415,7 +417,12 @@ function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
         </span>
       </div>
       <div className={`bar${usable ? "" : " bar--unknown"}`}>
-        <div className="bar__fill bar__fill--accent" style={{ width: `${percent}%` }} />
+        {/* Farbe nur bei überschrittener Schwelle — bewertet vom Backend,
+            damit Dashboard und Wasserseite nicht auseinanderlaufen. */}
+        <div
+          className={`bar__fill bar__fill--${usable && tank.breached ? "warn" : "accent"}`}
+          style={{ width: `${percent}%` }}
+        />
       </div>
     </div>
   );

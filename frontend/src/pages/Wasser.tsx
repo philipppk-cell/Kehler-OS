@@ -76,7 +76,11 @@ function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
       </div>
 
       <div className="wasser__totalbar">
-        <RawBar percent={usable ? fresh!.percent : null} />
+        <RawBar
+          percent={usable ? fresh!.percent : null}
+          breached={usable && fresh!.breached}
+          threshold={fresh?.warn_below ?? null}
+        />
       </div>
 
       {!usable && <p className="wasser__hint">{t("water.totalUnknownHint")}</p>}
@@ -133,7 +137,11 @@ function TankRow({
         </span>
       </div>
 
-      <RawBar percent={usable ? tank.percent : null} />
+      <RawBar
+        percent={usable ? tank.percent : null}
+        breached={usable && tank.breached}
+        threshold={tank.warn_below ?? tank.warn_above ?? null}
+      />
 
       <div className="tankrow__foot">
         {usable && tank.litres !== null ? (
@@ -157,15 +165,36 @@ function TankRow({
  * `Bar` aus dem Designsystem arbeitet über eine Entity; hier liegt der Wert
  * schon als geprüfte Zahl aus dem Backend vor. Bei `null` bleibt der Balken
  * leer und schraffiert — er zeigt nie „0 %“.
+ *
+ * **Farbe nur bei überschrittener Schwelle.** Ob eine Schwelle überschritten
+ * ist, entscheidet das Backend; hier wird das Ergebnis nur dargestellt. Ein
+ * Wert ohne konfigurierte Schwelle bleibt neutral — die Software hat dann
+ * keine Grundlage für eine Bewertung.
+ *
+ * Die Schwelle selbst wird als Markierung eingezeichnet. Dadurch sieht man
+ * nicht nur *dass* es eng wird, sondern auch, wie weit es noch hin ist.
  */
-function RawBar({ percent }: { percent: number | null }) {
+function RawBar({
+  percent,
+  breached = false,
+  threshold = null,
+}: {
+  percent: number | null;
+  breached?: boolean;
+  threshold?: number | null;
+}) {
   const width = percent === null ? 0 : Math.max(0, Math.min(100, percent));
+  const mark = threshold === null ? null : Math.max(0, Math.min(100, threshold));
+
   return (
     <div className={`bar${percent === null ? " bar--unknown" : ""}`}>
-      {/* Neutral eingefärbt: Ob ein Füllstand gut oder schlecht ist, kann das
-          System nicht sagen, solange keine Schwellen konfiguriert sind
-          (offener Punkt C3). Farbe ohne Bedeutung wäre Dekoration. */}
-      <div className="bar__fill bar__fill--accent" style={{ width: `${width}%` }} />
+      <div
+        className={`bar__fill bar__fill--${breached ? "warn" : "accent"}`}
+        style={{ width: `${width}%` }}
+      />
+      {mark !== null && (
+        <span className="bar__mark" style={{ left: `${mark}%` }} aria-hidden="true" />
+      )}
     </div>
   );
 }
@@ -211,8 +240,7 @@ function NoteCard() {
   return (
     <Card title={t("water.notesTitle")}>
       <ul className="wasser__notes">
-        <li>{t("water.noThresholds")}</li>
-        <li>{t("water.linearHint")}</li>
+        <li>{t("water.thresholdsSet")}</li>
       </ul>
       <Button variant="quiet" full disabled>
         {t("water.historyLater")}
