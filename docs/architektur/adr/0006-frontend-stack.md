@@ -5,9 +5,19 @@
 
 ## Entscheidung
 
-**React 19 + TypeScript + Vite. Motion für Animation. CSS Modules über
-Design-Tokens. Zustand für UI-State, TanStack Query für Abfragedaten. Alle
-Assets lokal.**
+**React + TypeScript + Vite. Motion für Animation. CSS Modules über
+Design-Tokens. Alle Assets lokal.**
+
+> **Nachtrag (Umsetzung M3/M4):** Zwei Festlegungen dieses ADR sind bei der
+> Umsetzung bewusst korrigiert worden. Beide sind unten an Ort und Stelle
+> begründet:
+>
+> 1. **React 18 statt 19.** Der Stack wird auf einer Version aufgebaut, für die
+>    Motion, die Typdefinitionen und die Testwerkzeuge geprüft zusammenspielen.
+>    Kehler OS braucht keine Funktion aus React 19; ein Wechsel ist jederzeit
+>    möglich, wenn es einen sachlichen Anlass gibt.
+> 2. **Kein Zustand, kein TanStack Query.** Siehe Abschnitt
+>    „Zustandsverwaltung im Client".
 
 ## Abwägung der Basis
 
@@ -56,8 +66,28 @@ Klare Trennung, die direkt aus Kapitel 13 §3 folgt:
 | Art | Lösung |
 | --- | --- |
 | Fahrzeugzustand | ausschließlich aus dem WebSocket-Snapshot/Delta, im Realtime-Store gehalten, **nie lokal erzeugt oder überschrieben** |
-| Abfragedaten (Historie, Konfiguration, Logs) | TanStack Query mit definierter Gültigkeit |
-| reine UI-Zustände (offene Dialoge, Auswahl) | Zustand |
+| Abfragedaten (Historie, Konfiguration, Logs) | `fetch` mit definierter Gültigkeit, an den Realtime-Store gekoppelt |
+| reine UI-Zustände (offene Dialoge, Auswahl) | lokaler React-State |
+
+**Korrektur gegenüber der ursprünglichen Fassung: weder Zustand noch TanStack
+Query werden eingesetzt.** Ursprünglich waren beide vorgesehen. Beim Bau des
+Realtime-Store hat sich gezeigt, dass sie hier nichts beitragen:
+
+- Der Fahrzeugzustand kommt vollständig über **einen** WebSocket. Es gibt keine
+  Abfragen zu cachen, zu deduplizieren, zu invalidieren oder erneut zu holen —
+  genau die Aufgaben, für die TanStack Query existiert. Der Snapshot beim
+  Verbindungsaufbau ersetzt jede Cache-Strategie.
+- Der Store ist ein einziges, vom Server geschriebenes Objekt. Dafür genügt
+  Reacts eingebautes `useSyncExternalStore`, das für exakt diesen Fall
+  vorgesehen ist. Es liefert zudem die Garantie, die hier zählt: keine
+  zerrissenen Zwischenzustände beim Rendern.
+
+Das folgt Kapitel 17 §81 — jede Abhängigkeit muss sich rechtfertigen. Zwei
+Bibliotheken, die dauerhaft gepflegt, aktualisiert und beim Übernehmen des
+Systems verstanden werden müssten, ohne dass sie ein reales Problem lösen,
+wären eine Belastung und kein Gewinn. Die Entscheidung ist umkehrbar: Sobald
+echte Abfragedaten mit Cache-Bedarf dazukommen (Historie in M-später), wird
+sie neu bewertet.
 
 Der Realtime-Store ist bewusst ein **Spiegel**, kein eigenständiger Zustand.
 Ein Tastendruck schreibt dort nichts hinein; er löst einen Befehl aus, und die

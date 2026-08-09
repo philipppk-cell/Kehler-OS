@@ -1,0 +1,216 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Kehler OS – Design Tokens
+
+   Die einzige Stelle, an der Farben, Abstände, Radien, Schatten und
+   Typografie definiert werden. Kapitel 7 §41/§42 verlangt zentrale Werte und
+   verbietet ausdrücklich frei erfundene — kein `padding: 13px` hier und
+   `17px` dort.
+
+   Wer einen Wert braucht, der hier nicht steht, hat entweder einen Fehler
+   gemacht oder muss diese Datei ergänzen. Beides ist besser als eine
+   Ausnahme im Bauteil.
+
+   Dark-First (Kapitel 7 §3): Die dunkle Oberfläche ist der primäre Zustand,
+   nicht eine Option. Es gibt bewusst kein helles Thema.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Grundflächen ──────────────────────────────────────────────────────
+     Sehr dunkel mit leichtem Blaustich, wie in der Designreferenz. Reines
+     Schwarz wirkt hart und lässt Ränder ausfransen.                       */
+
+  --bg-base: #06090d;
+  --bg-deep: #04070a;
+  --bg-raised: #0b1016;
+
+  /* Panels sind halbtransparent, damit sie auf dem Fahrzeugbild liegen
+     können, ohne es zu erschlagen. */
+  --surface-1: rgba(255, 255, 255, 0.028);
+  --surface-2: rgba(255, 255, 255, 0.045);
+  --surface-3: rgba(255, 255, 255, 0.065);
+  --surface-sunken: rgba(0, 0, 0, 0.28);
+
+  /* ── Ränder ────────────────────────────────────────────────────────────
+     Fein und zurückhaltend. Sie trennen, ohne zu zeichnen.                */
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* ── Text ──────────────────────────────────────────────────────────────
+     Drei Stufen genügen. Mehr Abstufungen machen die Hierarchie unschärfer,
+     nicht feiner.                                                          */
+
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-tertiary: rgba(255, 255, 255, 0.4);
+  --text-disabled: rgba(255, 255, 255, 0.22);
+
+  /* ── Akzent ────────────────────────────────────────────────────────────
+     Cyan, sparsam eingesetzt: aktive Navigation, Hauptmesswerte,
+     interaktive Elemente. Kapitel 7 §6 — nicht jedes Element bekommt eine
+     eigene Farbe.                                                          */
+
+  --accent: #38d6ee;
+  --accent-bright: #6ce4f6;
+  --accent-dim: #1a9bb0;
+  --accent-wash: rgba(56, 214, 238, 0.1);
+  --accent-wash-strong: rgba(56, 214, 238, 0.18);
+  --accent-border: rgba(56, 214, 238, 0.34);
+
+  /* ── Semantische Zustände ──────────────────────────────────────────────
+     Farben tragen Bedeutung, keine Dekoration (Kapitel 7 §5). Zusätzlich
+     gilt: Status muss auch ohne Farbe verständlich bleiben (§23) — deshalb
+     trägt jede Statusanzeige immer auch Text oder Form.                    */
+
+  --ok: #4ade80;
+  --ok-wash: rgba(74, 222, 128, 0.12);
+  --ok-border: rgba(74, 222, 128, 0.3);
+
+  --warn: #f5a524;
+  --warn-wash: rgba(245, 165, 36, 0.12);
+  --warn-border: rgba(245, 165, 36, 0.32);
+
+  --error: #f87171;
+  --error-wash: rgba(248, 113, 113, 0.12);
+  --error-border: rgba(248, 113, 113, 0.32);
+
+  /* Unbekannt ist ein eigener, sichtbarer Zustand — nicht „aus“, nicht
+     „null“, nicht einfach grau übergangen (Kapitel 18 §38). */
+  --unknown: #8b98a5;
+  --unknown-wash: rgba(139, 152, 165, 0.1);
+  --unknown-border: rgba(139, 152, 165, 0.26);
+
+  /* ── Abstände ──────────────────────────────────────────────────────────
+     Basis 4 px. Alle Abstände sind Vielfache davon — das erzeugt den
+     ruhigen Rhythmus, den Kapitel 7 §10 verlangt.                          */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Radien ────────────────────────────────────────────────────────────  */
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-full: 999px;
+
+  /* ── Typografie ────────────────────────────────────────────────────────
+     Eine Familie, klare Stufen. Die Schrift wird lokal eingebunden — ohne
+     Internet darf die Oberfläche nicht auseinanderfallen (Kapitel 17 §109).
+     Bis eine Lizenzschrift feststeht, wird die Systemschrift verwendet;
+     sie ist auf allen Zielgeräten vorhanden und sehr gut lesbar.           */
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Zahlen im Tabellensatz: Messwerte springen dadurch nicht, wenn sich
+     eine Ziffer ändert. Bei laufend aktualisierten Werten ist das der
+     Unterschied zwischen ruhig und unruhig. */
+  --font-numeric: "SF Mono", "JetBrains Mono", "Roboto Mono", ui-monospace,
+    monospace;
+
+  --text-display: 44px;
+  --text-metric: 30px;
+  --text-h1: 26px;
+  --text-h2: 19px;
+  --text-h3: 15px;
+  --text-body: 14px;
+  --text-caption: 12.5px;
+  --text-label: 11px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.45;
+
+  /* Labels stehen in Versalien mit weiter Laufweite — das trennt sie
+     eindeutig von Inhalten, ohne eine weitere Farbe zu brauchen. */
+  --tracking-label: 0.09em;
+  --tracking-tight: -0.015em;
+
+  /* ── Tiefe ─────────────────────────────────────────────────────────────
+     Schatten sind dunkel statt weich-grau; auf dunklem Grund wirkt alles
+     andere schmutzig.                                                       */
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+
+  /* Leuchten sind sparsam und markieren ausschließlich Aktivität —
+     niemals Dekoration (Kapitel 18 §34). */
+  --glow-accent: 0 0 22px rgba(56, 214, 238, 0.22);
+  --glow-ok: 0 0 14px rgba(74, 222, 128, 0.28);
+  --glow-warn: 0 0 16px rgba(245, 165, 36, 0.3);
+  --glow-error: 0 0 18px rgba(248, 113, 113, 0.34);
+
+  /* ── Bewegung ──────────────────────────────────────────────────────────
+     Kurz und funktional. Keine Animation darf die Bedienung verlangsamen
+     (Kapitel 7 §17/§18).                                                    */
+
+  --duration-instant: 90ms;
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
+  --duration-slow: 380ms;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ── Touchflächen ──────────────────────────────────────────────────────
+     Kehler OS wird primär mit dem Finger bedient, oft in einem bewegten
+     Fahrzeug (Kapitel 7 §13). 48 px ist die Untergrenze, nicht das Ziel.   */
+
+  --touch-min: 48px;
+  --touch-comfortable: 56px;
+
+  /* ── Layout ────────────────────────────────────────────────────────────  */
+
+  --sidebar-width: 232px;
+  --header-height: 76px;
+  --content-max: 2400px;
+}
+
+/* ── Nachtmodus ────────────────────────────────────────────────────────────
+   Kein zweites Farbschema, sondern eine Dämpfung: Helligkeit runter,
+   Leuchten aus. Kritische Warnungen behalten ihre Farbe und bleiben damit
+   auch nachts erkennbar (Kapitel 7 §25).                                    */
+
+:root[data-night="true"] {
+  --text-primary: rgba(255, 255, 255, 0.8);
+  --text-secondary: rgba(255, 255, 255, 0.48);
+  --text-tertiary: rgba(255, 255, 255, 0.3);
+
+  --accent: #2ba7ba;
+  --accent-bright: #43c2d4;
+
+  --glow-accent: none;
+  --glow-ok: none;
+
+  --surface-1: rgba(255, 255, 255, 0.02);
+  --surface-2: rgba(255, 255, 255, 0.032);
+}
+
+/* ── Reduzierte Bewegung ───────────────────────────────────────────────────
+   Wer im System weniger Bewegung eingestellt hat, bekommt sie auch hier
+   nicht. Die Funktion bleibt vollständig erhalten.                          */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 1ms;
+    --duration-fast: 1ms;
+    --duration-normal: 1ms;
+    --duration-slow: 1ms;
+  }
+}

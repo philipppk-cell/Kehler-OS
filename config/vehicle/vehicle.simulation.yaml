@@ -1,0 +1,173 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  DEMONSTRATIONSKONFIGURATION — NICHT DAS REALE FAHRZEUG
+# ════════════════════════════════════════════════════════════════════════════
+#
+# Diese Datei existiert ausschließlich, damit Kehler OS ohne das Wohnmobil
+# entwickelt und vorgeführt werden kann. Sie beschreibt eine plausible, aber
+# frei gewählte Ausstattung.
+#
+# Sie wird NUR in den Betriebsarten `development` und `simulation` geladen.
+# Im Produktivbetrieb kommt `vehicle.yaml` zum Einsatz, die aus den realen
+# Hardwaredaten entsteht.
+#
+# Bewusst NICHT enthalten (Kapitel 18 §97/§98):
+#   - Tankkapazitäten in Litern  → offener Punkt C2
+#   - Warnschwellen              → offener Punkt C3
+#   - Hardwareadressen           → offener Punkt A3
+#   - RGB-Beleuchtung, Dachluken, Alarmanlage, Satellit, Kameras
+#     (nicht bestätigte Hardware — Kapitel 18 §34)
+#
+# Die Nivellierung fehlt hier absichtlich: Hydraulik ist ausdrücklich nicht
+# das erste Testobjekt (Kapitel 18 §91).
+
+version: 1
+name: Simulationsfahrzeug
+
+areas:
+  - { id: cab,      name_key: area.cab }
+  - { id: living,   name_key: area.living }
+  - { id: kitchen,  name_key: area.kitchen }
+  - { id: bedroom,  name_key: area.bedroom }
+  - { id: bathroom, name_key: area.bathroom }
+  - { id: garage,   name_key: area.garage }
+  - { id: tech,     name_key: area.tech }
+  - { id: exterior, name_key: area.exterior }
+
+entities:
+
+  # ── Wasser ────────────────────────────────────────────────────────────────
+  # Ohne capacity_l zeigt die Oberfläche nur Prozent. Eine Literangabe wird
+  # nicht geraten.
+
+  - id: water.tank.fresh
+    name_key: tank.fresh
+    type: measurement
+    unit: percent
+    deadband: 0.5
+    expected_interval_s: 30
+
+  - id: water.tank.grey
+    name_key: tank.grey
+    type: measurement
+    unit: percent
+    deadband: 0.5
+    expected_interval_s: 30
+
+  - id: water.tank.black
+    name_key: tank.black
+    type: measurement
+    unit: percent
+    deadband: 0.5
+    expected_interval_s: 30
+
+  - id: water.pump.main
+    name_key: water.pump
+    type: switch
+    area: tech
+    timeout_ms: 2000
+
+  # ── Energie ───────────────────────────────────────────────────────────────
+  # Read-only. Victron bleibt Energiemanagement und Schutzinstanz
+  # (Kapitel 12 §33).
+
+  - id: energy.battery.soc
+    name_key: energy.battery_soc
+    type: measurement
+    unit: percent
+    deadband: 0.5
+    expected_interval_s: 10
+
+  - id: energy.battery.voltage
+    name_key: energy.battery_voltage
+    type: measurement
+    unit: V
+    deadband: 0.1
+    expected_interval_s: 10
+
+  - id: energy.solar.power
+    name_key: energy.solar_power
+    type: measurement
+    unit: W
+    deadband: 5
+    expected_interval_s: 10
+
+  # ── Klima ─────────────────────────────────────────────────────────────────
+  # IST und SOLL sind getrennte Entities (Kapitel 13 §35): Die Messung ist
+  # ein Messwert, der Sollwert ist eine Einstellung.
+
+  - id: climate.living.temperature
+    name_key: climate.living_actual
+    type: measurement
+    area: living
+    unit: celsius
+    deadband: 0.2
+    expected_interval_s: 30
+
+  - id: climate.living.target
+    name_key: climate.living_target
+    type: climate_zone
+    area: living
+    unit: celsius
+    timeout_ms: 3000
+
+  - id: climate.outside.temperature
+    name_key: climate.outside
+    type: measurement
+    area: exterior
+    unit: celsius
+    deadband: 0.2
+    expected_interval_s: 60
+
+  # ── Licht ─────────────────────────────────────────────────────────────────
+  # Nur schaltbar. Kein Kreis ist als dimmbar konfiguriert, deshalb zeigt die
+  # Oberfläche keinen Regler (Kapitel 12 §55).
+
+  - id: light.interior.living
+    name_key: light.living
+    type: switch
+    area: living
+    timeout_ms: 1500
+
+  - id: light.interior.kitchen
+    name_key: light.kitchen
+    type: switch
+    area: kitchen
+    timeout_ms: 1500
+
+  - id: light.exterior.entry
+    name_key: light.entry
+    type: switch
+    area: exterior
+    timeout_ms: 1500
+
+  # ── Aufbau ────────────────────────────────────────────────────────────────
+
+  - id: vehicle.garage.door
+    name_key: vehicle.garage_door
+    type: movable
+    area: garage
+    timeout_ms: 20000
+    risk: MEDIUM
+
+  - id: vehicle.step.entry
+    name_key: vehicle.step
+    type: movable
+    area: exterior
+    timeout_ms: 12000
+    risk: MEDIUM
+
+  - id: vehicle.door.main
+    name_key: vehicle.door_main
+    type: contact
+    area: exterior
+    expected_interval_s: 5
+
+  # Beispiel für eine vorgesehene, aber noch nicht zugeordnete Funktion.
+  # Die Oberfläche zeigt „Nicht konfiguriert“ und bietet keine Bedienung an
+  # (Kapitel 18 §101). Genau so werden später alle Funktionen aussehen,
+  # deren Mapping noch fehlt.
+  - id: vehicle.awning.main
+    name_key: vehicle.awning
+    type: movable
+    area: exterior
+    configured: false

@@ -4,6 +4,11 @@ config/hardware/*.yaml
 !config/hardware/*.example.yaml
 config/vehicle/*.yaml
 !config/vehicle/*.example.yaml
+# Ausnahme: die Demonstrationskonfiguration. Sie beschreibt ausdrücklich NICHT
+# das reale Fahrzeug und enthält keine Adressen, Kapazitäten oder Schwellen.
+# Sie gehört ins Repository, weil das System sonst ohne Wohnmobil nicht
+# startbar wäre.
+!config/vehicle/vehicle.simulation.yaml
 config/environments/*.local.yaml
 
 # Secrets gehören niemals ins Repository (Kapitel 15 §49/§50)
@@ -32,6 +37,12 @@ __pycache__/
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
+
+# Gebaute Oberfläche. Ein Bauartefakt gehört nicht in die Versionsverwaltung —
+# es entsteht reproduzierbar aus den Quellen ('npm run build'). Fehlt es,
+# startet das Backend trotzdem und weist im Log darauf hin.
+backend/kehleros/api/static/
 
 # System
 .DS_Store

@@ -15,13 +15,16 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from ..application import Application
+from ..core.alerts import derive_alerts
 from ..domain.enums import CommandPhase, Trigger
 from ..domain.models import Command
 from . import serialization as ser
@@ -103,6 +106,28 @@ def create_app(application: Application) -> FastAPI:
                 "poll_interval_s": adapter.poll_interval_s,
             }
             for adapter in application.adapters
+        ]
+
+    @router.get("/alerts")
+    async def alerts() -> list[dict[str, Any]]:
+        """Aktuelle Warnungen.
+
+        Die Bewertung geschieht im Backend, nicht in der Oberfläche
+        (Kapitel 18 §6). Schwellenwarnungen fehlen bewusst, solange die
+        Schwellen nicht konfiguriert sind (Punkt C3).
+        """
+        return [
+            {
+                "id": alert.id,
+                "type": alert.type,
+                "entity_id": alert.entity_id,
+                "severity": alert.severity.value,
+                "state": alert.state.value,
+                "message_key": alert.message_key,
+                "params": alert.params,
+                "raised_at": alert.raised_at.isoformat(),
+            }
+            for alert in derive_alerts(application.state, application.registry)
         ]
 
     # ── Entities ────────────────────────────────────────────────────────────
@@ -188,7 +213,33 @@ def create_app(application: Application) -> FastAPI:
             application.state.unsubscribe(subscription)
 
     api.include_router(router)
+    _mount_frontend(api)
     return api
+
+
+def _mount_frontend(api: FastAPI) -> None:
+    """Liefert die gebaute Oberfläche aus.
+
+    Das Fahrzeug braucht dadurch keinen zweiten Webserver (ADR 0006). Alle
+    Ressourcen — Schriften, Symbole, Grafiken — liegen lokal; ohne Internet
+    fällt die Oberfläche nicht auseinander (Kapitel 17 §107/§108).
+    """
+    static = Path(__file__).parent / "static"
+    if not static.is_dir():
+        log.info(
+            "Kein gebautes Frontend gefunden (%s). "
+            "Das Backend läuft; die Oberfläche wird mit 'npm run build' erzeugt.",
+            static,
+        )
+        return
+
+    api.mount(
+        "/assets", StaticFiles(directory=static / "assets"), name="assets"
+    )
+
+    @api.get("/", include_in_schema=False)
+    async def index() -> FileResponse:
+        return FileResponse(static / "index.html")
 
 
 def _status_for(phase: CommandPhase) -> int:

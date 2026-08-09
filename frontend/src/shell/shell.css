@@ -1,0 +1,198 @@
+/* Rahmen: Kopfbereich, Navigation, Inhalt. */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(56, 214, 238, 0.05), transparent 60%),
+    var(--bg-base);
+}
+
+/* ── Kopfbereich ─────────────────────────────────────────────────────── */
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.header__clock {
+  font-size: var(--text-h1);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+
+.header__date {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.header__brand {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.22em;
+  text-align: center;
+}
+
+.header__brand-os {
+  color: var(--accent);
+}
+
+.header__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-5);
+  color: var(--text-secondary);
+}
+
+/* ── Hinweisleisten ──────────────────────────────────────────────────── */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--text-caption);
+  flex-shrink: 0;
+  border-bottom: 1px solid transparent;
+}
+
+.banner strong {
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-size: var(--text-label);
+}
+
+.banner span { color: var(--text-secondary); }
+
+.banner--sim {
+  background: var(--accent-wash);
+  border-bottom-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.banner--warn {
+  background: var(--warn-wash);
+  border-bottom-color: var(--warn-border);
+  color: var(--warn);
+}
+
+.banner--error {
+  background: var(--error-wash);
+  border-bottom-color: var(--error-border);
+  color: var(--error);
+}
+
+/* ── Aufteilung ──────────────────────────────────────────────────────── */
+
+.shell__main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Navigation ──────────────────────────────────────────────────────── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  padding: var(--space-4) var(--space-3);
+  border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  list-style: none;
+  flex: 1;
+}
+
+.navitem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  border: 1px solid transparent;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.navitem:hover { background: var(--surface-1); color: var(--text-primary); }
+
+.navitem--active {
+  background: var(--accent-wash);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.navitem__icon { display: flex; flex-shrink: 0; }
+
+.sysstatus {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ── Inhalt ──────────────────────────────────────────────────────────── */
+
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Kleinere Displays ───────────────────────────────────────────────────
+   Kein proportional verkleinertes HMI-Layout, sondern eine andere Struktur
+   (Kapitel 8 §30, Kapitel 18 §20): Die Navigation wandert nach unten und
+   zeigt nur noch Symbole.                                                 */
+
+@media (max-width: 900px) {
+  .shell__main { flex-direction: column-reverse; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border-subtle);
+    padding: var(--space-2);
+    overflow-x: auto;
+  }
+
+  .sidebar__list { flex-direction: row; }
+
+  .navitem { flex-direction: column; gap: var(--space-1); padding: var(--space-2); }
+  .navitem__label { font-size: var(--text-label); }
+
+  .sysstatus { display: none; }
+
+  .header { grid-template-columns: 1fr auto; padding: 0 var(--space-4); }
+  .header__right { display: none; }
+  .content { padding: var(--space-4); }
+}

@@ -1,0 +1,164 @@
+/**
+ * Der Rahmen, den jede Seite teilt.
+ *
+ * Kopfbereich, linke Navigation, Inhalt. Die untere Leiste aus der
+ * Designreferenz ist bewusst nicht enthalten: Ihre Verwendung ist noch nicht
+ * entschieden, und sie darf nicht als Hauptnavigation behandelt werden
+ * (Kapitel 8 §29, Kapitel 18 §21). Der Aufbau lässt sie später ohne Umbau zu.
+ */
+
+import type { ReactNode } from "react";
+import { useAppState } from "../realtime/hooks";
+import { t } from "../i18n/de";
+import { Status } from "../design/primitives";
+import {
+  IconCamera,
+  IconClimate,
+  IconDashboard,
+  IconDiagnostics,
+  IconEnergy,
+  IconGarage,
+  IconLeveling,
+  IconLight,
+  IconSettings,
+  IconUser,
+  IconVehicle,
+  IconWater,
+  IconWifi,
+} from "../design/icons";
+import "./shell.css";
+
+export type PageId =
+  | "dashboard" | "light" | "energy" | "water" | "climate"
+  | "leveling" | "vehicle" | "cameras" | "garage" | "settings" | "diagnostics";
+
+const NAV: { id: PageId; icon: ReactNode }[] = [
+  { id: "dashboard", icon: <IconDashboard /> },
+  { id: "light", icon: <IconLight /> },
+  { id: "energy", icon: <IconEnergy /> },
+  { id: "water", icon: <IconWater /> },
+  { id: "climate", icon: <IconClimate /> },
+  { id: "leveling", icon: <IconLeveling /> },
+  { id: "vehicle", icon: <IconVehicle /> },
+  { id: "cameras", icon: <IconCamera /> },
+  { id: "garage", icon: <IconGarage /> },
+  { id: "settings", icon: <IconSettings /> },
+  { id: "diagnostics", icon: <IconDiagnostics /> },
+];
+
+export function Shell({
+  page,
+  onNavigate,
+  children,
+}: {
+  page: PageId;
+  onNavigate: (page: PageId) => void;
+  children: ReactNode;
+}) {
+  const { connection, system } = useAppState();
+
+  return (
+    <div className="shell">
+      <Header />
+
+      {/* Ohne Verbindung sind die angezeigten Werte nicht mehr belastbar.
+          Das wird gesagt, statt es zu verschweigen (Kapitel 8 §26). */}
+      {connection !== "online" && (
+        <div className={`banner banner--${connection === "offline" ? "error" : "warn"}`}>
+          <strong>{t(`conn.${connection === "connecting" ? "connecting" : connection}`)}</strong>
+          {connection === "offline" && <span>{t("conn.offlineHint")}</span>}
+        </div>
+      )}
+
+      {/* Simulation ist dauerhaft sichtbar, nie beiläufig (Kapitel 18 §66). */}
+      {system?.simulated && (
+        <div className="banner banner--sim">
+          <strong>{t("env.simulation")}</strong>
+          <span>{t("env.simulationHint")}</span>
+        </div>
+      )}
+
+      <div className="shell__main">
+        <nav className="sidebar" aria-label="Hauptnavigation">
+          <ul className="sidebar__list">
+            {NAV.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={`navitem${page === item.id ? " navitem--active" : ""}`}
+                  onClick={() => onNavigate(item.id)}
+                  aria-current={page === item.id ? "page" : undefined}
+                >
+                  <span className="navitem__icon">{item.icon}</span>
+                  <span className="navitem__label">{t(`nav.${item.id}`)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <SystemStatus />
+        </nav>
+
+        <main className="content">{children}</main>
+      </div>
+    </div>
+  );
+}
+
+function Header() {
+  const now = new Date();
+  return (
+    <header className="header">
+      <div className="header__time">
+        <div className="header__clock numeric">
+          {now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+        </div>
+        <div className="header__date">
+          {now.toLocaleDateString("de-DE", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric",
+          })}
+        </div>
+      </div>
+
+      <div className="header__brand">
+        KEHLER <span className="header__brand-os">OS</span>
+      </div>
+
+      <div className="header__right">
+        <span className="header__net">
+          <IconWifi size={18} />
+        </span>
+        <span className="header__user">
+          <IconUser size={18} />
+        </span>
+      </div>
+    </header>
+  );
+}
+
+function SystemStatus() {
+  const { system, connection } = useAppState();
+
+  // Ohne Verbindung wird kein Gesundheitszustand behauptet.
+  if (connection === "offline" || !system) {
+    return (
+      <div className="sysstatus">
+        <div className="label">{t("dash.systemStatus")}</div>
+        <Status tone="unknown" label={t("state.unknown")} />
+      </div>
+    );
+  }
+
+  const tone =
+    system.health === "HEALTHY" ? "ok"
+    : system.health === "CRITICAL" ? "error"
+    : system.health === "INITIALIZING" ? "unknown"
+    : "warn";
+
+  return (
+    <div className="sysstatus">
+      <div className="label">{t("dash.systemStatus")}</div>
+      <Status tone={tone} label={t(`health.${system.health}`)} />
+    </div>
+  );
+}

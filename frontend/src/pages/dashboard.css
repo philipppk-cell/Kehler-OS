@@ -1,0 +1,194 @@
+/* Dashboard-Layout.
+
+   Das Raster ist bewusst stabil: Hervorhebungen ändern Farbe und Rand, nie
+   Position oder Größe (Kapitel 8 §11). */
+
+.dash {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-rows: minmax(380px, 1fr) auto;
+  grid-template-areas:
+    "hero side"
+    "cards cards";
+  gap: var(--space-4);
+
+  /* `width: 100%` ist hier nicht redundant: `.content` ist ein Flex-Container,
+     und `margin: 0 auto` verhindert dort das Strecken — das Raster würde auf
+     Inhaltsbreite schrumpfen. */
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  flex: 1;
+}
+
+.dash__hero {
+  grid-area: hero;
+  position: relative;
+  min-height: 380px;
+  height: 100%;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(700px 300px at 60% 20%, rgba(56, 214, 238, 0.07), transparent 70%),
+    var(--surface-1);
+  overflow: hidden;
+}
+
+.dash__vehicle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+/* Das Fahrzeug ist im Zeichenbereich nach rechts gesetzt (siehe
+   VehicleView), damit die Statuskarte über freier Fläche liegt und nicht
+   ausgerechnet die Garage verdeckt, die sie beschreibt. */
+
+/* Die Statuskarte liegt auf dem Fahrzeug, wie in der Designreferenz. */
+.dash__status {
+  position: absolute;
+  left: var(--space-5);
+  bottom: var(--space-5);
+  width: 268px;
+}
+
+.dash__side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.dash__cards {
+  grid-area: cards;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.dash__split {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.dash__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--warn-wash);
+  border: 1px solid var(--warn-border);
+  color: var(--warn);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+}
+
+/* ── Kennzahl ────────────────────────────────────────────────────────── */
+
+.metric {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.metric__caption {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+/* ── Warnungen ───────────────────────────────────────────────────────── */
+
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border-default);
+  background: var(--surface-sunken);
+}
+
+.alert--warning { border-left-color: var(--warn); background: var(--warn-wash); }
+.alert--critical { border-left-color: var(--error); background: var(--error-wash); }
+.alert--notice { border-left-color: var(--unknown); }
+
+.alert__title {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+}
+
+.alert__text {
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+}
+
+/* ── Schnellzugriff ──────────────────────────────────────────────────── */
+
+.quickgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+/* ── Tanks ───────────────────────────────────────────────────────────── */
+
+.tanks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.tank__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.tank__label {
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+/* ── Kleinere Displays ───────────────────────────────────────────────────
+   Andere Struktur statt proportionaler Verkleinerung (Kapitel 18 §20).   */
+
+@media (max-width: 1200px) {
+  .dash {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "hero" "side" "cards";
+  }
+
+  .dash__hero { min-height: 280px; }
+
+  .dash__status {
+    position: static;
+    width: auto;
+    margin: var(--space-4);
+  }
+
+  .dash__vehicle { position: relative; height: 220px; }
+}
+
+@media (max-width: 640px) {
+  .quickgrid { grid-template-columns: repeat(2, 1fr); }
+  .dash__hero { min-height: auto; }
+}

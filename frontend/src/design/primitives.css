@@ -1,0 +1,391 @@
+/* Darstellung der Primitive. Ausschließlich Tokens, keine freien Werte. */
+
+/* ── Karte ─────────────────────────────────────────────────────────────── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  transition:
+    border-color var(--duration-normal) var(--ease-standard),
+    background var(--duration-normal) var(--ease-standard);
+}
+
+/* Hervorhebung verändert Rand und Grund, nicht Größe oder Position — das
+   Layout bleibt stabil (Kapitel 8 §11). */
+.card--emphasis {
+  border-color: var(--warn-border);
+  background: var(--warn-wash);
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5) 0;
+}
+
+.card__icon {
+  display: flex;
+  color: var(--accent);
+}
+
+.card__title {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.card__action {
+  margin-left: auto;
+}
+
+.card__body {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+/* ── Status ────────────────────────────────────────────────────────────── */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+}
+
+.status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.status--compact .status__label {
+  font-size: var(--text-label);
+}
+
+.status--ok .status__dot { background: var(--ok); box-shadow: var(--glow-ok); }
+.status--ok .status__label { color: var(--ok); }
+
+.status--warn .status__dot { background: var(--warn); box-shadow: var(--glow-warn); }
+.status--warn .status__label { color: var(--warn); }
+
+.status--error .status__dot { background: var(--error); box-shadow: var(--glow-error); }
+.status--error .status__label { color: var(--error); }
+
+.status--accent .status__dot { background: var(--accent); box-shadow: var(--glow-accent); }
+.status--accent .status__label { color: var(--accent); }
+
+/* Unbekannt ist sichtbar und eigenständig — nicht einfach ausgegraut. */
+.status--unknown .status__dot {
+  background: transparent;
+  border: 1.5px dashed var(--unknown);
+}
+.status--unknown .status__label { color: var(--unknown); }
+
+.status--neutral .status__dot { background: var(--text-tertiary); }
+.status--neutral .status__label { color: var(--text-secondary); }
+
+/* ── Wert ──────────────────────────────────────────────────────────────── */
+
+.value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+.value--metric { font-size: var(--text-metric); font-weight: var(--weight-semibold); }
+.value--display { font-size: var(--text-display); font-weight: var(--weight-semibold); }
+.value--inline { font-size: var(--text-body); font-weight: var(--weight-medium); }
+
+.value__unit {
+  font-size: 0.5em;
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+}
+
+.value__hint {
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  margin-left: var(--space-2);
+  align-self: center;
+}
+
+.value--unknown { color: var(--unknown); }
+.value--unknown .value__hint { color: var(--unknown); }
+
+.value--error { color: var(--error); }
+.value--error .value__hint { color: var(--error); }
+
+/* Ein veralteter Wert bleibt lesbar, wird aber sichtbar zurückgenommen. */
+.value--stale { color: var(--text-secondary); }
+.value--stale .value__hint { color: var(--warn); }
+
+.value--muted { color: var(--text-tertiary); font-size: var(--text-body); }
+
+/* ── Balken ────────────────────────────────────────────────────────────── */
+
+.bar {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+/* Ohne belastbaren Wert bleibt der Balken leer und wird schraffiert — er
+   zeigt niemals „0 %“ für „unbekannt“. */
+.bar--unknown {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--unknown-wash),
+    var(--unknown-wash) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.bar__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+.bar__fill--accent { background: var(--accent); box-shadow: var(--glow-accent); }
+.bar__fill--ok { background: var(--ok); }
+.bar__fill--warn { background: var(--warn); }
+.bar__fill--error { background: var(--error); }
+.bar__fill--unknown,
+.bar__fill--neutral { background: var(--text-tertiary); }
+
+/* ── Schalter ──────────────────────────────────────────────────────────── */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2);
+  margin: calc(var(--space-2) * -1);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  justify-content: center;
+}
+
+.toggle__track {
+  position: relative;
+  width: 50px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+  border: 1px solid var(--border-default);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.toggle__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--text-secondary);
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    background var(--duration-fast) var(--ease-standard);
+}
+
+.toggle--on .toggle__track {
+  background: var(--accent-wash-strong);
+  border-color: var(--accent-border);
+}
+
+.toggle--on .toggle__knob {
+  transform: translateX(20px);
+  background: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+/* Laufender Befehl: Der Schalter zeigt Aktivität, behauptet aber noch
+   keinen Zustand. Erst die Hardwarebestätigung bewegt ihn endgültig. */
+.toggle--pending .toggle__track {
+  border-color: var(--accent-border);
+}
+
+.toggle--pending .toggle__knob {
+  animation: toggle-pending var(--duration-slow) var(--ease-in-out) infinite alternate;
+}
+
+@keyframes toggle-pending {
+  from { opacity: 0.45; }
+  to { opacity: 1; }
+}
+
+/* Unbekannt: keine Position vortäuschen — der Knopf steht mittig. */
+.toggle--unknown .toggle__track {
+  border-style: dashed;
+  border-color: var(--unknown-border);
+  background: var(--unknown-wash);
+}
+
+.toggle--unknown .toggle__knob {
+  transform: translateX(10px);
+  background: var(--unknown);
+}
+
+.toggle:disabled {
+  cursor: not-allowed;
+}
+
+/* ── Schnellzugriff ────────────────────────────────────────────────────── */
+
+.quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 92px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-instant) var(--ease-standard);
+}
+
+.quick:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.quick--active {
+  background: var(--accent-wash);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.quick--pending {
+  border-color: var(--accent-border);
+  animation: toggle-pending var(--duration-slow) var(--ease-in-out) infinite alternate;
+}
+
+.quick--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.quick__icon {
+  display: flex;
+}
+
+.quick__label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  text-align: center;
+  line-height: var(--leading-tight);
+}
+
+/* ── Zeile ─────────────────────────────────────────────────────────────── */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 40px;
+}
+
+.row__icon {
+  display: flex;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.row__label {
+  color: var(--text-secondary);
+  font-size: var(--text-body);
+}
+
+.row__value {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Schaltfläche ──────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  border: 1px solid var(--border-default);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-instant) var(--ease-standard);
+}
+
+.btn:active:not(:disabled) { transform: scale(0.98); }
+
+.btn--accent {
+  background: var(--accent-wash);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.btn--quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-secondary);
+}
+
+.btn--full { width: 100%; }
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Nicht konfiguriert ────────────────────────────────────────────────── */
+
+.notconfigured {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-default);
+  background: var(--surface-sunken);
+}
+
+.notconfigured__label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--text-tertiary);
+}
+
+.notconfigured__hint {
+  font-size: var(--text-label);
+  color: var(--text-disabled);
+}

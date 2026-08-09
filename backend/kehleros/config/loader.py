@@ -87,7 +87,7 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
     die Durchsetzung des Capability-Prinzips: Die Oberfläche kann nichts
     anbieten, was hier nicht steht.
     """
-    if config.type == "measurement":
+    if config.type in ("measurement", "contact"):
         return ()
 
     common = {

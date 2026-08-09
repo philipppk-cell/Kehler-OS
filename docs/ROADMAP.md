@@ -36,12 +36,13 @@ und **gezielt auslösbaren Fehlerbildern** (SPS offline, Victron-Timeout,
 ungültiger Sensor, blockierte Garage). Ohne Fehlersimulation ist die
 Simulation wertlos (Kapitel 18 §65).
 
-**Weitgehend erreicht.** Der Simulationsadapter erfüllt dieselbe
-Schnittstelle wie die realen Adapter und erzeugt Sensordefekt, ungültige Werte,
-verstummte Sensoren und blockierte Mechanik. Offen bleibt nur, was das
-Dashboard betrifft — das entsteht in M4.
+**Erreicht.** Der Simulationsadapter erfüllt dieselbe Schnittstelle wie die
+realen Adapter und erzeugt Sensordefekt, ungültige Werte, verstummte Sensoren
+und blockierte Mechanik. Die Wertebereiche sind je Einheit hinterlegt, damit
+keine unplausiblen Zahlen entstehen (48 V auf einem 24-V-System hätte den
+Zweck der Simulation verfehlt).
 
-### M3 – Designsystem · `PLANNED`
+### M3 – Designsystem · `SIMULATED`
 
 Tokens (Farben, Typografie, Abstände, Radien, Schatten, Glows, Statusfarben),
 Primitive (Button, Switch, Slider, Card, Dialog, Navigation, Statusanzeige),
@@ -50,7 +51,18 @@ Icon-Set, Bewegungsregeln, Bootscreen.
 **Fertig, wenn:** jede spätere Seite ausschließlich aus diesen Bausteinen
 gebaut werden kann und kein Einzelwert außerhalb der Tokens existiert.
 
-### M4 – Dashboard · `PLANNED`
+**Erreicht.** Alle Farben, Abstände, Radien, Schriftgrade und Bewegungszeiten
+stehen in `frontend/src/design/tokens.css`; Nachtmodus und
+`prefers-reduced-motion` tauschen ausschließlich Tokenwerte. Die Primitive
+liegen in `primitives.tsx`. `Value` ist dabei der **einzige** Ort, an dem ein
+Messwert dargestellt wird — dadurch ist „UNKNOWN wird nie zu 0" (Kapitel 18
+§38) einmal umgesetzt statt überall wiederholt.
+
+Noch offen: Slider und Dialog entstehen mit dem ersten Fachmodul, das sie
+braucht (M5). Ein Bausteinvorrat auf Verdacht wäre Aufwand ohne Nutzen. Das
+Layout bleibt bis zur Klärung des Displayformats (offener Punkt I4) responsiv.
+
+### M4 – Dashboard · `SIMULATED`
 
 Kopfbereich, linke Navigation, Fahrzeugvisualisierung, Warnungen,
 Schnellzugriffe, Karten für Energie, Wasser, Klima, Nivellierung und Verbrauch,
@@ -58,6 +70,21 @@ Systemstatus. Umsetzung der Designreferenz.
 
 **Fertig, wenn:** die Definition of Done für UI (Kapitel 18 §120) erfüllt ist —
 einschließlich der Darstellung von Laden, Unbekannt, Offline und Fehler.
+
+**Erreicht.** Das Dashboard läuft gegen die Simulation. Die vier geforderten
+Sonderfälle sind gegen einen laufenden Server geprüft, nicht nur behauptet:
+
+| Fall | Verhalten |
+| --- | --- |
+| Unbekannt | „—" mit Hinweis, nie eine Zahl |
+| Offline | Banner, alle Werte als *veraltet* markiert, Fahrzeugteile gestrichelt, Schnellzugriffe gesperrt, keine Entwarnung im Warnungsbereich |
+| Fehler | eigener Zustand, getrennt von Unbekannt |
+| Nicht konfiguriert | ruhiger Hinweis, keine Bedienung, das Teil wird am Fahrzeug **nicht** gezeichnet |
+
+Bewusst **nicht** enthalten: Karten für Nivellierung und Verbrauch. Die
+Nivellierung ist ausdrücklich nach 1.0 verschoben (Kapitel 18 §91), und für
+eine Verbrauchsanzeige fehlen die Tankkapazitäten (offener Punkt C2) — sie
+ließe sich nur mit geratenen Werten füllen.
 
 ### M5 – Fachmodule · `PLANNED`
 

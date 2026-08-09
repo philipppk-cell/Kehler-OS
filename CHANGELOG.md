@@ -45,6 +45,39 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   ohne erfundene Tankkapazitäten oder Hardwareadressen.
 - 69 Tests mit Schwerpunkt auf Fehlerzuständen; Lint sauber.
 
+### Hinzugefügt — M3/M4: Designsystem und Dashboard
+
+- **Design-Tokens** als einzige Quelle für Farbe, Abstand, Radius, Typografie
+  und Bewegung. Nachtmodus und reduzierte Bewegung tauschen ausschließlich
+  Tokenwerte; keine Komponente kennt ein Thema.
+- **Primitive** (Karte, Statuspunkt, Wert, Balken, Schalter, Schnellzugriff,
+  Zeile, Button, „Nicht konfiguriert"). Die Komponente `Value` ist der einzige
+  Ort, an dem ein Messwert dargestellt wird — dadurch kann keine Seite einen
+  unbekannten Zustand versehentlich als Zahl ausgeben.
+- **Fahrzeugvisualisierung** als Inline-SVG mit dokumentiertem Koordinatenplan.
+  Sie ist reine Ausgabe. Bewegungen entstehen aus echten Zuständen; ein
+  unbekannter Zustand wird gestrichelt gezeigt statt in einer erfundenen
+  Position, und nicht konfigurierte Hardware wird gar nicht gezeichnet.
+- **Realtime-Client** mit Snapshot beim Verbinden, Deltas mit Sequenzprüfung,
+  exponentiellem Backoff und vollständigem Neuabgleich nach Verbindungsverlust.
+- **Dashboard** mit Kopfbereich, Navigation, Fahrzeugstatus, Warnungen,
+  Schnellzugriffen und Karten für Energie, Wasser und Klima.
+- **Warnungsableitung im Backend** (`core/alerts.py`) — die Bewertung, ob etwas
+  eine Warnung ist, ist Geschäftslogik und gehört nicht in die Oberfläche.
+  Bewusst **ohne Schwellenwertwarnungen**, solange die Schwellen nicht
+  konfiguriert sind (offener Punkt C3).
+- **Verhalten ohne Verbindung** durchgängig geprüft: Banner, alle Werte als
+  veraltet gekennzeichnet, Zustände als unbekannt geführt, Bedienelemente
+  gesperrt und keine Entwarnung im Warnungsbereich.
+
+### Geändert
+
+- **ADR 0006 korrigiert:** Zustand und TanStack Query entfallen. Der
+  Fahrzeugzustand kommt über einen einzigen WebSocket; es gibt keine Abfragen
+  zu cachen. Stattdessen Reacts eingebautes `useSyncExternalStore`.
+- **Simulation** kennt jetzt Wertebereiche je Einheit und einen eigenen Typ für
+  binäre Kontakte, damit keine unplausiblen Werte entstehen.
+
 ### Entschieden (2026-08-09)
 
 - **SPS-Transport:** S7-Kommunikation über snap7 statt OPC UA — keine Lizenz.

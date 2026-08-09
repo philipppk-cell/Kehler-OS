@@ -1,0 +1,118 @@
+/* Darstellung der Fahrzeugansicht. Nur Tokens, keine freien Werte. */
+
+.vehicle {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Flächen ─────────────────────────────────────────────────────────── */
+
+.v-window {
+  fill: rgba(56, 214, 238, 0.07);
+  stroke: var(--accent-border);
+  stroke-width: 1;
+}
+
+.v-cavity {
+  fill: var(--bg-deep);
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.v-panel {
+  fill: rgba(255, 255, 255, 0.07);
+  stroke: var(--border-strong);
+  stroke-width: 1.25;
+}
+
+.v-panel-line {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.v-detail {
+  fill: var(--text-tertiary);
+}
+
+.v-seam {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.v-opening {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.v-frame {
+  stroke: var(--border-default);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.v-fabric {
+  fill: var(--accent-wash-strong);
+  stroke: var(--accent-border);
+  stroke-width: 1;
+}
+
+.v-support {
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.v-tyre {
+  fill: var(--bg-deep);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+
+.v-rim {
+  fill: none;
+  stroke: var(--border-default);
+  stroke-width: 1.5;
+}
+
+/* ── Bewegliche Teile ────────────────────────────────────────────────── */
+
+.v-animated {
+  transition: transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-normal) var(--ease-standard);
+}
+
+/* Offen: das Teil wird als aktiv markiert, damit man es auf einen Blick
+   findet — ohne dass die ganze Ansicht bunt wird. */
+.v-part--open .v-panel,
+.v-part--open .v-fabric {
+  stroke: var(--accent);
+  fill: var(--accent-wash);
+}
+
+/* In Bewegung: pulsierender Rand. Der Zustand ist echt und kommt aus der
+   Hardware — hier wird keine Bewegung erfunden (Kapitel 18 §106). */
+.v-part--moving .v-panel {
+  stroke: var(--accent);
+  animation: v-pulse var(--duration-slow) var(--ease-in-out) infinite alternate;
+}
+
+@keyframes v-pulse {
+  from { stroke-opacity: 0.4; }
+  to { stroke-opacity: 1; }
+}
+
+/* Unbekannt: gestrichelt statt in einer behaupteten Position. */
+.v-part--unknown .v-panel {
+  stroke: var(--unknown);
+  stroke-dasharray: 4 3;
+  fill: var(--unknown-wash);
+}
+
+.v-part--unknown .v-animated {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v-part--moving .v-panel { animation: none; }
+}

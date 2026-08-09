@@ -59,6 +59,27 @@ class Motion(StrEnum):
     BLOCKED = "BLOCKED"
 
 
+def _range_key(entity: Entity) -> str:
+    """Ordnet einer Entity ihren plausiblen Wertebereich zu."""
+    if entity.unit == "celsius":
+        return "celsius.outside" if "outside" in entity.id else "celsius.inside"
+    return entity.unit or ""
+
+
+# Plausible Bereiche je Einheit: (min, max, Startwert, Drift pro Sekunde).
+# Die Zahlen beschreiben ausschließlich die Simulation. Reale Kapazitäten,
+# Schwellen und Nennwerte kommen aus der Konfiguration und werden hier
+# ausdrücklich nicht vorweggenommen (Kapitel 18 §98).
+_RANGES: dict[str, tuple[float, float, float, float]] = {
+    "percent": (0.0, 100.0, 62.0, 0.04),
+    "celsius.inside": (14.0, 28.0, 21.5, 0.004),
+    "celsius.outside": (-8.0, 34.0, 12.0, 0.006),
+    "V": (22.0, 29.0, 26.2, 0.002),   # 24-V-System
+    "A": (-120.0, 120.0, -8.0, 0.05),
+    "W": (0.0, 2000.0, 640.0, 1.2),
+}
+
+
 @dataclass
 class _Device:
     """Ein simuliertes Gerät."""
@@ -128,15 +149,23 @@ class SimulationAdapter(Adapter):
                 entity=entity, kind="setpoint", value=20.0, bounds=(5.0, 30.0)
             )
 
-        # Alles ohne Befehle ist ein Messwert. Der Startwert liegt bewusst in
-        # einem unauffälligen Bereich; echte Kapazitäten kommen aus der
-        # Konfiguration und werden hier nicht erfunden (Kapitel 18 §98).
+        # Ein Kontakt ist binär, kein Zahlenwert.
+        if entity.unit is None and not caps:
+            return _Device(entity=entity, kind="contact", value="CLOSED")
+
+        # Messwerte richten sich nach ihrer Einheit. Ein Simulator, der für
+        # Temperatur, Spannung und Füllstand denselben Bereich würfelt,
+        # erzeugt unbrauchbare Bilder — und verdeckt damit genau die
+        # Darstellungsfehler, die er sichtbar machen soll.
+        low, high, start, drift = _RANGES.get(
+            _range_key(entity), (0.0, 100.0, 55.0, 0.05)
+        )
         return _Device(
             entity=entity,
             kind="measure",
-            value=self._random.uniform(40.0, 70.0),
-            drift=0.05,
-            bounds=(0.0, 100.0),
+            value=start + self._random.uniform(-2.0, 2.0),
+            drift=drift,
+            bounds=(low, high),
         )
 
     # ── Zyklus ──────────────────────────────────────────────────────────────
@@ -201,10 +230,22 @@ class SimulationAdapter(Adapter):
         return device.value
 
     def _advance_measure(self, device: _Device, elapsed: float) -> float:
-        """Lässt einen Messwert langsam und plausibel wandern."""
-        step = device.drift * elapsed + self._random.uniform(-0.02, 0.02)
+        """Lässt einen Messwert langsam und plausibel wandern.
+
+        Nahe an den Bereichsgrenzen kehrt die Drift um, damit der Wert nicht
+        an der Grenze klebt.
+        """
         low, high = device.bounds
-        device.value = max(low, min(high, float(device.value) - step))
+        current = float(device.value)
+        span = high - low
+
+        if current <= low + span * 0.05:
+            device.drift = -abs(device.drift)
+        elif current >= high - span * 0.05:
+            device.drift = abs(device.drift)
+
+        step = device.drift * elapsed + self._random.uniform(-0.01, 0.01) * span * 0.01
+        device.value = max(low, min(high, current - step))
         return round(float(device.value), 1)
 
     # ── Befehle ─────────────────────────────────────────────────────────────

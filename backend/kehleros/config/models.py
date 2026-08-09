@@ -25,7 +25,13 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-EntityType = Literal["measurement", "switch", "movable", "climate_zone"]
+EntityType = Literal["measurement", "contact", "switch", "movable", "climate_zone"]
+"""Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.
+
+Er ist bewusst von ``measurement`` getrennt: Ein Türkontakt liefert OPEN oder
+CLOSED, keinen Zahlenwert. Diese Unterscheidung ist real und nicht nur eine
+Eigenheit der Simulation.
+"""
 
 
 class EntityConfig(_Strict):
