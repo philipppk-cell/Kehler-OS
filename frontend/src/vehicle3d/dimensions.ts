@@ -63,9 +63,12 @@ export const V = {
     front: 2.35,
     /** Unterkante des Wohnbodens. */
     floor: 1.85,
-    /** Radius der gerundeten oberen Vorderkante. */
-    frontRadius: 0.35,
-    rearRadius: 0.2,
+    /** Die Vorderkante ist oben **abgeschrägt**, nicht gerundet: Die Front
+     *  steht bis `chamferAt` senkrecht und läuft dann schräg zum Dach.
+     *  So zeigt es die Drohnenaufnahme. */
+    chamferAt: 3.2,
+    chamferRun: 0.6,
+    rearRadius: 0.18,
   },
 
   /* ── Staukastenband ─────────────────────────────────────────────────── */
@@ -97,17 +100,21 @@ export const V = {
   /** Einstiegsstufe unter der Tür. */
   step: { x: 4.6, width: 0.7, depth: 0.34, height: 1.42 },
 
-  /** Fenster je Seite: [x, y, Breite, Höhe]. */
+  /** Fenster je Seite: [x, Unterkante, Breite, Höhe].
+   *
+   *  Sie sitzen tiefer und sind größer, als eine erste Auswertung der
+   *  Sonnenfotos ergeben hatte — die Drohnenaufnahme zeigt sie im mittleren
+   *  Drittel der Aufbauhöhe, nicht direkt unter dem Dach. */
   windows: {
     left: [
-      [3.4, 2.72, 1.35, 0.44],
-      [5.4, 3.0, 1.25, 0.44],
-      [7.05, 3.0, 0.44, 0.44],
-      [8.55, 2.72, 1.4, 0.5],
+      [3.35, 2.66, 1.45, 0.52],
+      [5.3, 2.54, 1.3, 0.52],
+      [7.15, 2.68, 0.52, 0.52],
+      [8.5, 2.58, 1.55, 0.58],
     ],
     right: [
-      [3.2, 2.74, 1.0, 0.46],
-      [9.35, 2.92, 1.0, 0.46],
+      [3.25, 2.62, 1.25, 0.52],
+      [9.2, 2.62, 1.15, 0.52],
     ],
   },
 } as const;

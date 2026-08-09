@@ -10,14 +10,25 @@ Grundlage für die dreidimensionale Fahrzeugdarstellung im Dashboard.
 
 ## Quelle
 
-Fünf Fotos des realen Fahrzeugs (2026-08-09):
+Sechs Fotos des realen Fahrzeugs (2026-08-09):
 
 1. Front, leicht schräg, Fahrerhaus
 2. Rechte Seite (Einstiegsseite), Gegenlicht
-3. Heck, frontal
+3. Heck, frontal — **Heckklappe geschlossen**
 4. Linke Seite (Fahrerseite), nahezu orthografisch — **die beste Grundlage
    für die Proportionen**
 5. Drohnenaufnahme schräg von oben, linke Seite und Dach
+6. Drohnenaufnahme am Stellplatz mit Umgebung, **Heckklappe geöffnet** —
+   maßgeblich für Farbe und Heckmechanik
+
+> **Warum Bild 6 zwei Fehler korrigiert hat.** Die Bilder 1–5 entstanden alle
+> in praller Sonne oder im Gegenlicht. Dort wirkt der Lack weiß, und die
+> waagerechte Fuge in der Heckwand liest sich wie die Mittelteilung zweier
+> Flügeltüren. Erst die Aufnahme mit Umgebung zeigt beides richtig: einen
+> grauen Lack und eine Klappe, die nach oben hebt.
+>
+> Lehre für spätere Nachbildungen: **Fotos ohne Bezugspunkt in der Umgebung
+> taugen nicht zur Farbbestimmung.**
 
 ## Fahrzeug
 
@@ -28,20 +39,20 @@ Fünf Fotos des realen Fahrzeugs (2026-08-09):
 | Achsen | Vorderachse einzelbereift, hinten Tandem, beide Hinterachsen doppelbereift |
 | Fahrerhaus | Fernverkehrskabine mit Dachspoiler und Seitenleitblechen, Außenspiegel klassisch (kein Kamerasystem) |
 | Aufbau | glatter Kofferaufbau, deutlich höher als das Fahrerhaus, keine Alkovenausformung über der Kabine |
-| Aufbaufront | senkrecht, obere Vorderkante großzügig gerundet |
+| Aufbaufront | senkrecht, obere Vorderkante **abgeschrägt** (nicht gerundet) |
 | Heck | leichte Dachkantenauskragung, senkrechte Heckwand |
-| Farbe | Fahrerhaus und Aufbau hellgrau/weiß, hochglänzend |
+| Farbe | Fahrerhaus und Aufbau **mittelgrau mit leichtem Blaustich**, hochglänzend. Auf den Sonnenaufnahmen wirkt der Lack ausgebrannt hell bis weiß — die Aufnahme mit Umgebung zeigt die tatsächliche Farbe. |
 | Unterbau | durchgehendes Staukastenband beidseitig, zwischen den Rädern abgesenkt, über dem Tandem flach hochgezogen |
 
 ## Aufbaufunktionen
 
 | Funktion | Beobachtung |
 | --- | --- |
-| **Garage** | über **zwei Flügeltüren am Heck**, außen angeschlagen, nahezu volle Höhe und Breite der Heckwand. **Kein Rolltor.** |
+| **Garage** | über **eine oben angeschlagene Heckklappe**, die nach oben hebt und geöffnet waagerecht wie ein Vordach absteht. Nahezu volle Höhe und Breite der Heckwand. **Kein Rolltor, keine Flügeltüren.** |
 | **Eingangstür** | auf der **rechten Seite** (Einstiegsseite), im vorderen Drittel, nahezu volle Aufbauhöhe, mit Fenster im oberen Bereich |
 | **Markise** | Kassette auf der **rechten Dachkante**, dunkel, über nahezu die gesamte Aufbaulänge |
 | **Solar** | Dach vollflächig belegt, **zwei Reihen zu je fünf Modulen** |
-| **Fenster** | links vier (drei breite, ein kleines quadratisch); rechts zwei breite plus das Türfenster |
+| **Fenster** | links vier (drei breite, ein kleines quadratisch); rechts zwei breite plus das Türfenster. Kräftige dunkle Rahmen mit deutlich gerundeten Ecken, im **mittleren Drittel** der Aufbauhöhe — nicht direkt unter dem Dach. |
 | Heckleuchten | mehrere runde Einzelleuchten in den oberen und unteren Heckecken |
 
 ## Maße

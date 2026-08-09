@@ -95,6 +95,28 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 - [ADR 0008](docs/architektur/adr/0008-fahrzeugdarstellung-3d.md) mit der
   Begründung, warum die 3D-Absage aus ADR 0006 revidiert wurde.
 
+### Korrigiert — Fahrzeugmodell nach zusätzlichem Foto
+
+Eine Drohnenaufnahme mit Umgebung und geöffnetem Heck hat drei Fehler
+aufgedeckt, die aus den Sonnenfotos nicht erkennbar waren:
+
+- **Heckmechanik:** Die Garage öffnet über **eine oben angeschlagene
+  Heckklappe**, die nach oben hebt — nicht über zwei Flügeltüren. Die
+  waagerechte Fuge in der Heckwand war als Mittelteilung fehlgedeutet worden.
+- **Farbe:** Der Lack ist **grau mit leichtem Blaustich**, nicht weiß. In
+  praller Sonne wirkt er ausgebrannt hell. Lichtstärken und Umgebungs-
+  spiegelung sind entsprechend zurückgenommen — bei den alten Werten wäre aus
+  dem Grau wieder ein Weiß geworden.
+- **Fenster und Aufbaufront:** Fenster größer, tiefer sitzend, mit gerundeten
+  Ecken und kräftigem Rahmen. Die obere Vorderkante des Aufbaus ist
+  abgeschrägt, nicht gerundet.
+
+### Behoben
+
+- **Warnungstexte fehlten in der Übersetzungstabelle.** Die Warnungskarte hat
+  den rohen Schlüssel angezeigt (`alert.sensorStale` statt „Seit längerem
+  keine Rückmeldung").
+
 ### Geändert
 
 - **ADR 0006 korrigiert:** Zustand und TanStack Query entfallen. Der

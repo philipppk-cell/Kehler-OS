@@ -46,6 +46,14 @@ const de: Record<string, string> = {
   "dash.noWarnings": "Keine Warnungen",
   "dash.warningsUnknown": "Ohne Verbindung nicht beurteilbar",
 
+  // Warnungstexte. Sie beschreiben, was das System beobachtet hat — nicht,
+  // was es vermutet. „Keine Rückmeldung" ist eine Feststellung,
+  // „Sensor defekt" wäre eine Diagnose, die Kehler OS nicht stellen kann.
+  "alert.notConfigured": "Für diese Funktion ist noch keine Hardware zugeordnet",
+  "alert.deviceOffline": "Das Gerät ist derzeit nicht erreichbar",
+  "alert.sensorFaulty": "Der gemeldete Wert ist nicht verwertbar",
+  "alert.sensorStale": "Seit längerem keine Rückmeldung",
+
   // Fahrzeugansicht
   "vehicle3d.label": "Fahrzeugansicht mit dem Zustand der Aufbaufunktionen",
   "vehicle3d.dragHint": "Zum Drehen wischen",

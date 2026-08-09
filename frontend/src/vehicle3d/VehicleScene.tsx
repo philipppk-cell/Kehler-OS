@@ -90,24 +90,31 @@ export function VehicleScene({
     const pmrem = new PMREMGenerator(renderer);
     const environment = pmrem.fromEquirectangular(makeStudioTexture()).texture;
     scene.environment = environment;
+    // Zurückhaltend dosiert: Die Umgebung soll dem Lack Glanz geben, ihn aber
+    // nicht aufhellen. Bei voller Stärke wird aus dem grauen Fahrzeug wieder
+    // ein weißes.
+    scene.environmentIntensity = 0.5;
 
     // Führungslicht von vorn oben, Aufhellung von der Gegenseite und ein
     // Streiflicht von hinten. Das Streiflicht ist der eigentliche Trick:
     // Es zeichnet die Kanten nach, damit ein weißes Fahrzeug vor dunklem
     // Hintergrund nicht als Silhouette verschwindet.
-    const key = new DirectionalLight(0xffffff, 2.1);
+    // Die Stärken sind auf den **grauen** Lack abgestimmt. Wären sie höher,
+    // liefe das Grau ins Weiße — genau der Eindruck, den die Sonnenfotos
+    // erzeugen und der zuerst zu einem weißen Modell geführt hat.
+    const key = new DirectionalLight(0xffffff, 1.35);
     key.position.set(-8, 11, 9);
     scene.add(key);
 
-    const fill = new DirectionalLight(0xc6dcea, 0.5);
+    const fill = new DirectionalLight(0xc6dcea, 0.32);
     fill.position.set(10, 4, -6);
     scene.add(fill);
 
-    const rim = new DirectionalLight(0x9adcee, 1.0);
+    const rim = new DirectionalLight(0x9adcee, 0.85);
     rim.position.set(5, 4, -12);
     scene.add(rim);
 
-    scene.add(new HemisphereLight(0xcfe6f2, 0x11161a, 0.45));
+    scene.add(new HemisphereLight(0xbcd4e2, 0x0e1216, 0.3));
 
     const model: VehicleModel = buildVehicle();
     scene.add(model.root);
@@ -375,16 +382,16 @@ function makeStudioTexture(): CanvasTexture {
   const ctx = canvas.getContext("2d")!;
 
   const sky = ctx.createLinearGradient(0, 0, 0, 128);
-  sky.addColorStop(0, "#f2f7fb");
-  sky.addColorStop(0.46, "#b9c8d4");
-  sky.addColorStop(0.52, "#4d565e");
-  sky.addColorStop(1, "#14181c");
+  sky.addColorStop(0, "#c3d2de");
+  sky.addColorStop(0.46, "#8496a4");
+  sky.addColorStop(0.52, "#39424a");
+  sky.addColorStop(1, "#0f1316");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, 256, 128);
 
   // Ein breites „Fenster" erzeugt den langen Glanzstreifen auf dem Lack.
   const glow = ctx.createLinearGradient(0, 0, 0, 46);
-  glow.addColorStop(0, "rgba(255,255,255,0.95)");
+  glow.addColorStop(0, "rgba(255,255,255,0.8)");
   glow.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = glow;
   ctx.fillRect(30, 0, 120, 46);

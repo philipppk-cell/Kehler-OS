@@ -61,9 +61,20 @@ export interface VehicleModel {
 
 /* ── Werkstoffe ────────────────────────────────────────────────────────── */
 
+/**
+ * Der Lack ist **grau, nicht weiß**.
+ *
+ * Die ersten Fotos entstanden in praller Sonne; dort wirkt der Aufbau
+ * ausgebrannt hell. Die Drohnenaufnahme mit Umgebung zeigt die tatsächliche
+ * Farbe: ein mittleres Grau mit leichtem Blaustich, Fahrerhaus und Aufbau
+ * gleich lackiert.
+ *
+ * Der Wert hier ist die Grundfarbe, nicht die Bildfarbe — Licht und
+ * Tonwertabbildung heben ihn beim Rendern an.
+ */
 const MATERIALS = {
-  paint: new MeshStandardMaterial({ color: 0xe8ecef, roughness: 0.24, metalness: 0.05 }),
-  paintDark: new MeshStandardMaterial({ color: 0xd2d8dd, roughness: 0.3, metalness: 0.05 }),
+  paint: new MeshStandardMaterial({ color: 0x6d7982, roughness: 0.22, metalness: 0.06 }),
+  paintDark: new MeshStandardMaterial({ color: 0x5e6a72, roughness: 0.28, metalness: 0.06 }),
   // Fast vollständig spiegelnd. Eine Scheibe ist keine schwarze Fläche —
   // sie zeigt den Himmel. Ohne das wird die Fahrzeugfront eine dunkle Maske.
   glass: new MeshStandardMaterial({ color: 0x131c23, roughness: 0.05, metalness: 0.95 }),
@@ -125,8 +136,12 @@ function buildBox(): Mesh {
   const s = new Shape();
 
   s.moveTo(box.front, box.floor);
-  s.lineTo(box.front, height - box.frontRadius);
-  s.quadraticCurveTo(box.front, height, box.front + box.frontRadius, height);
+  s.lineTo(box.front, box.chamferAt - 0.1);
+  // Abgeschrägte statt gerundeter Vorderkante — mit kleinen Verrundungen an
+  // beiden Enden der Schräge, damit keine scharfe Grate stehen bleiben.
+  s.quadraticCurveTo(box.front, box.chamferAt, box.front + 0.16, box.chamferAt + 0.22);
+  s.lineTo(box.front + box.chamferRun - 0.1, height - 0.14);
+  s.quadraticCurveTo(box.front + box.chamferRun, height, box.front + box.chamferRun + 0.16, height);
   s.lineTo(length - box.rearRadius, height);
   s.quadraticCurveTo(length, height, length, height - box.rearRadius);
   s.lineTo(length, box.floor);
@@ -317,17 +332,56 @@ function buildUnderbody(): Mesh {
 /** Ein Fenster: x, Unterkante, Breite, Höhe. */
 type Window = readonly [number, number, number, number];
 
+/** Rechteck mit gerundeten Ecken, liegend in der XY-Ebene. */
+function roundedRect(w: number, h: number, r: number): Shape {
+  const s = new Shape();
+  const x = -w / 2;
+  const y = -h / 2;
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h - r);
+  s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  s.lineTo(x + r, y + h);
+  s.quadraticCurveTo(x, y + h, x, y + h - r);
+  s.lineTo(x, y + r);
+  s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+
 function buildWindows(): Group {
   const g = new Group();
-  const z = V.width / 2 + 0.004;
+  const z = V.width / 2;
 
+  // Die Fotos zeigen kräftige dunkle Rahmen mit deutlich gerundeten Ecken —
+  // sie sind das auffälligste Merkmal der Seitenansicht.
   const add = (list: readonly Window[], side: number) => {
     for (const [x, y, w, h] of list) {
-      const frame = panel(w + 0.06, h + 0.06, 0.03, MATERIALS.trim);
-      frame.position.set(x + w / 2, y + h / 2, side * z);
+      const cx = x + w / 2;
+      const cy = y + h / 2;
+
+      const frame = new Mesh(
+        new ExtrudeGeometry(roundedRect(w + 0.11, h + 0.11, 0.1), {
+          depth: 0.035,
+          bevelEnabled: false,
+          curveSegments: 5,
+        }),
+        MATERIALS.trim,
+      );
+      frame.position.set(cx, cy, side * (z + 0.035));
+      frame.rotation.y = side > 0 ? 0 : Math.PI;
       g.add(frame);
-      const glass = panel(w, h, 0.035, MATERIALS.glass);
-      glass.position.set(x + w / 2, y + h / 2, side * (z + 0.002));
+
+      const glass = new Mesh(
+        new ExtrudeGeometry(roundedRect(w, h, 0.07), {
+          depth: 0.03,
+          bevelEnabled: false,
+          curveSegments: 5,
+        }),
+        MATERIALS.glass,
+      );
+      glass.position.set(cx, cy, side * (z + 0.045));
+      glass.rotation.y = side > 0 ? 0 : Math.PI;
       g.add(glass);
     }
   };
@@ -378,7 +432,7 @@ function buildRearLamps(): Group {
   const geometry = new CylinderGeometry(0.065, 0.065, 0.05, 12);
   geometry.rotateZ(Math.PI / 2);
 
-  // Sie sitzen in dem schmalen Streifen neben den Flügeltüren, so wie auf
+  // Sie sitzen in dem schmalen Streifen neben der Heckklappe, so wie auf
   // dem Heckfoto.
   for (const side of [-1, 1]) {
     for (const y of [3.36, 3.16, 2.96]) {
@@ -436,45 +490,40 @@ function buildGarageOpening(): Mesh {
   return mesh;
 }
 
-function buildGarageDoors(): Movable {
+/**
+ * Die Heckklappe.
+ *
+ * **Ein Blatt, oben angeschlagen, hebt nach oben.** Auf dem Heckfoto war die
+ * waagerechte Fuge als Mittelteilung zweier Flügeltüren zu lesen — das war
+ * falsch. Die Drohnenaufnahme zeigt die Klappe geöffnet: Sie steht waagerecht
+ * ab und wirkt wie ein Vordach über der Garagenöffnung.
+ */
+function buildTailgate(): Movable {
   const { garage, length, width } = V;
   const g = new Group();
   const h = garage.top - garage.bottom;
 
-  // Anschlag außen: Das Scharnier sitzt an der Fahrzeugkante, das Blatt
-  // schwenkt nach außen auf — so wie es die Fotos zeigen.
-  const leaf = (side: 1 | -1) => {
-    const hinge = new Group();
-    hinge.position.set(length, garage.bottom + h / 2, side * garage.halfWidth);
+  // Scharnier an der Oberkante der Öffnung. Das Blatt hängt davon nach unten.
+  const hinge = new Group();
+  hinge.position.set(length, garage.top, 0);
 
-    // Etwas schmaler als die halbe Öffnung: Der Spalt in der Mitte macht
-    // sichtbar, dass es zwei Flügel sind und nicht eine Klappe.
-    const door = panel(0.06, h, garage.halfWidth - 0.025, MATERIALS.paintDark);
-    door.position.set(0.05, 0, -side * (garage.halfWidth / 2));
-    hinge.add(door);
+  const leaf = panel(0.07, h, garage.halfWidth * 2, MATERIALS.paintDark);
+  leaf.position.set(0.045, -h / 2, 0);
+  hinge.add(leaf);
 
-    const handle = panel(0.05, 0.28, 0.05, MATERIALS.trim);
-    handle.position.set(0.07, -0.1, -side * (garage.halfWidth - 0.12));
-    hinge.add(handle);
+  // Griff unten in der Mitte
+  const handle = panel(0.05, 0.06, 0.3, MATERIALS.trim);
+  handle.position.set(0.1, -h + 0.22, 0);
+  hinge.add(handle);
 
-    g.add(hinge);
-    return hinge;
-  };
-
-  const right = leaf(1);
-  const left = leaf(-1);
-
+  g.add(hinge);
   void width;
+
   return makeMovable(g, (t) => {
-    // Bis rund 118° — weiter lassen die Scharniere in der Realität nicht zu.
-    //
-    // Vorzeichen: Beide Blätter zeigen im geschlossenen Zustand zur
-    // Fahrzeugmitte. Aufgehen heißt, dass die freie Kante nach hinten
-    // schwenkt (+X). Für das rechte Blatt ist das eine negative Drehung um
-    // die Hochachse, für das linke eine positive.
-    const angle = t * 2.06;
-    right.rotation.y = -angle;
-    left.rotation.y = angle;
+    // Bis knapp über die Waagerechte: Das Blatt hängt geschlossen nach unten
+    // (lokal -Y) und soll offen nach hinten zeigen (+X). Eine Drehung um die
+    // Querachse um +90° bildet genau das ab.
+    hinge.rotation.z = t * 1.66;
   });
 }
 
@@ -616,7 +665,7 @@ export function buildVehicle(): VehicleModel {
   root.position.x = -V.length / 2;
 
   const builders: Record<keyof VehicleState, () => Movable> = {
-    garage: buildGarageDoors,
+    garage: buildTailgate,
     door: buildEntryDoor,
     step: buildStep,
     awning: buildAwning,
