@@ -78,6 +78,17 @@ State Store oder UI davon berührt werden.
 
 ### A3 · Datenpunkt-Mapping — `OFFEN` · `BLOCKIEREND` für Phase 9
 
+**Teilweise beantwortet (2026-08-10, Foto des Schaltschranks):** Der Aufbau
+ist sichtbar — CPU 1511-1 PN (6ES7511-1AL03-0AB0, im Zustand RUN), dazu
+DI 16×24 V HF, DQ 8×24 V/2 A HF und DQ 16×24 V. Die Typenschlüssel stehen in
+`config/hardware/devices.yaml`.
+
+> **Auf dem Foto ist keine Kommunikationsbaugruppe zu sehen.** Für Modbus RTU
+> zur Heizung wäre eine nötig (CM PtP); über Modbus TCP ginge es über die
+> PN-Schnittstelle. Sichtbar sind dagegen digitale Ein- und Ausgänge — es ist
+> also möglich, dass die Heizung über potentialfreie Kontakte an der SPS hängt
+> und gar nicht über einen Bus. Das ist zu klären, siehe Punkt G1.
+
 Für **jede** Funktion, die real angebunden werden soll, wird benötigt:
 
 | Feld | Beispielinhalt |
@@ -133,10 +144,16 @@ Der Cerbo GX bietet lokal zwei dokumentierte Wege:
 **Empfehlung:** MQTT als Primärweg, Modbus TCP als Rückfallebene für einzelne
 Register, die über MQTT nicht sauber verfügbar sind.
 
-**Benötigte Antwort:**
-- IP-Adresse des Cerbo GX
+**Beantwortet (2026-08-10):** Die IP-Adresse des Cerbo GX ist bekannt und in
+`config/hardware/devices.yaml` hinterlegt (ungetrackt — Adressen gehören nicht
+ins Repository).
+
+**Weiterhin offen:**
 - Ist der lokale MQTT-Broker aktiviert? Mit oder ohne TLS/Authentifizierung?
 - VRM-Portal-ID (Bestandteil aller MQTT-Topics)
+
+> Eine eingetragene Adresse ist noch keine geprüfte Verbindung. Der
+> Victron-Adapter bleibt `simulated`, bis er am realen Gerät gelaufen ist.
 
 ### B2 · Reale Gerätekonfiguration — `TEILWEISE` · `NICHT BLOCKIEREND`
 
@@ -357,6 +374,36 @@ SCHEER/HeatMate → Modbus → Siemens S7-1500 → Kehler OS.
 > Heizkreise, zwei getrennte Temperaturen und eine Leistungsstufe ohne
 > bekannten Bereich vorsah. Alle drei waren Annahmen; sie sind ersetzt.
 
+#### Was das Foto der Bedieneinheit zeigt (2026-08-10)
+
+Die HeatMate sitzt im selben Schaltschrank wie die SPS. Auf der Bedieneinheit
+sind zu sehen:
+
+- ein **Display mit einer Temperatur in °C** (im Foto 63 °C) — passt zu der
+  Angabe, dass die Anlage genau eine Temperatur führt
+- ein **Drehknopf**, über den der Wert verstellt wird
+- eine **Ein/Aus-Taste** mit grüner Leuchte
+- vier **Statusleuchten** in der Kopfzeile
+- fünf **Tasten mit eigener Leuchte** an der rechten Seite, darunter eine mit
+  Mondsymbol (Nachtabsenkung) und eine mit grün leuchtender Anzeige
+
+Was die einzelnen Symbole bedeuten, wird aus dem Foto **nicht** abgeleitet.
+Zuordnung ist Sache der Gerätedokumentation, nicht der Bildbetrachtung.
+
+> **Eine Frage, die das Foto aufwirft und die vieles vereinfachen könnte:**
+> Direkt neben der HeatMate stehen digitale Ein- und Ausgangsbaugruppen der
+> SPS, aber keine sichtbare Kommunikationsbaugruppe. Möglicherweise ist die
+> Heizung über **potentialfreie Kontakte** an die SPS geführt — parallel zu
+> den Tasten der Bedieneinheit — und gar nicht über Modbus.
+>
+> Wäre das so, bräuchte es für Ein/Aus, Heizkreise und Nachtabsenkung **keine
+> Registerliste**. Die Anbindung fiele deutlich kleiner aus: schalten über
+> Ausgänge, zurücklesen über Eingänge. Nur die Zahlenwerte (Temperatur,
+> Betriebsstunden) brauchten weiterhin einen Bus.
+>
+> Wer den Schaltschrank gebaut hat, weiß das. Die Frage lautet schlicht:
+> **Ist die Heizung mit der SPS verdrahtet — und wenn ja, wie?**
+
 #### Weiterhin offen — **blockierend**
 
 - **Modbus-Registerliste der HeatMate V4.02.** Welcher Wert liegt unter
@@ -388,18 +435,46 @@ Bestätigung.
 Warmwassertemperatur als eigener Wert. Alles setzt voraus, dass die Anlage es
 meldet — nachgebaut wird keine Regelung (Kapitel 12 §67, Kapitel 18 §29).
 
-### G1b · Klimagerät — `OFFEN` · `NICHT BLOCKIEREND`
+### G1b · Klimagerät — `TEILWEISE` (2026-08-10) · `NICHT BLOCKIEREND`
 
-Die Heizung ist geklärt, das **Klimagerät** nicht. Weiterhin benötigt:
+**Beantwortet (Screenshot der Hersteller-App):**
 
-- Hersteller und Modell, Schnittstelle
-- besitzt es eine eigene Regelung?
-- Stellbereich und Schrittweite
+| Angabe | Wert |
+| --- | --- |
+| Gerät | wandmontierte Klimaanlage (Split) |
+| Modellnummer | `S3-M09JA3FA` |
+| Seriennummer | `202TKYU02330` |
+| Geräte-App | 5116.01 |
+| Modemmodul | `clip_hna_v1.9.237_RT` |
+| Firmware 1 | `SAA38690409.00000409.0` |
+
+Der **Hersteller** geht aus dem Screenshot nicht hervor und wird nicht
+geraten. Er steht üblicherweise auf dem Innengerät oder im Startbildschirm
+der App.
+
+#### Die eigentliche Frage: Wie hängt das Gerät an der Steuerung?
+
+Das Gerät hat ein eigenes WLAN-Modul und wird über eine App bedient. Bestätigt
+ist dagegen (2026-08-10), dass Klima **über die Steuerung** laufen soll. Beides
+zusammen ergibt eine offene Frage, die vor jeder Umsetzung zu klären ist:
+
+1. **Potentialfreier Kontakt an der SPS** — die SPS schaltet das Gerät ein und
+   aus, mehr nicht. Einfach und robust; Sollwert und Betriebsart blieben bei
+   der App.
+2. **Infrarot** — die SPS oder ein Zusatzgerät sendet die Befehle der
+   Fernbedienung. Funktioniert, ist aber blind: Es gibt keine Rückmeldung,
+   und Kehler OS dürfte den Zustand dann nicht behaupten.
+3. **Über das WLAN-Modul** — die Herstellerwolke oder eine lokale
+   Schnittstelle. Das widerspricht Local First (Kapitel 6 §31), sofern es
+   nicht ohne Internet funktioniert.
+4. **Gar nicht** — die Klimaanlage bleibt bei ihrer App, und Kehler OS zeigt
+   sie nicht an. Auch das ist eine gültige Antwort; dann entfällt der Bereich,
+   wie beim Licht.
 
 **Vorläufig hinterlegt:** Klima 16–30 °C, Schrittweite 0,5 K. Anders als bei
 der Strombegrenzung (Punkt B1) ist ein falscher Bereich hier ungefährlich —
-eine Solltemperatur kann keine Zuleitung überlasten. Er wird trotzdem
-korrigiert, sobald das Gerät bekannt ist.
+eine Solltemperatur kann keine Zuleitung überlasten. Er wird korrigiert,
+sobald Hersteller und Anbindungsweg feststehen.
 
 Eine **Lüftung** wird nicht angenommen. Ob eine anzubindende existiert, ist
 offen.
@@ -443,25 +518,71 @@ Installationsdokumentation, nicht blockierend.
 - Gibt es ein Signal „Versorgung fällt gleich aus“ für ein kontrolliertes
   Herunterfahren?
 
-### I3 · Netzwerk — `OFFEN` · `BLOCKIEREND` für den Produktivbetrieb
+### I3 · Netzwerk — `TEILWEISE` (2026-08-10) · `BLOCKIEREND` für den Produktivbetrieb
 
-> **Durch die Entscheidung in A1 aufgewertet.** Da die S7-Kommunikation
-> unverschlüsselt ist, trägt die Netztrennung die Sicherheit (Kapitel 15 §47).
+**Beantwortet:** Ein **LTE-Router mit Gigabit-Switch** verbindet alle Geräte.
+Ein Netz, ein Segment, keine Trennung. Subnetz und Adressen stehen in
+`config/hardware/devices.yaml` (ungetrackt).
 
-- IP-Bereich des Fahrzeugnetzes
-- Router-/Switch-/Access-Point-Modelle
-- **Unterstützt der Switch VLANs?** Falls nein, brauchen wir eine andere
-  Trennung — etwa eine zweite Netzwerkschnittstelle am Pi, an der die SPS
-  allein hängt.
+#### Was daraus folgt — und warum es der wichtigste offene Punkt ist
 
-### I4 · Hauptdisplay — `OFFEN` · `BLOCKIEREND` für finales Layout
+Die S7-Kommunikation über PUT/GET kennt **weder Verschlüsselung noch
+Authentifizierung** (ADR 0002). Das war eine bewusste Entscheidung, aber sie
+kam mit einer Bedingung: Die Absicherung liegt vollständig auf der
+Netztrennung (Kapitel 15 §47).
 
-- Modell, Auflösung, physische Größe, Seitenverhältnis
-- Anschluss (HDMI/DSI) und Touch-Anbindung (USB/I²C)
-- Ist die Helligkeit softwareseitig steuerbar (Kapitel 7 §26)?
+Diese Trennung gibt es derzeit nicht. In einem flachen Netz hinter einem
+LTE-Router heißt das konkret: Wer im WLAN ist — ein Gast, ein kompromittiertes
+Gerät, ein vergessenes Handy —, kann die SPS ohne Passwort ansprechen. Nicht
+Kehler OS umgehen, sondern **direkt die Steuerung**.
 
-> Bis zur Klärung wird das Layout auf dem Seitenverhältnis der Designreferenz
-> entwickelt und responsiv gehalten.
+Das ist kein Grund zur Eile, solange nichts real angesteuert wird. Vor dem
+Produktivbetrieb muss es aber gelöst sein.
+
+**Zwei gangbare Wege:**
+
+1. **VLAN auf dem Switch** — SPS in ein eigenes Segment, der Pi mit einem Bein
+   in beiden. Setzt einen verwalteten Switch voraus.
+2. **Zweite Netzwerkschnittstelle am Pi** — die SPS hängt an einem eigenen
+   Kabel direkt am Pi, sonst nichts. Braucht keinen verwalteten Switch und ist
+   die einfachere Lösung; der Pi wird damit zum einzigen Weg zur SPS.
+
+Der zweite Weg ist im Fahrzeug meist der praktischere: ein Kabel, kein
+Konfigurationsaufwand, und die Trennung ist physisch statt konfiguriert.
+
+**Offen:** Modell des Routers und des Switches — kann der Switch VLANs? Falls
+nicht, entfällt Weg 1.
+
+### I4 · Hauptdisplay — `GEKLÄRT` (2026-08-10)
+
+**Antwort:** Ein **iPad Pro 13 Zoll**. Damit ist es kein angeschlossenes
+Display, sondern ein eigenes Gerät im Netz — die Oberfläche läuft in Safari
+und nicht als Kiosk auf dem Pi.
+
+**Was daraus folgt:**
+
+| Frage | Antwort |
+| --- | --- |
+| Auflösung | 1376 × 1032 Punkte (2× physisch), quer wie hoch |
+| Anschluss | keiner — über das Netzwerk |
+| Touch | die einzige Bedienung; Maus und Tastatur gibt es nicht |
+| Helligkeit softwareseitig steuerbar | **nein**, das macht iPadOS |
+| Ausrichtung | beide, das Gerät wird gedreht |
+
+Beide Ausrichtungen sind gegen einen laufenden Server geprüft. Das Layout
+bricht im Hochformat auf eine Spalte um, und die Statuskarte geht bereits
+unterhalb von 1500 px unter das Fahrzeug statt darauf — bei 1376 px bliebe
+neben ihr kein Platz für ein 11,5 m langes Fahrzeug.
+
+**Offen, aber nicht blockierend:**
+
+- Soll die Oberfläche als Web-App auf dem Startbildschirm liegen (Vollbild
+  ohne Safari-Leiste)? Die dafür nötigen Angaben stehen bereits in
+  `index.html`.
+- Wie kommt das iPad ins Fahrzeugnetz — WLAN des LTE-Routers?
+- Der Bildschirm ist nicht dauerhaft montiert und nicht dauerhaft an. Das
+  entkoppelt Kehler OS von der Anzeige: Der Pi läuft weiter, auch wenn
+  niemand hinsieht.
 
 ### I5 · Zeitbasis ohne Internet — `OFFEN` · `NICHT BLOCKIEREND`
 

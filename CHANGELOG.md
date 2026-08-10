@@ -195,6 +195,59 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — Reale Geräteangaben eingearbeitet
+
+- **Hauptdisplay ist ein iPad Pro 13 Zoll** (Punkt I4 geklärt). Damit ist die
+  Anzeige kein angeschlossener Bildschirm, sondern ein eigenes Gerät im Netz:
+  Die Oberfläche läuft in Safari, nicht als Kiosk auf dem Pi. Das entkoppelt
+  System und Anzeige — der Pi läuft weiter, auch wenn niemand hinsieht.
+- **Layout gegen beide Ausrichtungen geprüft** (1376 × 1032 und 1032 × 1376,
+  doppelte Pixeldichte, Touch). Kein waagerechter Überlauf, Hochformat bricht
+  sauber auf eine Spalte um.
+- **Victron Cerbo GX**: Adresse bekannt und in `config/hardware/devices.yaml`
+  hinterlegt — ungetrackt, wie alle Adressen. Der Adapter bleibt trotzdem
+  `simulated`: Eine eingetragene Adresse ist keine geprüfte Verbindung.
+- **Klimagerät** identifiziert (Modell `S3-M09JA3FA`). Der Hersteller geht aus
+  dem Screenshot nicht hervor und wird nicht geraten. Wichtiger als der Name
+  ist ohnehin die offene Frage, **wie** das Gerät an die Steuerung kommt: Es
+  hat ein eigenes WLAN-Modul und eine App — potentialfreier Kontakt, Infrarot,
+  Netzwerk oder gar nicht sind vier verschiedene Antworten mit vier
+  verschiedenen Folgen.
+- **SPS-Aufbau** aus dem Schaltschrankfoto festgehalten: CPU 1511-1 PN im
+  Zustand RUN, dazu digitale Ein- und Ausgangsbaugruppen. Eine
+  Kommunikationsbaugruppe ist nicht zu sehen — möglicherweise hängt die
+  Heizung über potentialfreie Kontakte an der SPS statt über einen Bus. Das
+  würde die Anbindung erheblich verkleinern und ist deshalb als Frage
+  festgehalten.
+
+### Sicherheit — Netztrennung fehlt (Punkt I3)
+
+- **Das Fahrzeugnetz ist flach**: ein LTE-Router mit Gigabit-Switch verbindet
+  alle Geräte, ohne Segmentierung.
+- Das trifft eine tragende Annahme von [ADR 0002](docs/architektur/adr/0002-plc-transport.md):
+  Die S7-Kommunikation über PUT/GET kennt weder Verschlüsselung noch
+  Authentifizierung, und ihre Absicherung liegt **vollständig** auf der
+  Netztrennung. Ohne sie kann jedes Gerät im WLAN die Steuerung direkt
+  ansprechen — nicht Kehler OS umgehen, sondern die SPS.
+- Kein Grund zur Eile, solange nichts real angesteuert wird; vor dem
+  Produktivbetrieb aber zu lösen. Zwei Wege sind dokumentiert: VLAN auf einem
+  verwalteten Switch, oder — meist praktischer — eine zweite
+  Netzwerkschnittstelle am Pi, an der die SPS allein hängt.
+
+### Behoben — Statuskarte lag auf dem iPad quer über dem Fahrzeug
+
+- Zwei Schwellen beantworteten dieselbe Frage verschieden: Ob die Karte auf
+  dem Fahrzeug liegt, entschied ein Media Query am Viewport (1200 px); ob das
+  Fahrzeug ihr ausweicht, entschied die 3D-Szene an ihrer Leinwandbreite
+  (820 px). Dazwischen liegt das iPad im Querformat — Karte auf dem Fahrzeug,
+  Szene hielt sich für zu schmal zum Ausweichen.
+- Die Verschiebung steht jetzt als `--vehicle-shift` im CSS, an derselben
+  Stelle wie der Media Query. Die Szene liest sie, statt selbst zu entscheiden.
+- Zusätzlich hat die Karte eine eigene Schwelle bekommen (1500 px): Bei
+  1376 px bleibt neben ihr kein Platz für ein 11,5 m langes Fahrzeug, also
+  geht sie darunter — auch wenn das Raster zweispaltig bleiben darf. Zwei
+  Schwellen, diesmal absichtlich.
+
 ### Hinzugefügt — Die Heizung ist eine SCHEER-Anlage, kein Thermostat
 
 - **Verbaut ist eine SCHEER selection 10/17 kW mit HeatMate V4.02** (Angabe

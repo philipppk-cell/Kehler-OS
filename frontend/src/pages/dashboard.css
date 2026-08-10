@@ -24,6 +24,20 @@
 .dash__hero {
   grid-area: hero;
   position: relative;
+
+  /* Breite der Statuskarte und der Platz, den sie mit ihrem Rand belegt.
+     Beides steht hier, weil zwei Dinge davon abhängen: die Karte selbst und
+     der Bildausschnitt der 3D-Ansicht, die das Fahrzeug daran vorbeirückt.
+
+     `--vehicle-shift` ist die Verbindung zwischen CSS und Szene. Vorher
+     entschied die Szene selbst anhand ihrer Leinwandbreite, ob sie
+     verschiebt — und das Umschalten der Karte hing am Viewport. Zwei
+     Schwellen für dieselbe Frage, die sich zwangsläufig widersprachen:
+     Auf dem iPad im Querformat lag die Karte auf dem Fahrzeug, während die
+     Szene sich für zu schmal zum Ausweichen hielt. */
+  --status-width: 268px;
+  --status-space: calc(var(--status-width) + var(--space-5) * 2);
+  --vehicle-shift: calc(var(--status-space) / 2);
   min-height: 380px;
   height: 100%;
   border-radius: var(--radius-xl);
@@ -56,7 +70,7 @@
   position: absolute;
   left: var(--space-5);
   bottom: var(--space-5);
-  width: 268px;
+  width: var(--status-width);
 }
 
 .dash__side {
@@ -176,6 +190,34 @@
   color: var(--text-secondary);
 }
 
+/* ── Statuskarte: auf dem Fahrzeug oder darunter ────────────────────────
+   Die Karte liegt nur dann auf dem Fahrzeug, wenn daneben genug Platz
+   bleibt.
+
+   Auf dem iPad im Querformat ist die Bühne rund 720 px breit; davon belegt
+   die Karte 288. Was übrig bleibt, reicht für ein 11,5 m langes Fahrzeug
+   nicht — es lag mit dem Fahrerhaus unter der Karte. Das Ausweichen des
+   Modells allein löst das nicht: Man kann ein Fahrzeug nicht so weit nach
+   rechts schieben, dass es neben die Karte passt, ohne es aus dem Bild zu
+   schieben.
+
+   Die Grenze liegt deshalb höher als der Umbruch des Rasters (1200 px):
+   Das Raster darf auf dem iPad zweispaltig bleiben, die Karte muss trotzdem
+   schon unter das Fahrzeug. Zwei Fragen, zwei Schwellen — diesmal
+   absichtlich und nicht aus Versehen. */
+
+@media (max-width: 1500px) {
+  .dash__hero { --vehicle-shift: 0px; }
+
+  .dash__vehicle { position: relative; height: 340px; }
+
+  .dash__status {
+    position: static;
+    width: auto;
+    margin: 0 var(--space-4) var(--space-4);
+  }
+}
+
 /* ── Kleinere Displays ───────────────────────────────────────────────────
    Andere Struktur statt proportionaler Verkleinerung (Kapitel 18 §20).   */
 
@@ -187,13 +229,9 @@
 
   .dash__hero { min-height: 280px; }
 
-  .dash__status {
-    position: static;
-    width: auto;
-    margin: var(--space-4);
-  }
+  .dash__status { margin: var(--space-4); }
 
-  .dash__vehicle { position: relative; height: 220px; }
+  .dash__vehicle { height: 220px; }
 }
 
 @media (max-width: 640px) {

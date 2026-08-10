@@ -56,6 +56,21 @@ const LIMITS = {
  */
 const FOV = { wide: 24, narrow: 30 };
 
+const MIN_CLEAR = 380;
+/** Wie viel freie Breite dem Fahrzeug mindestens bleiben muss.
+
+    Darunter wird nicht ausgewichen: Ein an den Rand gedrängtes Fahrzeug ist
+    schlimmer als eines, das teilweise hinter der Statuskarte liegt. */
+
+function shiftFromStyle(el: HTMLElement): number {
+  // Der Wert kommt aus `--vehicle-shift` in dashboard.css. Dort steht auch
+  // der Media Query, der die Statuskarte vom Fahrzeug herunternimmt — beide
+  // Entscheidungen gehören zusammen und stehen deshalb an einer Stelle.
+  const raw = getComputedStyle(el).getPropertyValue("--vehicle-shift");
+  const px = Number.parseFloat(raw);
+  return Number.isFinite(px) ? px : 0;
+}
+
 export function VehicleScene({
   state,
   label,
@@ -148,7 +163,18 @@ export function VehicleScene({
       // links über freier Fläche liegt. Das geschieht über den Bildausschnitt
       // und nicht durch Verschieben des Modells — dadurch bleibt das Fahrzeug
       // beim Drehen um seine eigene Mitte und nicht um einen Punkt daneben.
-      const shift = w >= 820 ? w * 0.1 : 0;
+      //
+      // Um wie viel, sagt das CSS (`--vehicle-shift`) und nicht diese Datei:
+      // Ob die Karte überhaupt auf dem Fahrzeug liegt, entscheidet ein
+      // Media Query, und beides muss dieselbe Antwort geben. Als die Szene
+      // das noch selbst anhand ihrer Breite entschied, gab es zwei Schwellen
+      // für eine Frage — und dazwischen lag das iPad im Querformat, mit der
+      // Karte quer über dem Fahrerhaus.
+      //
+      // Bleibt nach der Karte zu wenig übrig, wird nicht verschoben: Ein
+      // Fahrzeug am Bildrand ist schlimmer als eines hinter einer Karte.
+      const wish = shiftFromStyle(el);
+      const shift = w - wish * 2 >= MIN_CLEAR ? wish : 0;
       camera.setViewOffset(w, h, -shift, 0, w, h);
 
       camera.updateProjectionMatrix();
