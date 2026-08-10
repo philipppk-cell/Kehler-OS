@@ -260,10 +260,50 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 > die reale Integration gilt und sinnvollerweise auch für die
 > Modulreihenfolge.
 
-### M6 – Automatisierungen · `PLANNED`
+### M5b – Historie und Zeitreihen · `IN ARBEIT` (2026-08-10)
+
+Sie zählt zu M5 und nicht zu einem neuen Thema: Bei **Wasser** und **Energie**
+steht sie jeweils als *einziger* offener Punkt. Erst mit ihr sind die beiden
+Fachmodule fertig.
+
+Umsetzung nach ADR 0004: eigene SQLite-Datei `history.db` mit WAL, Rohtabelle
+plus vorberechnete Rollups (Minute, Stunde) aus einem Hintergrunddienst.
+
+**Zwei Festlegungen, die den Ausschlag geben:**
+
+1. **Die Qualität wird mitgeschrieben.** Kapitel 16 §97 verbietet, fehlende
+   Messwerte als reale Historie auszugeben. Ein verstummter Fühler muss in der
+   Kurve eine **Lücke** erzeugen und keine gerade Linie zwischen den beiden
+   Punkten, zwischen denen niemand etwas wusste.
+2. **Ein Ausfall der Historie reißt die Steuerung nicht mit** (Kapitel 16 §88).
+   Deshalb die getrennte Datei und ein überwachter Dienst mit eigener
+   Fehlergrenze.
+
+**Gemessene Datenrate** (Simulation, 20 Messgrößen, 5-Sekunden-Takt): rund
+1,4 Zeilen je Sekunde, im ungünstigsten Fall 4. Hochgerechnet sind das bei
+sieben Tagen Rohdaten grob 100 MB — für eine SD-Karte tragbar, aber die
+Größenordnung, an der man drehen würde. Die Stellschrauben stehen alle in der
+Konfiguration: `sample_interval_s`, `raw_days` und die Deadbands je Entity.
+
+Die Deadbands selbst sind für **reale** Sensorik gewählt (0,5 A, 5 W, 0,2 °C).
+Dass der Simulator sie im Sekundentakt überschreitet, ist eine Eigenschaft des
+Simulators und kein Grund, sie zu ändern.
+
+### M6 – Automatisierungen · `ZURÜCKGESTELLT` (2026-08-10)
 
 Deterministische Engine (Trigger, Bedingungen, Aktionen), Hysterese,
 Entprellung, Verzögerungen, Cooldown, Schleifenerkennung, Historie, Dry Run.
+
+> **Zurückgestellt, nicht gestrichen.** Auf die Frage, was automatisiert werden
+> soll, lautet die Antwort des Fahrzeughalters: nichts — ihm fällt keine Regel
+> ein, die er haben möchte. Das deckt sich mit dem technischen Befund: Die
+> naheliegenden Regeln scheitern heute an fehlenden Voraussetzungen (Fahrmodus
+> J1, Modbus G1, Klimaanbindung) oder gehören als Schutzfunktion in die
+> Hardware. Begründung und Einzelfälle in W13.
+>
+> Gebaut wird die Engine, sobald es eine erste reale Regel gibt — und dann
+> anhand dieser Regel. Die Voraussetzungen stehen bereits: serverseitige
+> Prüfung im Command Bus, `Trigger.AUTOMATION` im Datenmodell, Event Bus.
 
 > **Ohne Szenen und ohne Abfahrtscheck.** Entscheidungen vom 2026-08-09,
 > dokumentiert als W10 und W11 in

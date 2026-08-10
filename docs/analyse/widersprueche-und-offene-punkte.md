@@ -338,6 +338,57 @@ mitverstellen.
 
 **Status:** `GEKLÄRT` (2026-08-10).
 
+## W13 – Automatisierungen werden zurückgestellt, nicht gestrichen
+
+**Requirement**
+Kapitel 14 beschreibt eine deterministische Automatisierungs-Engine mit
+Triggern, Bedingungen, Aktionen, Hysterese, Entprellung, Verzögerungen,
+Cooldown, Schleifenerkennung und Dry Run. Sie ist als Meilenstein M6 geplant.
+
+**Problem**
+Auf die Frage, was automatisiert werden soll, lautet die Antwort des
+Fahrzeughalters am 2026-08-10: **nichts.** Ihm fällt keine Regel ein, die er
+haben möchte.
+
+Das ist kein Versäumnis, sondern deckt sich mit dem technischen Befund. Die
+naheliegenden Regeln sind derzeit ohnehin nicht umsetzbar:
+
+| Regel | Hindernis |
+| --- | --- |
+| Garage schließen bei Fahrtbeginn | Keine Quelle für den Fahrmodus (J1). Kapitel 14 §35 verbietet, den Fahrzustand zu raten. |
+| Heizung zeitgesteuert absenken | Keine Modbus-Verbindung (G1) — und die HeatMate regelt selbst (ADR 0009). |
+| Klima nach Temperatur schalten | Das LG-Gerät ist nicht angebunden. |
+| Pumpe bei leerem Tank abschalten | Eine Schutzfunktion. Sie gehört in die Hardware, nicht in eine Softwareregel (Kapitel 15 §24). |
+| Wechselrichter bei niedrigem Ladezustand abschalten | Technisch möglich (B3), aber eine Entscheidung über die Stromversorgung, die der Fahrzeughalter treffen muss. |
+
+**Alternative**
+M6 wird zurückgestellt. Gebaut wird es, sobald es eine erste reale Regel gibt
+— und dann anhand dieser Regel.
+
+**Reason**
+Eine Engine für null Regeln ist genau das, was die Roadmap an anderer Stelle
+für die Designbausteine ablehnt: „Ein Bausteinvorrat auf Verdacht wäre Aufwand
+ohne Nutzen." Schwerer wiegt: Automatisierung heißt, dass das System von sich
+aus handelt. Bei einem Fahrzeug bedeutet das bewegte Mechanik ohne
+Anwesenheit. Diese Fähigkeit auf Vorrat zu bauen, ohne einen einzigen Fall,
+für den sie gebraucht wird, ist die falsche Reihenfolge.
+
+Die Voraussetzungen dafür sind bereits erfüllt: Der Command Bus prüft jeden
+Befehl serverseitig, `Trigger.AUTOMATION` existiert im Datenmodell, und
+Ereignisse laufen über den Event Bus. Eine spätere Engine setzt darauf auf und
+erzwingt keinen Umbau.
+
+**Impact**
+- Die Reihenfolge ändert sich: Als Nächstes entsteht die **Historie**
+  (Zeitreihen-Datenhaltung nach ADR 0004). Sie ist bei Wasser und Energie
+  bereits zweimal als einziger offener Punkt vermerkt, in Kapitel 16
+  ausführlich beschrieben und durch keine fehlende Hardwareangabe blockiert.
+- Warnungen bleiben davon unberührt. Sie sind keine Automatisierung: Das
+  System **sagt etwas**, statt zu **handeln**. Diese Unterscheidung bleibt
+  bestehen.
+
+**Status:** `ZURÜCKGESTELLT` (2026-08-10) — auf Aussage des Fahrzeughalters.
+
 ## Bewusst von der Spezifikation offen gelassen
 
 Diese Punkte sind keine Widersprüche, sondern ausdrücklich vertagte

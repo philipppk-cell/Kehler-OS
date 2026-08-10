@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,10 +22,12 @@ from .config.models import Settings, VehicleConfig
 from .core.alerts import derive_alerts
 from .core.command_bus import CommandBus
 from .core.event_bus import EventBus
+from .core.history import HistoryStore, Retention
 from .core.registry import Registry
 from .core.state_store import StateStore
 from .domain.enums import Environment, Severity, SystemHealth
 from .domain.models import Event
+from .platform.database import Database
 from .platform.supervisor import ServiceState, Supervisor
 
 log = logging.getLogger(__name__)
@@ -61,6 +64,20 @@ class Application:
         self.events = EventBus()
         self.commands = CommandBus(self.registry, self.state, self.events)
         self.supervisor = Supervisor()
+
+        self.history: HistoryStore | None = None
+        if settings.history.enabled:
+            self.history = HistoryStore(
+                Database(Path(settings.history.path)),
+                self.state,
+                self.registry,
+                retention=Retention(
+                    raw_days=settings.history.raw_days,
+                    minute_days=settings.history.minute_days,
+                    hour_days=settings.history.hour_days,
+                ),
+                heartbeat_s=settings.history.heartbeat_s,
+            )
 
         self.adapters: list[Adapter] = []
         self._started = False
@@ -131,6 +148,13 @@ class Application:
 
         self.supervisor.start("stale-sweep", self._stale_loop)
 
+        if self.history is not None:
+            # Als überwachter Dienst mit eigener Fehlergrenze: Ein voller
+            # Datenträger oder eine beschädigte Datei darf die Steuerung nicht
+            # mitreißen (Kapitel 16 §88, Kapitel 17 §16/§17).
+            await self.history.start()
+            self.supervisor.start("history", self._history_loop)
+
         await self.events.publish(
             Event(
                 type="system.started",
@@ -144,6 +168,8 @@ class Application:
 
     async def stop(self) -> None:
         await self.supervisor.stop_all()
+        if self.history is not None:
+            await self.history.stop()
         for adapter in self.adapters:
             try:
                 await adapter.stop()
@@ -175,6 +201,29 @@ class Application:
                 raise
 
         return loop
+
+    async def _history_loop(self) -> None:
+        """Zeichnet auf und verdichtet in einem Takt.
+
+        Beides in einer Schleife und nicht in zweien: Sie greifen auf dieselbe
+        Datei zu, und zwei Dienste, die sich gegenseitig sperren, wären zwei
+        Fehlerquellen statt einer.
+        """
+        history = self.history
+        assert history is not None  # nur gestartet, wenn vorhanden
+
+        settings = self.settings.history
+        next_compaction = 0.0
+
+        while True:
+            await history.record()
+
+            now = time.monotonic()
+            if now >= next_compaction:
+                await history.compact()
+                next_compaction = now + settings.compact_interval_s
+
+            await asyncio.sleep(settings.sample_interval_s)
 
     async def _stale_loop(self) -> None:
         """Lässt Werte altern, die nicht mehr aktualisiert werden."""

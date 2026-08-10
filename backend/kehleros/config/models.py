@@ -181,6 +181,39 @@ class ServerConfig(_Strict):
     port: int = Field(default=8000, gt=0, lt=65536)
 
 
+class HistoryConfig(_Strict):
+    """Messhistorie (Kapitel 16, ADR 0004)."""
+
+    enabled: bool = True
+    path: str = "data/history.db"
+    """Eigene Datei, getrennt von den Betriebsdaten. Wächst sie zu groß oder
+    wird sie beschädigt, bleibt die Steuerung davon unberührt
+    (Kapitel 16 §88)."""
+
+    sample_interval_s: float = Field(default=5.0, gt=0)
+    """Wie oft geprüft wird, ob ein Punkt fällig ist — **nicht**, wie oft
+    geschrieben wird. Ob tatsächlich ein Punkt entsteht, entscheiden Deadband,
+    Qualitätswechsel und Herzschlagzeit (Kapitel 16 §8)."""
+
+    heartbeat_s: float = Field(default=300.0, gt=0)
+    """Spätestens nach dieser Zeit wird ein Punkt geschrieben, auch wenn sich
+    nichts geändert hat.
+
+    Ohne ihn ließe sich später nicht unterscheiden, ob ein Wert konstant war
+    oder ob das System aus war. Mit ihm heißt eine längere Lücke eindeutig:
+    hier lief nichts.
+    """
+
+    compact_interval_s: float = Field(default=300.0, gt=0)
+    """Abstand zwischen zwei Verdichtungsläufen."""
+
+    raw_days: int = Field(default=7, gt=0)
+    minute_days: int = Field(default=60, gt=0)
+    hour_days: int = Field(default=1095, gt=0)
+    """Aufbewahrung je Auflösung (Kapitel 16 §9). Die endgültigen Fristen sind
+    ausdrücklich vertagt (Kapitel 6 §23); dies sind begründete Vorgaben."""
+
+
 class Settings(_Strict):
     """Laufzeiteinstellungen.
 
@@ -192,6 +225,7 @@ class Settings(_Strict):
     log_level: str = "INFO"
     server: ServerConfig = Field(default_factory=ServerConfig)
     simulation: SimulationConfig = Field(default_factory=SimulationConfig)
+    history: HistoryConfig = Field(default_factory=HistoryConfig)
     stale_sweep_interval_s: float = Field(default=2.0, gt=0)
 
     @property

@@ -17,16 +17,27 @@ from kehleros.adapters.simulation import Fault
 from kehleros.api.http import API_PREFIX, create_app
 from kehleros.application import Application
 from kehleros.config.loader import load_vehicle
-from kehleros.config.models import Settings
+from kehleros.config.models import HistoryConfig, Settings
 from kehleros.domain.enums import Environment
 
 REPO = Path(__file__).resolve().parents[2]
 
 
+def settings(tmp_path: Path, **felder: object) -> Settings:
+    """Einstellungen für einen Test — mit Historie im Wegwerfverzeichnis.
+
+    Ohne das schriebe jeder Testlauf in `backend/data/`: gemeinsame Datei über
+    alle Tests hinweg, Rückstände im Arbeitsverzeichnis und zwei parallele
+    Läufe, die sich gegenseitig die Daten überschreiben.
+    """
+    history = HistoryConfig(path=str(tmp_path / "history.db"))
+    return Settings(history=history, **felder)  # type: ignore[arg-type]
+
+
 @pytest.fixture
-def app() -> Application:
+def app(tmp_path: Path) -> Application:
     vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-    return Application(Settings(), vehicle)
+    return Application(settings(tmp_path), vehicle)
 
 
 @pytest.fixture
@@ -69,11 +80,13 @@ class TestFahrzeugbeschreibung:
         assert {"living", "garage", "tech"} <= bereiche
         assert all(area["name_key"] for area in payload["areas"])
 
-    def test_ohne_angabe_wird_kein_name_erfunden(self):
+    def test_ohne_angabe_wird_kein_name_erfunden(self, tmp_path: Path):
         """Fehlt die Bezeichnung, bleibt sie leer statt „Wohnmobil"
         (Kapitel 18 §98)."""
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        namenlos = Application(Settings(), vehicle.model_copy(update={"name": None}))
+        namenlos = Application(
+            settings(tmp_path), vehicle.model_copy(update={"name": None})
+        )
 
         with TestClient(create_app(namenlos)) as client:
             assert client.get(f"{API_PREFIX}/vehicle").json()["name"] is None
@@ -145,7 +158,7 @@ class TestSimulationswerkzeuge:
         )
         assert antwort.status_code == 422
 
-    def test_im_produktivbetrieb_gibt_es_keine_werkzeuge(self):
+    def test_im_produktivbetrieb_gibt_es_keine_werkzeuge(self, tmp_path: Path):
         """Kein Fehlerbild darf je an realer Hardware vorgetäuscht werden
         (Kapitel 15 §96).
 
@@ -154,7 +167,9 @@ class TestSimulationswerkzeuge:
         gibt.
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        produktiv = Application(Settings(environment=Environment.PRODUCTION), vehicle)
+        produktiv = Application(
+            settings(tmp_path, environment=Environment.PRODUCTION), vehicle
+        )
 
         with TestClient(create_app(produktiv)) as client:
             payload = client.get(f"{API_PREFIX}/diagnostics/simulation").json()

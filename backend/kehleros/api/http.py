@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -330,6 +331,47 @@ def create_app(application: Application) -> FastAPI:
             "fault": summary.fault,
             "linked": summary.linked,
             "unverified": summary.unverified,
+        }
+
+    @router.get("/history/{entity_id}")
+    async def history(entity_id: str, hours: float = 24.0) -> dict[str, Any]:
+        """Der Verlauf einer Messgröße.
+
+        ``available`` ist ``false``, wenn die Historie abgeschaltet ist oder
+        gerade nicht schreiben kann. Die Oberfläche sagt dann „Historie nicht
+        verfügbar" (Kapitel 16 §79) — eine leere Kurve sähe aus wie „nichts
+        passiert", und das wäre eine Aussage über das Fahrzeug statt über die
+        Datenhaltung.
+
+        Punkte ohne Wert werden **mitgeliefert** und nicht weggelassen: Sie
+        sind die Aussage „hier war nichts bekannt". Wer sie wegließe, bekäme
+        eine durchgehende Linie über eine Lücke — genau das, was Kapitel 16 §97
+        verbietet.
+        """
+        if application.registry.get(entity_id) is None:
+            raise HTTPException(status_code=404, detail="Unbekannte Entity")
+
+        store = application.history
+        if store is None or store.degraded:
+            return {
+                "entity_id": entity_id,
+                "available": False,
+                "resolution": None,
+                "points": [],
+            }
+
+        until = int(time.time() * 1000)
+        since = until - int(max(0.0, hours) * 3_600_000)
+        series = await store.series(entity_id, since, until)
+
+        return {
+            "entity_id": series.entity_id,
+            "available": True,
+            "resolution": series.resolution,
+            "points": [
+                {"at": point.at, "value": point.value, "quality": point.quality}
+                for point in series.points
+            ],
         }
 
     # ── Entities ────────────────────────────────────────────────────────────
