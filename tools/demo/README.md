@@ -17,7 +17,20 @@ cd frontend && npm run build:demo && cd ..
 python tools/demo/build.py
 ```
 
-Ergebnis: `tools/demo/kehler-os-demo.html`.
+Ergebnis: `tools/demo/kehler-os-demo.html` — **diese Datei ist versioniert**
+und liegt fertig im Repository. Man braucht die Schritte oben nur, um sie zu
+erneuern.
+
+## Eine Datei für alle Geräte
+
+Es gab zwischenzeitlich zwei, eine je Gerät. Ihr einziger Unterschied war die
+Beschriftung: Die Oberfläche richtet sich nach der Bildschirmbreite und zeigt
+auf dem iPad die Seitenleiste links, auf dem Handy die Navigationsleiste unten.
+Zwei Dateien mit identischem Inhalt hätten eine technische Unterscheidung
+behauptet, die es nicht gibt.
+
+Geprüft bei 1366 × 1024 (iPad quer), 1024 × 1366 (iPad hoch) und 390 × 844
+(Handy) — jeweils ohne Netzzugriff und ohne Konsolenfehler.
 
 ## Warum aufgezeichnet und nicht nachgebaut
 

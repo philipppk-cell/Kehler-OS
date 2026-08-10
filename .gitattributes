@@ -1,0 +1,6 @@
+# Die Demo-Datei enthält die eingebettete Aufzeichnung als eine sehr lange
+# Zeile. Git würde bei jedem Neubau versuchen, sie zeilenweise zu vergleichen,
+# und dabei einen unlesbaren Unterschied über mehrere hunderttausend Zeichen
+# erzeugen. Sie wird deshalb wie eine unteilbare Datei behandelt: ersetzt statt
+# verglichen.
+tools/demo/kehler-os-demo.html -diff -merge

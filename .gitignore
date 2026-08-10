@@ -48,9 +48,10 @@ backend/kehleros/api/static/
 # System
 .DS_Store
 
-# Erzeugte Demo-Dateien. Sie entstehen aus einer Aufzeichnung des laufenden
-# Backends (siehe tools/demo/README.md) und sind zusammen rund 4 MB — der
-# Bauweg gehört ins Repository, das Ergebnis nicht.
+# Zwischenstände der Demo. Der Bauweg gehört ins Repository, die Zwischenstände
+# nicht: `dist-demo/` ist ein Build-Ergebnis, `recording.json` die Rohaufnahme.
+# Die fertige Datei `kehler-os-demo.html` ist dagegen ausdrücklich versioniert —
+# sie ist das, was man weitergibt, und soll ohne Werkzeuge erreichbar sein.
 frontend/dist-demo/
 tools/demo/recording.json
-tools/demo/kehler-os-demo*.html
+tools/demo/kehler-os-demo.fragment.html
