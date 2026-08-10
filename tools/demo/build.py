@@ -24,11 +24,21 @@ DEMO = REPO / "tools/demo"
 
 BANNER = """
 <div class="demo-note">
-  <strong>Demo-Ansicht</strong>
+  <strong>Demo-Ansicht &middot; {geraet}</strong>
   <span>Aufzeichnung einer laufenden Simulation vom {recorded}. Kein Fahrzeug
   angebunden — es wird nichts geschaltet.</span>
 </div>
 """
+
+# Zwei Ausgaben auf Wunsch des Fahrzeughalters. Die Oberfläche darin ist
+# **dieselbe** — sie richtet sich nach der Bildschirmbreite und käme mit einer
+# Datei aus. Der Unterschied liegt allein in der Beschriftung und darin, an
+# welchem Gerät die jeweilige Datei geprüft wurde. Etwas anderes zu behaupten,
+# wäre eine erfundene Unterscheidung.
+ZIELE = {
+    "ipad": "iPad Pro 13 Zoll",
+    "handy": "Handy",
+}
 
 STYLE = """
 /* Der Hinweis kommt **zusätzlich** zur Oberfläche, die selbst die volle Höhe
@@ -95,7 +105,13 @@ def main() -> int:
     # Der Verweis auf das Modul entfällt — es steht gleich eingebettet da.
     head = "\n".join(line for line in head.splitlines() if "<script" not in line)
 
-    banner = BANNER.format(recorded=recording["recordedAt"][:10])
+    for kennung, geraet in ZIELE.items():
+        write(kennung, geraet, recording, css, script, shim, head)
+    return 0
+
+
+def write(kennung, geraet, recording, css, script, shim, head) -> None:
+    banner = BANNER.format(recorded=recording["recordedAt"][:10], geraet=geraet)
 
     html = f"""<!doctype html>
 <html lang="de" data-night="false">
@@ -114,14 +130,14 @@ def main() -> int:
 </html>
 """
 
-    out = DEMO / "kehler-os-demo.html"
+    out = DEMO / f"kehler-os-demo-{kennung}.html"
     out.write_text(html, encoding="utf-8")
-    print(f"{out} — {out.stat().st_size / 1024 / 1024:.1f} MB")
+    print(f"{out} — {out.stat().st_size / 1024 / 1024:.1f} MB ({geraet})")
 
     # Zweite Fassung ohne Dokumentrahmen, für Umgebungen, die den Inhalt in
     # ihr eigenes Grundgerüst einsetzen. Gleicher Inhalt, nur ohne <html>,
     # <head> und <body> — sonst stünden zwei Dokumente ineinander.
-    fragment = DEMO / "kehler-os-demo.fragment.html"
+    fragment = DEMO / f"kehler-os-demo-{kennung}.fragment.html"
     fragment.write_text(
         f"""<title>Kehler OS – Demo</title>
 <style>{css}</style>
@@ -135,7 +151,6 @@ def main() -> int:
         encoding="utf-8",
     )
     print(f"{fragment} — {fragment.stat().st_size / 1024 / 1024:.1f} MB")
-    return 0
 
 
 if __name__ == "__main__":
