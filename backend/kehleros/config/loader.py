@@ -77,6 +77,9 @@ def _build_entity(config: EntityConfig) -> Entity:
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
         capacity_l=config.capacity_l,
+        min_value=config.min_value,
+        max_value=config.max_value,
+        step=config.step,
         warn_below=config.warn_below,
         warn_above=config.warn_above,
         critical_below=config.critical_below,
@@ -116,6 +119,20 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
             CommandSpec(verb="open", expects="OPEN", **common),
             CommandSpec(verb="close", expects="CLOSED", **common),
             CommandSpec(verb="stop", expects="STOPPED", **common),
+        )
+
+    if config.type == "setpoint":
+        # Ohne bekannte Obergrenze gibt es keinen Befehl — und damit in der
+        # Oberfläche kein Bedienelement. Der Wert bleibt sichtbar.
+        if config.max_value is None:
+            return ()
+        return (
+            CommandSpec(
+                verb="set_value",
+                expects_param="value",
+                params=("value",),
+                **common,
+            ),
         )
 
     if config.type == "climate_zone":

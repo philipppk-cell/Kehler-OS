@@ -25,12 +25,21 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-EntityType = Literal["measurement", "contact", "switch", "movable", "climate_zone"]
+EntityType = Literal[
+    "measurement", "contact", "switch", "movable", "climate_zone", "setpoint"
+]
 """Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.
 
 Er ist bewusst von ``measurement`` getrennt: Ein Türkontakt liefert OPEN oder
 CLOSED, keinen Zahlenwert. Diese Unterscheidung ist real und nicht nur eine
 Eigenheit der Simulation.
+
+Ein ``setpoint`` ist ein einstellbarer Zahlenwert mit Grenzen — etwa die
+Eingangsstrombegrenzung des Landstroms. **Ohne konfigurierte Grenzen bietet
+die Oberfläche keine Bedienung an.** Das ist kein Sonderfall, sondern
+dieselbe Regel wie überall: Was nicht bekannt ist, wird nicht erfunden
+(Kapitel 18 §98). Eine Strombegrenzung ohne die reale Absicherung des
+Anschlusses zu kennen, wäre eine gefährliche Erfindung.
 """
 
 
@@ -67,6 +76,15 @@ class EntityConfig(_Strict):
     configured: bool = True
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt dann „Nicht konfiguriert“ (Kapitel 18 §101)."""
+
+    min_value: float | None = None
+    max_value: float | None = None
+    step: float | None = Field(default=None, gt=0)
+    """Grenzen und Schrittweite eines ``setpoint``.
+
+    Fehlt ``max_value``, wird der Wert nur angezeigt und nicht einstellbar —
+    siehe ``EntityType``.
+    """
 
     capacity_l: float | None = Field(default=None, gt=0)
     """Nur für Tanks. Ohne Angabe zeigt die Oberfläche keine Literwerte —

@@ -26,6 +26,8 @@ from pydantic import BaseModel, Field
 from ..adapters.simulation import Fault as SimulationFault
 from ..application import Application
 from ..core.alerts import derive_alerts
+from ..core.energy import Reading as EnergyReading
+from ..core.energy import summarise as energy_summary
 from ..core.water import TankView
 from ..core.water import summarise as water_summary
 from ..domain.enums import CommandPhase, Trigger
@@ -232,6 +234,30 @@ def create_app(application: Application) -> FastAPI:
             "waste": [_tank_json(tank) for tank in summary.waste],
         }
 
+    @router.get("/energy")
+    async def energy() -> dict[str, Any]:
+        """Energiefluss mit gedeuteter Laderichtung.
+
+        Die Deutung („lädt", „entlädt", „ruht") entsteht im Backend, samt der
+        Totzone, ab der eine Richtung überhaupt behauptet wird — siehe
+        ``core/energy.py``. Ohne belastbaren Messwert bleibt sie leer.
+        """
+        summary = energy_summary(
+            {state.entity_id: state for state in application.state},
+            application.registry,
+        )
+        return {
+            "soc": _reading_json(summary.soc),
+            "voltage": _reading_json(summary.voltage),
+            "current": _reading_json(summary.current),
+            "battery_power": _reading_json(summary.battery_power),
+            "solar_power": _reading_json(summary.solar_power),
+            "consumption": _reading_json(summary.consumption),
+            "shore_power": _reading_json(summary.shore_power),
+            "shore_connected": summary.shore_connected,
+            "direction": summary.direction,
+        }
+
     # ── Entities ────────────────────────────────────────────────────────────
 
     @router.get("/entities")
@@ -352,6 +378,11 @@ def _status_for(phase: CommandPhase) -> int:
         CommandPhase.FAILED: 502,
         CommandPhase.TIMEOUT: 504,
     }.get(phase, 202)
+
+
+def _reading_json(reading: EnergyReading) -> dict[str, Any]:
+    """Ein Messwert mit seiner Belastbarkeit — nie ein nackter Zahlenwert."""
+    return {"value": reading.value, "quality": reading.quality.value}
 
 
 def _tank_json(tank: TankView) -> dict[str, Any]:

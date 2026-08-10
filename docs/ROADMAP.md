@@ -110,7 +110,23 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    Die Punkte C2 und C3 sind geschlossen.
 
    Offen bleibt nur die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
-2. **Energie** — Batterie, Solar, Landstrom, Energiefluss, Historie
+2. **Energie** · `SIMULATED` — Batterie (Ladezustand, Spannung, Strom,
+   Leistung), Energiefluss über Solar, Landstrom, Batterie und Verbrauch,
+   Landstromanschluss, Wechselrichter.
+
+   **Erreicht.** Die Laderichtung („lädt", „entlädt", „ruht") entsteht im
+   Backend samt der Totzone, ab der eine Richtung überhaupt behauptet wird —
+   ohne belastbaren Messwert bleibt sie leer statt „ruht".
+
+   Schreibend gibt es genau die zwei erlaubten Funktionen (Punkt B3):
+   Wechselrichter ein/aus mit Bestätigungspflicht und die
+   Eingangsstrombegrenzung. **Letztere hat bewusst kein Bedienelement**,
+   solange die Absicherung des Landstromanschlusses unbekannt ist (Punkt B2)
+   — eine geratene Obergrenze könnte die Zuleitung überlasten.
+
+   Ebenfalls nicht gebaut: die Restlaufzeit. Dafür fehlt die nutzbare
+   Batteriekapazität (Punkt B2). Historie folgt mit der
+   Zeitreihen-Datenhaltung.
 3. **Licht** — Kreise, Gruppen
 4. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung
 5. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen

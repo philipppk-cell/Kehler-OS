@@ -115,6 +115,32 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   gekennzeichnet. Hardwareadressen liegen weiterhin ungetrackt in
   `config/hardware/`.
 
+### Hinzugefügt — M5: Energie
+
+- **Batterie** mit Ladezustand, Spannung, Strom und Leistung. Das Vorzeichen
+  trägt die Aussage: `+` lädt, `−` entlädt.
+- **Energiefluss** über Solar, Landstrom, Batterie und Verbrauch. Bewusst als
+  Liste gemessener Wege und **nicht** als Schaubild mit Leitungen — ein
+  Schaubild müsste behaupten, wie die Anlage verschaltet ist, und das ist
+  nicht bekannt (Punkt B2).
+- **Laderichtung im Backend gedeutet** (`core/energy.py`), samt der Totzone,
+  ab der eine Richtung überhaupt behauptet wird. Ohne sie flackerte die
+  Anzeige zwischen „lädt" und „entlädt", sobald der Strom um null pendelt.
+  Ohne belastbaren Messwert bleibt die Richtung leer — „ruht" sieht harmlos
+  aus und wäre dort eine Lüge.
+- **Landstrom** mit Anschlusszustand („verbunden", „nicht verbunden",
+  „unbekannt" — drei Antworten, nicht zwei) und Strombegrenzung.
+- **Wechselrichter ein/aus** mit Bestätigungspflicht beim Abschalten. Ob eine
+  Bestätigung nötig ist, steht in der Capability und nicht in der Oberfläche.
+- **Neuer Entity-Typ `setpoint`** mit Grenzen. Ohne konfigurierte Obergrenze
+  entsteht kein Befehl und damit kein Bedienelement. Genau das trifft die
+  Eingangsstrombegrenzung: Ohne die reale Absicherung des Anschlusses zu
+  kennen, wäre eine Obergrenze eine gefährliche Erfindung (Kapitel 18 §136).
+- Die Simulation koppelt die Energiewerte physikalisch
+  (Batterie = Solar + Landstrom − Verbrauch) und gibt jeder Watt-Größe einen
+  eigenen Wertebereich. Vorher trafen 640 W Solar auf 640 W Verbrauch, und
+  ein Darstellungsfehler wäre in dieser Unordnung nicht aufgefallen.
+
 ### Hinzugefügt — Warnschwellen in zwei Stufen
 
 - **Schwellen sind konfiguriert und wirken** (Punkt C3 geklärt):

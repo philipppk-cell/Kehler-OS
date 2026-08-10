@@ -1,0 +1,176 @@
+/* Energieseite. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+
+.energie {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-4);
+  align-items: start;
+
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.energie__main,
+.energie__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ── Batterie ────────────────────────────────────────────────────────────── */
+
+.energie__hero {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.energie__soc {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.12em;
+  font-size: var(--text-display);
+  font-weight: 300;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.energie__soc--stale { color: var(--text-secondary); }
+.energie__soc--unknown { color: var(--text-tertiary); }
+
+.energie__unit {
+  font-size: var(--text-h3);
+  color: var(--text-tertiary);
+}
+
+.energie__split {
+  display: flex;
+  flex-direction: column;
+}
+
+.energie__number {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.energie__number--stale { color: var(--text-secondary); }
+.energie__number--unknown { color: var(--text-tertiary); font-weight: var(--weight-regular); }
+
+.energie__unit-inline {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+/* ── Energiefluss ────────────────────────────────────────────────────────── */
+
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.flow__row {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Ohne Landstromverbindung fließt dort nichts — die Zeile bleibt sichtbar,
+   tritt aber zurück. Ausblenden würde die Frage „gibt es das überhaupt?"
+   offenlassen. */
+.flow__row--muted { opacity: 0.45; }
+
+.flow__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.flow__icon {
+  display: flex;
+  color: var(--text-tertiary);
+}
+
+/* Die Linie zeigt die Richtung des Weges, nicht seine Größe. Eine Länge
+   proportional zur Leistung wäre eine zweite Skala neben der Zahl — und bei
+   unbekanntem Wert nicht darstellbar. */
+.flow__bar {
+  height: 2px;
+  border-radius: var(--radius-full);
+}
+
+.flow__bar--in {
+  background: linear-gradient(90deg, transparent, var(--ok));
+}
+
+.flow__bar--battery {
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.flow__bar--out {
+  background: linear-gradient(90deg, var(--warn), transparent);
+}
+
+.flow__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  font-size: var(--text-h2);
+  color: var(--text-primary);
+  min-width: 7ch;
+  justify-content: flex-end;
+}
+
+.flow__value--stale { color: var(--text-secondary); }
+
+.flow__unit {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.flow__unknown {
+  font-size: var(--text-body);
+  color: var(--text-tertiary);
+}
+
+/* ── Hinweise ────────────────────────────────────────────────────────────── */
+
+.energie__note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.energie__notes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .energie {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .flow__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .flow__bar { display: none; }
+}

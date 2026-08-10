@@ -243,6 +243,16 @@ class Entity:
     (Kapitel 18 §98).
     """
 
+    min_value: float | None = None
+    max_value: float | None = None
+    step: float | None = None
+    """Grenzen eines einstellbaren Wertes.
+
+    Ohne ``max_value`` gibt es keine Bedienung: Eine Strombegrenzung ohne
+    Kenntnis der realen Absicherung wäre eine gefährliche Erfindung
+    (Kapitel 18 §98/§136).
+    """
+
     warn_below: float | None = None
     """Unterhalb dieses Wertes wird gewarnt — für Vorräte wie Frischwasser."""
 

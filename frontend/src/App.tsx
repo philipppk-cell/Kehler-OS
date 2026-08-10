@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Shell, type PageId } from "./shell/Shell";
 import { Dashboard } from "./pages/Dashboard";
 import { Wasser } from "./pages/Wasser";
+import { Energie } from "./pages/Energie";
 import { Placeholder } from "./pages/Placeholder";
 import { RealtimeClient, realtimeUrl } from "./realtime/client";
 import { fetchSystem } from "./api/client";
@@ -33,6 +34,8 @@ export function App() {
         <Dashboard />
       ) : page === "water" ? (
         <Wasser />
+      ) : page === "energy" ? (
+        <Energie />
       ) : (
         <Placeholder title={t(`nav.${page}`)} />
       )}

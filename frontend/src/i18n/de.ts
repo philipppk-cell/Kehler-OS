@@ -80,8 +80,42 @@ const de: Record<string, string> = {
   // Energie
   "energy.battery": "Batterie",
   "energy.voltage": "Spannung",
+  "energy.current": "Strom",
+  "energy.batteryPower": "Leistung",
   "energy.solar": "Solar",
   "energy.shorePower": "Landstrom",
+  "energy.consumption": "Verbrauch",
+  "energy.flow": "Energiefluss",
+  "energy.inverter": "Wechselrichter",
+  "energy.connection": "Anschluss",
+  "energy.limit": "Strombegrenzung",
+
+  "energy.battery_soc": "Ladezustand",
+  "energy.battery_voltage": "Batteriespannung",
+  "energy.battery_current": "Batteriestrom",
+  "energy.battery_power": "Batterieleistung",
+  "energy.solar_power": "Solarleistung",
+  "energy.shore_connected": "Landstromanschluss",
+  "energy.shore_power": "Landstromleistung",
+  "energy.shore_limit": "Eingangsstrombegrenzung",
+
+  // Laderichtung. „Ruht" ist eine Aussage — bei fehlendem Messwert wird
+  // stattdessen „Unbekannt" gezeigt.
+  "energy.dir.charging": "Lädt",
+  "energy.dir.discharging": "Entlädt",
+  "energy.dir.idle": "Ruht",
+
+  "energy.shoreConnected": "Verbunden",
+  "energy.shoreDisconnected": "Nicht verbunden",
+  "energy.limitNotAdjustable":
+    "Einstellbar erst, wenn die Absicherung des Landstromanschlusses bekannt ist. Eine geratene Obergrenze könnte die Zuleitung überlasten.",
+  "energy.inverterConfirm":
+    "Wechselrichter wirklich abschalten? Damit entfällt die 230-V-Versorgung im gesamten Fahrzeug.",
+  "energy.notesTitle": "Hinweise",
+  "energy.noRuntime":
+    "Eine Restlaufzeit wird nicht angezeigt — dafür fehlt die nutzbare Batteriekapazität.",
+  "energy.readOnly":
+    "Kehler OS liest die Anlage nur. Geregelt wird sie von Victron; schreibend gibt es ausschließlich Strombegrenzung und Wechselrichter.",
 
   // Wasser
   "tank.fresh": "Frischwasser",

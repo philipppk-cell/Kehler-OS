@@ -60,9 +60,23 @@ class Motion(StrEnum):
 
 
 def _range_key(entity: Entity) -> str:
-    """Ordnet einer Entity ihren plausiblen Wertebereich zu."""
+    """Ordnet einer Entity ihren plausiblen Wertebereich zu.
+
+    Die Einheit allein genügt nicht. Solarertrag, Landstrombezug und
+    Hausverbrauch sind alle drei Watt, bewegen sich aber in völlig
+    verschiedenen Größenordnungen — würfelte man für alle denselben Bereich,
+    entstünde ein Bild, in dem 640 W Solar auf 640 W Verbrauch treffen und
+    nichts auffällt.
+    """
     if entity.unit == "celsius":
         return "celsius.outside" if "outside" in entity.id else "celsius.inside"
+    if entity.unit == "W":
+        if "solar" in entity.id:
+            return "W.solar"
+        if "shore" in entity.id:
+            return "W.shore"
+        if "consumption" in entity.id:
+            return "W.load"
     return entity.unit or ""
 
 
@@ -76,6 +90,14 @@ _RANGES: dict[str, tuple[float, float, float, float]] = {
     "celsius.outside": (-8.0, 34.0, 12.0, 0.006),
     "V": (22.0, 29.0, 26.2, 0.002),   # 24-V-System
     "A": (-120.0, 120.0, -8.0, 0.05),
+    # Zehn Module auf dem Dach; die Spitze liegt bei klarem Himmel und guter
+    # Ausrichtung in dieser Größenordnung.
+    "W.solar": (0.0, 2600.0, 820.0, 3.0),
+    # Landstrom: begrenzt durch die Absicherung des Anschlusses. Der Bereich
+    # ist eine Annahme für die Simulation, keine Aussage über die Anlage —
+    # die reale Absicherung ist offener Punkt B2.
+    "W.shore": (0.0, 3600.0, 1150.0, 2.0),
+    "W.load": (80.0, 1800.0, 430.0, 1.5),
     "W": (0.0, 2000.0, 640.0, 1.2),
 }
 
@@ -153,6 +175,26 @@ class SimulationAdapter(Adapter):
         if entity.unit is None and not caps:
             return _Device(entity=entity, kind="contact", value="CLOSED")
 
+        # Ein Sollwert steht, er driftet nicht. Erkennbar an den
+        # konfigurierten Grenzen — auch dann, wenn er mangels bekannter
+        # Obergrenze (noch) keinen Befehl hat und deshalb wie ein Messwert
+        # aussieht.
+        if entity.min_value is not None or entity.step is not None:
+            # Der Startwert ist eine Zahl für die Simulation, keine Antwort
+            # auf eine offene Hardwarefrage. Dass die Strombegrenzung hier
+            # einen plausiblen Wert zeigt, heißt nicht, dass die reale
+            # Absicherung bekannt wäre — sie ist weiterhin Punkt B2.
+            start = entity.min_value if entity.min_value is not None else 0.0
+            return _Device(
+                entity=entity,
+                kind="setpoint",
+                value=float(entity.max_value or start + 13),
+                bounds=(
+                    float(entity.min_value if entity.min_value is not None else 0),
+                    float(entity.max_value or 63),
+                ),
+            )
+
         # Messwerte richten sich nach ihrer Einheit. Ein Simulator, der für
         # Temperatur, Spannung und Füllstand denselben Bereich würfelt,
         # erzeugt unbrauchbare Bilder — und verdeckt damit genau die
@@ -184,6 +226,64 @@ class SimulationAdapter(Adapter):
 
             value = self._advance(device, elapsed)
             self._state.apply(device.entity.id, value)
+
+        self._couple_energy()
+
+    def _couple_energy(self) -> None:
+        """Bringt die Energiewerte miteinander in Einklang.
+
+        Würde jeder Wert für sich driften, zeigte der Energiefluss eine
+        Anlage, in der Solar, Landstrom, Batterie und Verbrauch nichts
+        miteinander zu tun haben. Genau die Darstellungsfehler, die ein
+        Energiefluss sichtbar machen soll, wären dann nicht mehr von der
+        Unordnung der Simulation zu unterscheiden.
+
+        Physik ist hier bewusst einfach gehalten:
+
+            Batterie = Solar + Landstrom − Verbrauch
+
+        Positive Batterieleistung heißt laden. Der Batteriestrom folgt aus
+        Leistung und Spannung — dieselbe Beziehung wie in der Anlage.
+        """
+        power = self._number("energy.solar.power")
+        load = self._number("energy.consumption.power")
+        voltage = self._number("energy.battery.voltage")
+        if power is None or load is None or voltage is None or voltage <= 0:
+            return
+
+        shore = self._devices.get("energy.shore.power")
+        connected = self._devices.get("energy.shore.connected")
+        if shore is not None:
+            # Ohne Landstromverbindung fließt kein Landstrom. Das ist keine
+            # Vereinfachung, sondern der einzige physikalisch mögliche Wert.
+            live = connected is None or connected.value == "CLOSED"
+            drifted = self._number("energy.shore.power") or 0.0
+            shore.value = max(0.0, drifted) if live else 0.0
+            self._publish(shore)
+
+        shore_w = (shore.value if shore is not None else 0.0) or 0.0
+
+        battery = self._devices.get("energy.battery.power")
+        if battery is not None:
+            battery.value = round(power + float(shore_w) - load, 1)
+            self._publish(battery)
+
+            current = self._devices.get("energy.battery.current")
+            if current is not None:
+                current.value = round(float(battery.value) / voltage, 2)
+                self._publish(current)
+
+    def _number(self, entity_id: str) -> float | None:
+        device = self._devices.get(entity_id)
+        if device is None or device.fault is not Fault.NONE:
+            return None
+        return device.value if isinstance(device.value, (int, float)) else None
+
+    def _publish(self, device: _Device) -> None:
+        self._state.apply(
+            device.entity.id,
+            StateValue.valid(device.value, unit=device.entity.unit, source=self.source),
+        )
 
     def _advance(self, device: _Device, elapsed: float) -> StateValue:
         if device.fault is Fault.SENSOR_ERROR:

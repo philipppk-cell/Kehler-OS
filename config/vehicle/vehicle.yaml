@@ -107,13 +107,18 @@ entities:
     timeout_ms: 2000
 
   # ── Energie ───────────────────────────────────────────────────────────────
-  # BESTÄTIGT: Victron-Anlage mit Solar auf dem Dach (zehn Module, auf den
-  # Fotos sichtbar), 24-V-Lithiumsystem.
-  # VORLÄUFIG: die genaue Aufteilung der Messwerte. Sie folgt erst aus der
-  # Cerbo-Anbindung (offener Punkt B1/B2).
+  # BESTÄTIGT: Victron-Anlage, 24-V-Lithiumsystem, Solar auf dem Dach
+  # (zehn Module, auf den Fotos sichtbar), Landstromanschluss.
   #
-  # Read-only. Victron bleibt Energiemanagement und Schutzinstanz
-  # (Kapitel 12 §33).
+  # VORLÄUFIG: die konkrete Aufteilung der Messwerte. Welche Größen der
+  # Cerbo GX tatsächlich liefert, folgt aus der Anbindung (Punkt B1/B2).
+  # Die hier gelisteten gibt es in jeder Victron-Anlage.
+  #
+  # Read-only, mit **zwei** Ausnahmen (Punkt B3, ADR 0003): Eingangsstrom-
+  # begrenzung und Wechselrichter ein/aus. Victron bleibt Energiemanagement
+  # und Schutzinstanz (Kapitel 12 §33) — Kehler OS regelt nicht mit.
+  #
+  # Vorzeichenkonvention Batterie: **positiv = laden**, negativ = entladen.
 
   - id: energy.battery.soc
     name_key: energy.battery_soc
@@ -129,12 +134,72 @@ entities:
     deadband: 0.1
     expected_interval_s: 10
 
+  - id: energy.battery.current
+    name_key: energy.battery_current
+    type: measurement
+    unit: A
+    deadband: 0.5
+    expected_interval_s: 10
+
+  - id: energy.battery.power
+    name_key: energy.battery_power
+    type: measurement
+    unit: W
+    deadband: 10
+    expected_interval_s: 10
+
   - id: energy.solar.power
     name_key: energy.solar_power
     type: measurement
     unit: W
     deadband: 5
     expected_interval_s: 10
+
+  - id: energy.consumption.power
+    name_key: energy.consumption
+    type: measurement
+    unit: W
+    deadband: 10
+    expected_interval_s: 10
+
+  - id: energy.shore.connected
+    name_key: energy.shore_connected
+    type: contact
+    area: tech
+    expected_interval_s: 15
+
+  - id: energy.shore.power
+    name_key: energy.shore_power
+    type: measurement
+    unit: W
+    deadband: 10
+    expected_interval_s: 10
+
+  # Eingangsstrombegrenzung — einer der beiden erlaubten Schreibzugriffe.
+  #
+  # `max_value` fehlt ABSICHTLICH: Die reale Absicherung des Landstrom-
+  # anschlusses ist nicht bekannt (Punkt B2). Ohne Obergrenze entsteht kein
+  # Befehl und damit kein Bedienelement — der Wert bleibt sichtbar. Eine
+  # geratene Obergrenze könnte eine Zuleitung überlasten (Kapitel 18 §136).
+  - id: energy.shore.limit
+    name_key: energy.shore_limit
+    type: setpoint
+    area: tech
+    unit: A
+    min_value: 3
+    step: 1
+    risk: HIGH
+    timeout_ms: 5000
+
+  # Wechselrichter — der zweite erlaubte Schreibzugriff. HIGH bedeutet:
+  # bestätigungspflichtig. Ein versehentliches Abschalten nimmt dem ganzen
+  # Fahrzeug die 230-V-Versorgung.
+  - id: energy.inverter.state
+    name_key: energy.inverter
+    type: switch
+    area: tech
+    risk: HIGH
+    timeout_ms: 8000
 
   # ── Klima ─────────────────────────────────────────────────────────────────
   # VORLÄUFIG: Weder die Geräte noch die Sensoren sind bekannt (Punkt G1/G2).

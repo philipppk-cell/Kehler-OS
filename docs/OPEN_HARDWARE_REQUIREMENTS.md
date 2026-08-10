@@ -145,8 +145,18 @@ Register, die über MQTT nicht sauber verfügbar sind.
 - Anzahl und Typ der MPPT-Solarregler, installierte Modulleistung
 - Landstromabsicherung (A)
 
-Wird für sinnvolle Skalen, Warnschwellen und Autarkieberechnung benötigt.
-Bis dahin sind alle Grenzwerte Konfiguration mit neutralen Vorgaben.
+**Was ohne diese Angaben fehlt — konkret:**
+
+| Fehlt | Folge in der Oberfläche |
+| --- | --- |
+| nutzbare Batteriekapazität (Ah/kWh) | keine Restlaufzeit, kein „reicht noch bis …" |
+| Absicherung des Landstroms (A) | **kein Bedienelement für die Eingangsstrombegrenzung** — der Wert wird nur angezeigt |
+| installierte Modulleistung | keine Einordnung des Solarertrags („viel" oder „wenig") |
+| MultiPlus-Variante | keine Lastgrenze für den Wechselrichter |
+
+Die Strombegrenzung ist der wichtigste Punkt: Eine geratene Obergrenze könnte
+die Zuleitung überlasten (Kapitel 18 §136). Deshalb entsteht ohne
+konfigurierte Obergrenze gar kein Befehl — und damit auch kein Regler.
 
 ### B3 · Schreibzugriffe — `GEKLÄRT` (2026-08-09)
 
