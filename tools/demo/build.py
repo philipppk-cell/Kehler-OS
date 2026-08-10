@@ -139,7 +139,7 @@ def write(kennung, geraet, recording, css, script, shim, head) -> None:
     # <head> und <body> — sonst stünden zwei Dokumente ineinander.
     fragment = DEMO / f"kehler-os-demo-{kennung}.fragment.html"
     fragment.write_text(
-        f"""<title>Kehler OS – Demo</title>
+        f"""<title>Kehler OS – Demo ({geraet})</title>
 <style>{css}</style>
 <style>{STYLE}</style>
 {banner}
