@@ -1,0 +1,249 @@
+/* Heizungsseite. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+
+.heizung {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-4);
+  align-items: start;
+
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.heizung__main,
+.heizung__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ── Kopf der Anlage ─────────────────────────────────────────────────────
+   Die Wärmequelle steht groß, weil sie die Frage beantwortet, mit der man
+   auf die Seite kommt. */
+
+.heizung__hero {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-bottom: var(--space-5);
+}
+
+.heizung__hero--small {
+  margin-bottom: var(--space-4);
+}
+
+.heizung__block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.heizung__source {
+  font-size: var(--text-h1);
+  font-weight: 300;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.heizung__source--unknown {
+  color: var(--text-tertiary);
+}
+
+.heizung__label {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* ── Werte ───────────────────────────────────────────────────────────────  */
+
+.heizung__metric {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.12em;
+  font-size: var(--text-h1);
+  font-weight: 300;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.heizung__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.heizung__metric--stale,
+.heizung__value--stale {
+  color: var(--text-secondary);
+}
+
+/* Eine Stelle ohne Wert bleibt ruhig. Sie ist kein Fehler und wird nicht wie
+   einer gezeigt (Kapitel 18 §101). */
+.heizung__metric--absent,
+.heizung__value--absent {
+  color: var(--text-tertiary);
+  font-weight: var(--weight-regular);
+  font-size: var(--text-caption);
+}
+
+.heizung__metric--absent {
+  font-size: var(--text-body);
+}
+
+/* „Noch zu verifizieren" ist etwas anderes als „nicht konfiguriert" — es ist
+   eine offene Frage und keine offene Zuordnung. Der gestrichelte Rahmen sagt
+   das, ohne laut zu werden. */
+.heizung__pendingmark {
+  padding: 2px var(--space-2);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.heizung__unit {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.heizung__metric .heizung__unit {
+  font-size: var(--text-h3);
+}
+
+/* Die Beschriftung eines großen Werts steht darunter, nicht daneben. */
+.heizung__metric .heizung__label {
+  flex-basis: 100%;
+}
+
+.heizung__split {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Störung ─────────────────────────────────────────────────────────────  */
+
+.heizung__fault {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── Heizkreise ──────────────────────────────────────────────────────────
+   Kreis und Pumpe stehen nebeneinander, weil der interessante Fall ihre
+   Abweichung ist: angeforderter Kreis, stehende Pumpe. */
+
+.circuit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--touch-min);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.circuit:last-child {
+  border-bottom: none;
+}
+
+.circuit__name {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.circuit__pump {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.circuit__pumplabel {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.circuit__state {
+  display: inline-flex;
+  justify-content: flex-end;
+  min-width: 8ch;
+}
+
+/* ── Anbindung ───────────────────────────────────────────────────────────  */
+
+.heizung__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.heizung__linkhint,
+.heizung__pending,
+.heizung__chain {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+.heizung__pending {
+  color: var(--warn);
+}
+
+/* Die Datenkette steht als Kette da — sie ist die Antwort auf die Frage,
+   woher die Werte einmal kommen sollen. */
+.heizung__chain {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-label);
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+/* ── Hinweise ────────────────────────────────────────────────────────────  */
+
+.heizung__plant {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+}
+
+.heizung__notes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .heizung {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .circuit {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .circuit__pump {
+    grid-column: 1 / -1;
+  }
+}

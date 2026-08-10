@@ -157,11 +157,11 @@ const de: Record<string, string> = {
   "stepper.decrease": "{name} verringern",
   "stepper.increase": "{name} erhöhen",
 
-  // Klima und Heizung — getrennte Systeme, gemeinsame Darstellung
-  "zone.system": "System",
-  "zone.power": "Ein/Aus",
-  "zone.target": "Solltemperatur",
-  "zone.notesTitle": "Hinweise",
+  // Klimaseite
+  "klima.system": "System",
+  "klima.power": "Ein/Aus",
+  "klima.target": "Solltemperatur",
+  "klima.notesTitle": "Hinweise",
 
   // Klima
   "climate.title": "Klima",
@@ -178,14 +178,101 @@ const de: Record<string, string> = {
   "climate.noteDevice":
     "Der einstellbare Bereich ist vorläufig, solange das verbaute Gerät nicht bekannt ist. Betriebsarten zeigt Kehler OS erst, wenn das Gerät sie meldet — nachgebaut wird keine.",
 
-  // Heizung
+  // ── Heizung: SCHEER selection 10/17 kW mit HeatMate V4.02 ────────────────
   "heating.title": "Heizung",
-  "heating.state": "Heizung",
-  "heating.target": "Solltemperatur Heizung",
-  "heating.noteSeparate":
-    "Eigenes System, eigener Sollwert. Die gemessene Innentemperatur ist dieselbe wie im Klimabereich — es gibt einen Wohnraum und einen Fühler.",
-  "heating.noteDevice":
-    "Ob gerade geheizt wird, meldet erst das Gerät. Bis dahin zeigt Kehler OS nur, was es weiß: Sollwert und Ein/Aus.",
+  "heating.plant": "SCHEER selection 10/17 kW",
+  "heating.controller": "HeatMate V4.02",
+
+  // Namen der Entities. Sie stehen in der Fahrzeugkonfiguration und werden
+  // hier übersetzt — die Seite selbst kennt keine festen Beschriftungen.
+  "heating.system": "Heizungsanlage",
+  "heating.fault": "Störung",
+  "heating.error_code": "Fehlercode",
+  "heating.burner": "Brenner",
+  "heating.burner_hours": "Brennerlaufzeit",
+  "heating.service": "Wartung",
+
+  // Eine Temperatur, ein Sollwert — Kessel und Warmwasser werden von der
+  // Anlage nicht getrennt geführt. Deshalb schlicht „Temperatur": Wo der
+  // Fühler sitzt, ist nicht genannt und wird nicht behauptet.
+  "heating.temperature_actual": "Temperatur",
+  "heating.temperature_target": "Solltemperatur",
+
+  // Die Kreise heißen nach dem, was sie beheizen. „Heizkreis 2" steht im
+  // Schaltplan, „Fußbodenheizung" im Fahrzeug (Kapitel 7 §31).
+  "heating.radiators": "Heizkörper",
+  "heating.floor": "Fußbodenheizung",
+  "heating.pump": "Pumpe",
+  "heating.night": "Nachtabsenkung",
+  "heating.water": "Warmwasserbereitung",
+  "heating.water_plus": "Warmwasser Plus",
+  "heating.circulation": "Zirkulationspumpe",
+  "heating.electric": "Elektroheizung",
+  // Stufe und Leistung sind dasselbe: Stufe 2 ist 2 kW.
+  "heating.electric_power": "Heizleistung",
+  "heating.electric_mode": "Betriebsart",
+  "heating.mains": "230-V-Versorgung",
+  "heating.wakeup": "Wechselrichter-Wake-up",
+  "heating.tank": "Tankfüllstand Heizung",
+
+  // Abschnitte der Seite
+  "heating.plantTitle": "Anlage",
+  "heating.circuitsTitle": "Heizkreise",
+  "heating.waterTitle": "Warmwasser",
+  "heating.electricTitle": "Elektroheizung",
+  "heating.burnerTitle": "Brenner",
+  "heating.supplyTitle": "Versorgung",
+  "heating.linkTitle": "Anbindung",
+  "heating.notesTitle": "Hinweise",
+
+  // Wärmequelle — die eine Frage, die die Seite beantworten soll
+  "heating.source": "Wärmequelle",
+  "heating.source.burner": "Brenner",
+  "heating.source.electric": "Elektro",
+  "heating.source.both": "Brenner und Elektro",
+  "heating.source.none": "Keine aktiv",
+
+  // Brennerphasen. Das interne Vokabular von Kehler OS — welcher Wert der
+  // HeatMate darauf abgebildet wird, entscheidet der Adapter.
+  "heating.phase.OFF": "Aus",
+  "heating.phase.DEMAND": "Anforderung",
+  "heating.phase.HEATING": "Heizt",
+  "heating.phase.POSTRUN": "Nachlauf",
+  "heating.phase.FAULT": "Störung",
+
+  // Ein Versorgungskontakt ist kein Türkontakt. „Geschlossen" wäre technisch
+  // richtig und trotzdem unverständlich — hier zählt, ob Strom anliegt.
+  "heating.mains.CLOSED": "Vorhanden",
+  "heating.mains.OPEN": "Fehlt",
+
+  "heating.service.OK": "Keine Wartung fällig",
+  "heating.service.DUE": "Wartung fällig",
+
+  "heating.mode.SOLO": "Solo",
+  "heating.mode.HYBRID": "Hybrid",
+  "heating.mode.FALLBACK": "Rückfall",
+
+  "heating.faultPresent": "Störung gemeldet",
+  "heating.faultNone": "Keine Störung gemeldet",
+  "heating.faultUnknown": "Ohne Anbindung nicht beurteilbar",
+
+  // Stand der Anbindung
+  "heating.notLinked": "Anlage noch nicht angebunden",
+  "heating.notLinkedHint":
+    "Die Anlage ist beschrieben, aber es fließen noch keine Werte. Die Modbus-Registerliste der HeatMate liegt nicht vor — welcher Wert unter welcher Adresse liegt, ist offen.",
+  "heating.pendingCount": "{count} Funktionen warten auf ihre Bestätigung",
+  "heating.chain": "SCHEER selection / HeatMate → Modbus → Siemens S7-1500 → Kehler OS",
+
+  "state.unverified": "Noch zu verifizieren",
+  "state.unverifiedHint":
+    "Ob diese Funktion über die Schnittstelle verfügbar ist, ist nicht bestätigt",
+
+  "heating.noteControl":
+    "Die HeatMate bleibt Regler und Schutzeinrichtung. Temperaturbegrenzer, Brennersteuerung und Abschaltungen gehören ihr — Kehler OS bedient und zeigt an, es regelt nicht.",
+  "heating.noteVerify":
+    "Solange eine Funktion nicht bestätigt ist, gibt es dafür kein Bedienelement. Die Struktur steht bereits; ein Schalter entsteht erst, wenn das zugehörige Register bekannt und geprüft ist.",
+  "heating.noteSource":
+    "Welche Wärmequelle arbeitet, wird aus Brennerphase und Elektroheizung zusammen bestimmt. Ist eine von beiden unbekannt, bleibt die Aussage aus — „keine aktiv“ wäre dann eine Behauptung.",
 
   // Fahrzeug
   "vehicle.garage_door": "Garage",

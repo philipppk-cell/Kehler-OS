@@ -129,27 +129,33 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    augenblicklichen Verbrauchs gekennzeichnet und entfällt beim Laden.
 
    Offen bleibt die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
-3. **Klima** und **Heizung** · `SIMULATED` — zwei Bereiche, weil es zwei
-   Systeme sind.
+3. **Klima** und **Heizung** · `SIMULATED` / `VORBEREITET` — zwei Bereiche,
+   weil es zwei Systeme sind.
 
-   **Erreicht.** Klima und Heizung laufen beide über die Steuerung, sind aber
-   getrennte Systeme (bestätigt 2026-08-10) — und die Trennung liegt im
-   Datenmodell, nicht nur in der Navigation: eigene Domäne `heating.`,
-   eigener Schalter, eigener Sollwert. Ein gemeinsamer Sollwert wäre die
-   aufgeräumtere Oberfläche und die falsche Anlage.
+   **Klima erreicht.** Klima und Heizung laufen beide über die Steuerung,
+   sind aber getrennte Systeme (bestätigt 2026-08-10) — und die Trennung
+   liegt im Datenmodell, nicht nur in der Navigation: eigene Domäne
+   `heating.`, eigener Schalter, eigener Sollwert. Ein gemeinsamer Sollwert
+   wäre die aufgeräumtere Oberfläche und die falsche Anlage.
 
-   Gemeinsam bleibt allein der **gemessene** Wert: Es gibt einen Wohnraum und
-   einen Fühler. Beide Seiten teilen sich denselben Baustein für die
-   Darstellung — zwei Kopien würden über kurz oder lang auseinanderlaufen.
+   **Heizung vorbereitet.** Verbaut ist eine **SCHEER selection 10/17 kW** mit
+   **HeatMate V4.02** — eine zentrale Heizungs- und Warmwasseranlage mit zwei
+   Wärmequellen, zwei Heizkreisen (Heizkörper und Fußbodenheizung),
+   Warmwasserbereitung und Elektroheizung. Die Seite ist deshalb ein
+   Anlagen-Dashboard und kein Raumthermostat.
 
-   Bewusst nicht gebaut: Betriebsarten, ein „heizt gerade"-Zustand, Warmwasser
-   und Lüftung. Alles davon setzt voraus, dass ein Gerät es meldet; welche
-   Geräte verbaut sind, ist noch offen (Punkt G1). Eine vorhandene Regelung
-   wird nicht nachgebaut (Kapitel 12 §67).
+   Die HeatMate bleibt Regler und Schutzeinrichtung; Kehler OS ist
+   übergeordnete Bedien- und Anzeigeebene (ADR 0009). Die Anlage ist mit 22
+   Entities vollständig beschrieben — aber die Modbus-Registerliste liegt
+   nicht vor (Punkt G1), also trägt jede Funktion `unverified`. Das ist
+   wirksam und nicht dekorativ: Eine unverifizierte Entity bekommt keine
+   Capabilities, und ohne Capability entsteht kein Bedienelement.
 
-   Die Stellbereiche (Klima 16–30 °C, Heizung 5–30 °C) sind als `VORLÄUFIG`
-   markiert. Anders als bei der Strombegrenzung ist ein falscher Bereich hier
-   ungefährlich — er wird trotzdem korrigiert, sobald die Geräte bekannt sind.
+   Bestätigt und festgehalten: zwei Heizkreise, **eine** Temperatur (Ist und
+   Soll, Kessel und Warmwasser nicht getrennt), drei Elektrostufen à 1/2/3 kW.
+
+   Offen bleibt die Registerliste. Ihr Eintreffen ist eine
+   Konfigurationsänderung, kein Umbau.
 4. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen
 5. **Garage**
 6. **Einstellungen**

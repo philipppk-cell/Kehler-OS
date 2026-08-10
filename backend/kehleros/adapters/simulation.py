@@ -148,6 +148,15 @@ class SimulationAdapter(Adapter):
             entity = self._registry.get(entity_id)
             if entity is None or not entity.configured:
                 continue
+
+            # Ein Zustand ohne bekanntes Vokabular wird nicht simuliert. Der
+            # Fehlercode der HeatMate etwa ist Klartext der Anlage — ihn zu
+            # erfinden hieße, eine Diagnose zu erfinden. Die Entity bleibt
+            # UNKNOWN, und genau das zeigt die Oberfläche dann auch.
+            if entity.kind == "status" and not entity.states:
+                log.debug("Simulation: %s ohne Zustandsliste", entity_id)
+                continue
+
             self._devices[entity_id] = self._build(entity)
         log.info("Simulation gestartet mit %d Geräten", len(self._devices))
 
@@ -165,6 +174,13 @@ class SimulationAdapter(Adapter):
 
         if "set_state" in caps:
             return _Device(entity=entity, kind="switch", value="OFF")
+
+        # Ein mehrwertiger Zustand — eine Brennerphase etwa. Er muss vor dem
+        # Kontakt geprüft werden: Beides ist einheitenlos und befehlslos, aber
+        # ein Brenner, der „CLOSED" meldet, wäre kein Testfall, sondern ein
+        # Fehler, der wie ein Zustand aussieht.
+        if entity.kind == "status":
+            return _Device(entity=entity, kind="status", value=entity.states[0])
 
         # Ein Kontakt ist binär, kein Zahlenwert.
         if entity.unit is None and not caps:
@@ -292,6 +308,8 @@ class SimulationAdapter(Adapter):
             value = self._advance_motion(device, elapsed)
         elif device.kind == "measure":
             value = self._advance_measure(device, elapsed)
+        elif device.kind == "status":
+            value = self._advance_status(device)
         else:
             value = device.value
 
@@ -325,6 +343,18 @@ class SimulationAdapter(Adapter):
             Motion.OPEN.value if current == Motion.OPENING.value else Motion.CLOSED.value
         )
         return device.value
+
+    def _advance_status(self, device: _Device) -> str:
+        """Wechselt einen mehrwertigen Zustand gelegentlich.
+
+        Selten, nicht bei jedem Takt: Eine Brennerphase, die im Sekundentakt
+        springt, ist kein Prüfbild, sondern Flackern. Der Wechsel ist zufällig
+        und bildet ausdrücklich **keinen** Anlagenablauf nach — welche Phase
+        auf welche folgt, weiß die HeatMate, und das wird nicht erfunden.
+        """
+        if self._random.random() < 0.03:
+            device.value = self._random.choice(list(device.entity.states))
+        return str(device.value)
 
     def _advance_measure(self, device: _Device, elapsed: float) -> float:
         """Lässt einen Messwert langsam und plausibel wandern.

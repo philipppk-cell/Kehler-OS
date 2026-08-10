@@ -28,6 +28,7 @@ from ..application import Application
 from ..core.alerts import derive_alerts
 from ..core.energy import Reading as EnergyReading
 from ..core.energy import summarise as energy_summary
+from ..core.heating import summarise as heating_summary
 from ..core.water import TankView
 from ..core.water import summarise as water_summary
 from ..domain.enums import CommandPhase, Trigger
@@ -260,6 +261,29 @@ def create_app(application: Application) -> FastAPI:
             "remaining_wh": summary.remaining_wh,
             "runtime_h": summary.runtime_h,
             "runtime_capped": summary.runtime_capped,
+        }
+
+    @router.get("/heating")
+    async def heating() -> dict[str, Any]:
+        """Zustand der SCHEER-Heizungsanlage.
+
+        Gedeutet wird eine einzige Sache: **welche Wärmequelle gerade
+        arbeitet** — aus Brennerphase und Elektroheizung zusammen (siehe
+        ``core/heating.py``). Alles andere reicht die API durch.
+
+        Solange die Modbus-Registerliste fehlt (Punkt G1), ist `linked`
+        ``false`` und die Wärmequelle ``null``. Die Oberfläche zeigt dann die
+        Anlage als Struktur und sagt dazu, dass die Anbindung aussteht.
+        """
+        summary = heating_summary(
+            {state.entity_id: state for state in application.state},
+            application.registry,
+        )
+        return {
+            "heat_source": summary.heat_source,
+            "fault": summary.fault,
+            "linked": summary.linked,
+            "unverified": summary.unverified,
         }
 
     # ── Entities ────────────────────────────────────────────────────────────

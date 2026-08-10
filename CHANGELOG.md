@@ -195,6 +195,68 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — Die Heizung ist eine SCHEER-Anlage, kein Thermostat
+
+- **Verbaut ist eine SCHEER selection 10/17 kW mit HeatMate V4.02** (Angabe
+  vom 2026-08-10): zentrale Heizung und Warmwasserbereitung, zwei
+  Wärmequellen, zwei Heizkreise, Elektroheizung. Die Seite „Heizung" ist
+  deshalb ein Anlagen-Dashboard und beantwortet die Frage „was macht die
+  Anlage gerade" — nicht „wie warm hätten Sie es gern".
+- **Die HeatMate bleibt Regler und Schutzeinrichtung.** Temperaturbegrenzer,
+  Brennersteuerung und Abschaltungen gehören ihr und werden weder nachgebaut
+  noch umgangen. Begründung und Datenkette in
+  [ADR 0009](docs/architektur/adr/0009-heizungsanbindung-scheer.md):
+  SCHEER/HeatMate → Modbus → Siemens S7-1500 → Kehler OS.
+- **Neues Kennzeichen `unverified`.** Die Modbus-Registerliste liegt nicht vor
+  (Punkt G1), also ist die Anlage vollständig beschrieben, aber keine Funktion
+  bestätigt. Das Kennzeichen ist **wirksam und nicht dekorativ**: Der Loader
+  vergibt an eine unverifizierte Entity keine Capabilities, und ohne
+  Capability entsteht in der Oberfläche kein Bedienelement. Ohne diese Regel
+  wäre die Konfiguration eine Wunschliste, aus der die Oberfläche Schalter
+  baut, hinter denen nichts liegt.
+- Damit hält das System drei Abwesenheiten auseinander, die verschiedene Dinge
+  bedeuten: „nicht verfügbar" (gibt es nicht), „noch zu verifizieren" (offene
+  Frage) und „nicht konfiguriert" (offene Zuordnung).
+- **Neuer Entity-Typ `status`** — ein mehrwertiger, lesender Zustand. Der
+  Brenner meldet keine zwei Zustände, sondern eine Betriebsphase; ein Kontakt
+  könnte „Nachlauf" nicht von „aus" unterscheiden, ein Schalter würde
+  behaupten, Kehler OS könne die Phase setzen.
+- Die Zustandsnamen stehen als `states` in der Konfiguration. Sie sind das
+  interne Vokabular von Kehler OS, nicht das der HeatMate — die Zuordnung von
+  Rohwerten macht später der Adapter. Ein Zustand **ohne** diese Liste wird
+  nicht simuliert: Der Fehlercode der Anlage ist Klartext, und ihn zu erfinden
+  hieße, eine Diagnose zu erfinden.
+- Gedeutet wird genau eine Sache, und zwar im Backend (`core/heating.py`):
+  **welche Wärmequelle gerade arbeitet.** Ist eine der beiden Quellen
+  unbekannt, bleibt die Aussage aus — „keine aktiv" wäre dann eine Behauptung.
+
+### Korrigiert — Anlage nach Rückmeldung des Fahrzeughalters
+
+Drei Annahmen eines ersten Entwurfs waren falsch und sind ersetzt:
+
+- **Zwei Heizkreise statt drei.** Kreis 1 sind die Heizkörper, Kreis 2 ist die
+  Fußbodenheizung. Der Entwurf führte die Fußbodenheizung als dritten Kreis
+  neben zwei namenlosen „Heizkreis 1/2" — und hätte damit einen Kreis gezeigt,
+  den es nicht gibt. Die Kreise heißen jetzt nach dem, was sie beheizen:
+  „Heizkörper" und „Fußbodenheizung" sind im Fahrzeug zu finden, „Kreis 2"
+  steht nur im Schaltplan.
+- **Eine Temperatur statt zwei.** Die Anlage führt einen Ist- und einen
+  Sollwert; Kessel und Warmwasser werden nicht getrennt geführt. Zwei
+  Temperaturen anzuzeigen hätte eine Genauigkeit vorgetäuscht, die die Anlage
+  nicht hat. Der Wert heißt schlicht „Temperatur" — wo der Fühler sitzt, ist
+  nicht genannt und wird nicht behauptet.
+- **Drei Elektrostufen: 1 kW, 2 kW, 3 kW.** Stufe und Leistung sind dasselbe —
+  Stufe 2 *ist* 2 kW. Der Entwurf führte beides getrennt, eine Stufe ohne
+  bekannten Bereich und daneben eine gemessene Leistung; letztere war obendrein
+  ein angenommener Sensor. Geblieben ist ein Eintrag mit der Einheit, die die
+  Angabe hat.
+- Der bestätigte Bereich 1–3 macht die Funktion **nicht** bedienbar: Ob sich
+  die Stufe über die Schnittstelle setzen lässt, ist weiterhin offen.
+  Bestätigte Grenzen und bestätigter Schreibzugriff sind zwei verschiedene
+  Fragen — und nur die zweite entscheidet über das Bedienelement.
+- Alle drei Angaben sind in Tests festgehalten, damit sie nicht wieder
+  verrutschen.
+
 ### Hinzugefügt — M5: Klima und Heizung als zwei Bereiche
 
 - **Klima und Heizung sind getrennte Systeme** (Angabe vom 2026-08-10) und

@@ -27,9 +27,18 @@ areas:
 #
 #   measurement   Zahlenwert, keine Bedienung
 #   contact       binärer Sensor (OPEN/CLOSED), keine Bedienung
+#   status        mehrwertiger Zustand (Brennerphase), keine Bedienung
 #   switch        set_state(ON|OFF)
 #   movable       open / close / stop
 #   setpoint      set_value — **nur mit `max_value`**, sonst nur Anzeige
+#
+# Zwei Kennzeichen unterdrücken jede Bedienung — sie bedeuten Verschiedenes:
+#
+#   configured: false   Die Funktion existiert, ihr fehlt die Zuordnung.
+#                       Oberfläche: „Nicht konfiguriert"
+#   unverified: true    Ob die Funktion über die Schnittstelle überhaupt
+#                       verfügbar ist, ist nicht bestätigt.
+#                       Oberfläche: „Noch zu verifizieren"
 
 entities:
 
@@ -85,6 +94,21 @@ entities:
     name_key: vehicle.awning
     type: movable
     area: exterior
+    configured: false
+
+  # Ein mehrwertiger Zustand. `states` ist das **interne Vokabular von
+  # Kehler OS**, nicht das des Geräts — die Zuordnung von Rohwerten macht der
+  # Adapter. Ohne diese Liste wird der Zustand nicht simuliert, weil der
+  # Simulator sonst raten müsste.
+  #
+  # Anführungszeichen sind Pflicht: YAML liest ON und OFF sonst als
+  # Wahrheitswerte.
+  - id: heating.burner.state
+    name_key: heating.burner
+    type: status
+    area: tech
+    states: ["OFF", "DEMAND", "HEATING", "POSTRUN", "FAULT"]
+    unverified: true          # Registerliste liegt nicht vor (Punkt G1)
     configured: false
 
 # ── Was hier NICHT steht ─────────────────────────────────────────────────────

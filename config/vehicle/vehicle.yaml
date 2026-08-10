@@ -259,24 +259,312 @@ entities:
     step: 0.5
     timeout_ms: 5000
 
-  # ── Heizung ───────────────────────────────────────────────────────────────
-  # Eigenes System, eigener Bereich. VORLÄUFIG wie oben: Gerät unbekannt.
+  # ── Heizung: SCHEER selection 10/17 kW mit HeatMate V4.02 ────────────────
+  #
+  # BESTÄTIGT (2026-08-10): Verbaut ist eine **SCHEER selection 10/17 kW** mit
+  # der Steuerung **SCHEER HeatMate V4.02**. Sie ist die zentrale Heizungs- und
+  # Warmwasseranlage des Fahrzeugs.
+  #
+  # BESTÄTIGT: Die HeatMate bleibt bestehen und **behält die Regelung sowie
+  # alle sicherheitsrelevanten Funktionen**. Kehler OS ist übergeordnete
+  # Bedien- und Anzeigeebene — nicht Regler und nicht Schutzeinrichtung
+  # (Kapitel 12 §33/§67, Kapitel 18 §29). Temperaturbegrenzer,
+  # Brennersteuerung und Abschaltungen werden nicht nachgebaut und nicht
+  # umgangen.
+  #
+  # Datenkette: SCHEER selection / HeatMate → Modbus → Siemens S7-1500 →
+  # Kehler OS. Siehe ADR 0008.
+  #
+  # ────────────────────────────────────────────────────────────────────────
+  # WARUM HIER ÜBERALL `unverified: true` STEHT
+  #
+  # Die Modbus-Registerliste der HeatMate **liegt nicht vor** (Punkt G1). Die
+  # Anlage kann laut Hersteller CAN und Modbus, aber welcher Wert unter
+  # welcher Adresse liegt, in welcher Skalierung, und welche Funktion sich
+  # überhaupt schreiben lässt, ist unbekannt.
+  #
+  # Deshalb beschreibt diese Datei die Anlage bereits vollständig, aber jede
+  # Funktion trägt `unverified: true`. Das ist kein Kommentar, sondern wirksam:
+  # Eine unverifizierte Entity bekommt im Loader **keine Befehle** und damit in
+  # der Oberfläche **kein Bedienelement** (config/loader.py). Die Struktur
+  # steht, die Bedienung entsteht erst mit der Bestätigung.
+  #
+  # Adressen, Registernummern, Baudraten und Slave-IDs stehen hier ohnehin
+  # nicht — sie gehören nach `config/hardware/` (ungetrackt) und werden nicht
+  # erfunden (Kapitel 18 §97/§98).
+  #
+  # Die Zustandsnamen (`HEATING`, `POSTRUN`, …) sind das **interne Vokabular
+  # von Kehler OS**, nicht das der HeatMate. Welcher Registerwert auf welchen
+  # Namen abgebildet wird, ist Teil des offenen Punktes G1 — die Übersetzung
+  # macht später der Adapter, nicht die Oberfläche.
+  # ────────────────────────────────────────────────────────────────────────
 
-  - id: heating.state
-    name_key: heating.state
+  # ── Anlage ───────────────────────────────────────────────────────────────
+
+  - id: heating.system.state
+    name_key: heating.system
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    risk: MEDIUM
+    timeout_ms: 10000
+
+  - id: heating.system.fault
+    name_key: heating.fault
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+    states: ["OK", "FAULT"]
+
+  # Klartext oder Fehlernummer der HeatMate. Kehler OS stellt keine Diagnose,
+  # es gibt weiter, was die Anlage meldet (Kapitel 13 §60).
+  - id: heating.system.error_code
+    name_key: heating.error_code
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+
+  # ── Temperatur ───────────────────────────────────────────────────────────
+  #
+  # BESTÄTIGT (2026-08-10): Die Anlage kennt **eine** Temperatur — einen Soll-
+  # und einen Istwert. Kessel und Warmwasser werden **nicht** getrennt geführt.
+  #
+  # Ein früherer Entwurf hatte je einen Kessel- und einen Warmwasserwert. Das
+  # war eine Annahme über den Aufbau der Anlage und ist damit erledigt: Zwei
+  # Temperaturen anzuzeigen, wo es eine gibt, hätte eine Genauigkeit
+  # vorgetäuscht, die die Anlage nicht hat.
+  #
+  # Wo der Fühler sitzt, ist nicht genannt und für das Modell auch nicht
+  # nötig. Die Oberfläche nennt den Wert deshalb schlicht „Temperatur" und
+  # nicht „Kesseltemperatur" — was nicht bekannt ist, wird nicht behauptet.
+
+  - id: heating.temperature.actual
+    name_key: heating.temperature_actual
+    type: measurement
+    area: tech
+    unit: celsius
+    unverified: true
+    configured: false
+    deadband: 0.5
+    expected_interval_s: 30
+
+  # Kein Stellbereich angegeben — also `min_value`/`max_value` leer und damit
+  # keine Verstellung. Eine geratene Solltemperatur wäre eine Aussage über
+  # eine Anlage mit eigener Sicherheitskette (Kapitel 18 §136).
+  - id: heating.temperature.target
+    name_key: heating.temperature_target
+    type: setpoint
+    area: tech
+    unit: celsius
+    unverified: true
+    configured: false
+
+  # ── Brenner (SCHEER selection) ───────────────────────────────────────────
+
+  # Betriebsphase, nicht „an/aus": OFF, DEMAND, HEATING, POSTRUN, FAULT.
+  # Ein zweiwertiger Kontakt könnte „Nachlauf" nicht von „aus" unterscheiden.
+  - id: heating.burner.state
+    name_key: heating.burner
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+    # Anführungszeichen sind Pflicht: YAML liest ON und OFF sonst als
+    # Wahrheitswerte, und aus einer Brennerphase würde ein `true`.
+    states: ["OFF", "DEMAND", "HEATING", "POSTRUN", "FAULT"]
+
+  - id: heating.burner.hours
+    name_key: heating.burner_hours
+    type: measurement
+    area: tech
+    unit: h
+    unverified: true
+    configured: false
+    expected_interval_s: 300
+
+  - id: heating.service.due
+    name_key: heating.service
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+    states: ["OK", "DUE"]
+
+  # ── Heizkreise ───────────────────────────────────────────────────────────
+  #
+  # BESTÄTIGT (2026-08-10): **Zwei** Kreise, nicht drei.
+  #
+  #   Kreis 1  die Heizkörper im Wohnraum
+  #   Kreis 2  die Fußbodenheizung
+  #
+  # Ein früherer Entwurf führte die Fußbodenheizung als dritten Kreis neben
+  # zwei namenlosen „Heizkreis 1/2". Das war eine Erfindung — und sie hätte
+  # in der Oberfläche einen Kreis gezeigt, den es nicht gibt.
+  #
+  # Die Kreise heißen deshalb nach dem, was sie beheizen, und nicht nach ihrer
+  # Nummer. „Heizkörper" und „Fußbodenheizung" sind im Fahrzeug zu finden,
+  # „Kreis 2" steht nur im Schaltplan (Kapitel 7 §31, Kapitel 18 §8).
+  #
+  # Jeder Kreis hat eine Umwälzpumpe. Ob die HeatMate sie einzeln zurückmeldet
+  # oder nur den Kreis, klärt erst die Registerliste — deshalb stehen sie
+  # getrennt.
+
+  - id: heating.radiators.state
+    name_key: heating.radiators
     type: switch
     area: living
-    timeout_ms: 8000
+    unverified: true
+    configured: false
+    timeout_ms: 10000
 
-  - id: heating.target
-    name_key: heating.target
-    type: setpoint
+  - id: heating.radiators.pump
+    name_key: heating.pump
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+    states: ["ON", "OFF"]
+
+  - id: heating.floor.state
+    name_key: heating.floor
+    type: switch
     area: living
-    unit: celsius
-    min_value: 5
-    max_value: 30
-    step: 0.5
-    timeout_ms: 8000
+    unverified: true
+    configured: false
+    timeout_ms: 10000
+
+  - id: heating.floor.pump
+    name_key: heating.pump
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+    states: ["ON", "OFF"]
+
+  # Absenkbetrieb der gesamten Anlage, nicht eines einzelnen Kreises.
+  - id: heating.night.state
+    name_key: heating.night
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    timeout_ms: 10000
+
+  # ── Warmwasser ───────────────────────────────────────────────────────────
+  #
+  # Ohne eigene Temperatur: Die Anlage führt nur einen Temperaturwert
+  # (siehe oben). Ein zweiter Fühler ist nicht genannt und wird nicht
+  # angenommen.
+
+  - id: heating.water.state
+    name_key: heating.water
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    timeout_ms: 10000
+
+  - id: heating.water.plus
+    name_key: heating.water_plus
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    timeout_ms: 10000
+
+  # Ob überhaupt eine Zirkulationspumpe verbaut und angebunden ist, ist offen.
+  - id: heating.water.circulation
+    name_key: heating.circulation
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    timeout_ms: 10000
+
+  # ── Elektroheizung ───────────────────────────────────────────────────────
+
+  - id: heating.electric.state
+    name_key: heating.electric
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    risk: MEDIUM
+    timeout_ms: 10000
+
+  # BESTÄTIGT (2026-08-10): **Drei Stufen — 1 kW, 2 kW, 3 kW.**
+  #
+  # Stufe und Leistung sind hier dasselbe: Stufe 2 *ist* 2 kW. Ein früherer
+  # Entwurf führte beides getrennt — eine Stufe ohne bekannten Bereich und
+  # daneben eine gemessene Leistung. Das waren zwei Einträge für eine
+  # Tatsache, und die gemessene Leistung war obendrein ein angenommener
+  # Sensor.
+  #
+  # Es bleibt ein Eintrag, und er trägt die Einheit, die die Angabe hat: kW.
+  #
+  # Der Bereich 1–3 ist bestätigt. Ob sich die Stufe über die Schnittstelle
+  # **setzen** lässt, ist es nicht — deshalb bleibt `unverified: true`, und
+  # deshalb entsteht vorerst kein Bedienelement. Bestätigte Grenzen und
+  # bestätigter Schreibzugriff sind zwei verschiedene Fragen.
+  - id: heating.electric.power
+    name_key: heating.electric_power
+    type: setpoint
+    area: tech
+    unit: kW
+    min_value: 1
+    max_value: 3
+    step: 1
+    unverified: true
+    configured: false
+    risk: MEDIUM
+    timeout_ms: 10000
+
+  # SOLO, HYBRID, FALLBACK — soweit die Schnittstelle sie meldet.
+  - id: heating.electric.mode
+    name_key: heating.electric_mode
+    type: status
+    area: tech
+    unverified: true
+    configured: false
+    states: ["SOLO", "HYBRID", "FALLBACK"]
+
+  # ── Versorgung ───────────────────────────────────────────────────────────
+  #
+  # Die Elektroheizung hängt an 230 V. Ob sie arbeiten kann, ist damit keine
+  # Frage an die Heizung, sondern an die Versorgung — deshalb steht sie hier
+  # und nicht nur auf der Energieseite.
+
+  - id: heating.supply.mains
+    name_key: heating.mains
+    type: contact
+    area: tech
+    unverified: true
+    configured: false
+    expected_interval_s: 30
+
+  - id: heating.supply.wakeup
+    name_key: heating.wakeup
+    type: switch
+    area: tech
+    unverified: true
+    configured: false
+    timeout_ms: 10000
+
+  # Tanküberwachung der HeatMate — welcher Tank und in welcher Einheit, ist
+  # offen. Bewusst getrennt von den Wassertanks unter `water.`: Was die
+  # Heizung überwacht, meldet die Heizung.
+  - id: heating.tank.level
+    name_key: heating.tank
+    type: measurement
+    area: tech
+    unit: percent
+    unverified: true
+    configured: false
+    deadband: 1
+    expected_interval_s: 60
 
   # ── Licht ────────────────────────────────────────────────────────────────
   # BESTÄTIGT (2026-08-10): Die Beleuchtung wird **nicht** über die SPS

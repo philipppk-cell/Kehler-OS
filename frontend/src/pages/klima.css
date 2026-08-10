@@ -1,6 +1,6 @@
-/* Klima und Heizung. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+/* Klimaseite. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
 
-.zone {
+.klima {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: var(--space-4);
@@ -11,8 +11,8 @@
   margin: 0 auto;
 }
 
-.zone__main,
-.zone__side {
+.klima__main,
+.klima__side {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -24,7 +24,7 @@
    trägt die Aussage: Wie warm es ist, sieht man im Vorbeigehen; was
    eingestellt ist, sucht man bewusst (Kapitel 8 §1). */
 
-.zone__hero {
+.klima__hero {
   display: flex;
   align-items: flex-end;
   flex-wrap: wrap;
@@ -33,7 +33,7 @@
 }
 
 /* Wert oben, Beschriftung darunter — wie auf allen anderen Seiten. */
-.zone__block {
+.klima__block {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -42,11 +42,11 @@
 
 /* Der Sollwert steht auf derselben Grundlinie wie die gemessene Temperatur,
    ist aber kleiner: Gemessen wird gelesen, eingestellt wird gesucht. */
-.zone__block--target {
+.klima__block--target {
   padding-bottom: var(--space-2);
 }
 
-.zone__reading {
+.klima__reading {
   display: inline-flex;
   align-items: baseline;
   gap: 0.12em;
@@ -57,15 +57,15 @@
   line-height: 1;
 }
 
-.zone__reading--stale { color: var(--text-secondary); }
-.zone__reading--unknown { color: var(--text-tertiary); }
+.klima__reading--stale { color: var(--text-secondary); }
+.klima__reading--unknown { color: var(--text-tertiary); }
 
-.zone__unit {
+.klima__unit {
   font-size: var(--text-h3);
   color: var(--text-tertiary);
 }
 
-.zone__label {
+.klima__label {
   display: inline-flex;
   align-items: baseline;
   font-size: var(--text-label);
@@ -74,14 +74,14 @@
   color: var(--text-tertiary);
 }
 
-.zone__split {
+.klima__split {
   display: flex;
   flex-direction: column;
 }
 
 /* Nebenwerte in Zeilen — dieselbe Schriftgröße wie überall sonst in einer
    Zeile, damit die Seite nicht aus lauter Sondergrößen besteht. */
-.zone__inline {
+.klima__inline {
   display: inline-flex;
   align-items: baseline;
   gap: 0.14em;
@@ -90,14 +90,14 @@
   color: var(--text-primary);
 }
 
-.zone__inline--stale { color: var(--text-secondary); }
-.zone__inline--unknown { color: var(--text-tertiary); font-weight: var(--weight-regular); }
+.klima__inline--stale { color: var(--text-secondary); }
+.klima__inline--unknown { color: var(--text-tertiary); font-weight: var(--weight-regular); }
 
-.zone__inline .zone__unit {
+.klima__inline .klima__unit {
   font-size: var(--text-caption);
 }
 
-.zone__notes {
+.klima__notes {
   margin: 0;
   padding-left: var(--space-4);
   display: flex;
@@ -108,7 +108,7 @@
 }
 
 @media (max-width: 1100px) {
-  .zone {
+  .klima {
     grid-template-columns: minmax(0, 1fr);
   }
 }

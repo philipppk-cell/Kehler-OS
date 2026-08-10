@@ -25,12 +25,21 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-EntityType = Literal["measurement", "contact", "switch", "movable", "setpoint"]
+EntityType = Literal[
+    "measurement", "contact", "status", "switch", "movable", "setpoint"
+]
 """Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.
 
 Er ist bewusst von ``measurement`` getrennt: Ein Türkontakt liefert OPEN oder
 CLOSED, keinen Zahlenwert. Diese Unterscheidung ist real und nicht nur eine
 Eigenheit der Simulation.
+
+Ein ``status`` ist ein mehrwertiger Zustand ohne Bedienung — der Brenner der
+SCHEER-Heizung meldet nicht „an/aus", sondern eine Betriebsphase. Ihn als
+``contact`` zu führen hieße, fünf Zustände in zwei zu pressen; ihn als
+``switch`` zu führen hieße zu behaupten, Kehler OS könne ihn setzen. Beides
+wäre falsch: Die Phase entsteht in der HeatMate-Regelung, hier wird sie nur
+gelesen.
 
 Ein ``setpoint`` ist ein einstellbarer Zahlenwert mit Grenzen — die
 Eingangsstrombegrenzung des Landstroms ebenso wie eine Solltemperatur. Es gab
@@ -77,6 +86,35 @@ class EntityConfig(_Strict):
     configured: bool = True
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt dann „Nicht konfiguriert“ (Kapitel 18 §101)."""
+
+    unverified: bool = False
+    """``True`` heißt: Die Funktion ist am Gerät zu erwarten, aber es ist
+    **nicht bestätigt**, dass sie über die Schnittstelle verfügbar ist.
+
+    Der Unterschied zu ``configured: false`` ist nicht kosmetisch. „Nicht
+    konfiguriert" heißt: Die Funktion existiert, ihr fehlt nur die Zuordnung.
+    „Noch zu verifizieren" heißt: Ob sie sich überhaupt lesen oder schalten
+    lässt, weiß niemand — bei der SCHEER-Heizung liegt die Modbus-Registerliste
+    noch nicht vor (Punkt G1). Die Oberfläche muss beides auseinanderhalten
+    können, sonst verspricht sie Funktionen, die es vielleicht nie gibt.
+
+    Beides kann gleichzeitig gelten und tut es anfangs auch: Was noch zu
+    verifizieren ist, ist erst recht nicht zugeordnet. Sobald ein Register
+    bestätigt und gemappt ist, fallen beide Kennzeichen weg.
+    """
+
+    states: list[str] = Field(default_factory=list)
+    """Die möglichen Zustände eines ``status``.
+
+    Das ist das **interne Vokabular von Kehler OS**, nicht das des Geräts.
+    Welcher Registerwert der HeatMate auf welchen Namen abgebildet wird,
+    entscheidet später der Adapter — hier stehen nur die Namen, die die
+    Software kennt und übersetzt.
+
+    Ohne diese Angabe simuliert der Simulator die Entity **nicht**: Er würde
+    sonst raten. Ein Brenner, der „CLOSED" meldet, wäre kein Testfall,
+    sondern ein Fehler, der wie ein Zustand aussieht.
+    """
 
     min_value: float | None = None
     max_value: float | None = None

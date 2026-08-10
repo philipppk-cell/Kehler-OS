@@ -443,7 +443,7 @@ function TemperatureCard() {
   const inside = useEntity("climate.living.temperature");
   const outside = useEntity("climate.outside.temperature");
   const cooling = useEntity("climate.cooling.target");
-  const heating = useEntity("heating.target");
+  const heating = useEntity("heating.temperature.target");
 
   return (
     <Card title={t("dash.temperature")}>

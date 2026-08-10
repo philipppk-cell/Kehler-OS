@@ -323,7 +323,7 @@ angebunden ist, erscheint nicht (Kapitel 12 §55, Kapitel 13 §60).
 
 Umgesetzt ist die Trennung nicht nur in der Navigation, sondern im Datenmodell:
 eigene Domäne `heating.`, eigener Schalter, eigener Sollwert
-(`heating.target` neben `climate.cooling.target`). Ein gemeinsamer Sollwert
+(`heating.temperature.target` neben `climate.cooling.target`). Ein gemeinsamer Sollwert
 wäre die aufgeräumtere Oberfläche und die falsche Anlage — das Verstellen der
 Heizung würde stillschweigend die Klimaanlage mitverstellen.
 
@@ -331,26 +331,78 @@ Gemeinsam bleibt allein die **gemessene** Innentemperatur: Es gibt einen
 Wohnraum und einen Fühler (`climate.living.temperature`). Beide Bereiche
 zeigen denselben Messwert, weil es derselbe ist.
 
-### G1 · Heiz-/Klimageräte — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+### G1 · Heizungsanlage — `TEILWEISE` (2026-08-10) · `BLOCKIEREND` für reale Steuerung
 
-*Der Fahrzeughalter hat die Geräteinformationen angekündigt (2026-08-10).*
+**Beantwortet:** Verbaut ist eine **SCHEER selection 10/17 kW** mit der
+Steuerung **SCHEER HeatMate V4.02**. Sie ist die zentrale Heizungs- und
+Warmwasseranlage des Fahrzeugs und hat zwei Wärmequellen: Brenner und
+Elektroheizung.
 
-- Hersteller und Modell von Heizung, Klimaanlage, Lüftung
-- Schnittstelle (potentialfreier Kontakt, Bus, proprietär)
-- **Besitzt das Gerät eine eigene Regelung?** (Kapitel 12 §67 / Kapitel 18 §29 —
-  vorhandene Regelintelligenz soll nicht nachgebaut werden)
-- ist ein Sollwert vorgebbar oder nur Ein/Aus?
-- **Stellbereich und Schrittweite** je Gerät
+**Beantwortet:** Die HeatMate **behält die Regelung und alle
+sicherheitsrelevanten Funktionen**. Kehler OS ist übergeordnete Bedien- und
+Anzeigeebene (Details in [ADR 0009](architektur/adr/0009-heizungsanbindung-scheer.md)).
 
-**Vorläufig hinterlegt** (`config/vehicle/vehicle.yaml`, als `VORLÄUFIG`
-markiert): Klima 16–30 °C, Heizung 5–30 °C, Schrittweite 0,5 K. Anders als bei
+**Beantwortet:** Die Anlage besitzt CAN und Modbus. Datenkette:
+SCHEER/HeatMate → Modbus → Siemens S7-1500 → Kehler OS.
+
+**Beantwortet (2026-08-10), nachgetragen:**
+
+| Angabe | Wert |
+| --- | --- |
+| Heizkreise | **zwei** — Kreis 1 Heizkörper, Kreis 2 Fußbodenheizung |
+| Temperatur | **eine** — ein Ist- und ein Sollwert, Kessel und Warmwasser **nicht** getrennt |
+| Elektroheizung | **drei Stufen: 1 kW, 2 kW, 3 kW** |
+
+> Diese drei Angaben haben einen früheren Entwurf korrigiert, der drei
+> Heizkreise, zwei getrennte Temperaturen und eine Leistungsstufe ohne
+> bekannten Bereich vorsah. Alle drei waren Annahmen; sie sind ersetzt.
+
+#### Weiterhin offen — **blockierend**
+
+- **Modbus-Registerliste der HeatMate V4.02.** Welcher Wert liegt unter
+  welcher Adresse, in welcher Skalierung, mit welchem Datentyp?
+- **Welche Funktionen sind schreibbar?** Möglicherweise ist ein Teil der
+  Anlage dauerhaft nur lesbar. Das wäre kein Mangel, sondern die Eigenschaft
+  des Geräts — die Oberfläche zeigt die Funktion dann ohne Bedienelement.
+- **Zuordnung Registerwert → Zustandsname.** Kehler OS führt ein eigenes
+  Vokabular (`OFF`, `DEMAND`, `HEATING`, `POSTRUN`, `FAULT` …). Welcher
+  Rohwert darauf abgebildet wird, entscheidet der Adapter — geraten wird
+  nichts.
+- **Stellbereich der Solltemperatur.** Ohne ihn gibt es keine Verstellung,
+  nur die Anzeige.
+- **CAN oder Modbus?** Ändert nur das erste Glied der Kette.
+- **Physikalische Anbindung an die S7-1500** (Modbus-Master-Baugruppe oder
+  CM-Modul) und Aufteilung der Datenbausteine — siehe auch Punkt A3.
+- **Zirkulationspumpe:** verbaut und angebunden, oder nicht vorhanden?
+- **Tanküberwachung:** welcher Tank, welche Einheit?
+
+#### Stand der Umsetzung
+
+Die Anlage ist in `config/vehicle/vehicle.yaml` **vollständig beschrieben** —
+22 Entities. Jede trägt `unverified: true`, und das ist wirksam: Eine
+unverifizierte Entity bekommt keine Capabilities und damit in der Oberfläche
+kein Bedienelement. Die Struktur steht, die Bedienung entsteht mit der
+Bestätigung.
+
+**Was bewusst fehlt:** Betriebsarten, ein „heizt gerade"-Zustand und
+Warmwassertemperatur als eigener Wert. Alles setzt voraus, dass die Anlage es
+meldet — nachgebaut wird keine Regelung (Kapitel 12 §67, Kapitel 18 §29).
+
+### G1b · Klimagerät — `OFFEN` · `NICHT BLOCKIEREND`
+
+Die Heizung ist geklärt, das **Klimagerät** nicht. Weiterhin benötigt:
+
+- Hersteller und Modell, Schnittstelle
+- besitzt es eine eigene Regelung?
+- Stellbereich und Schrittweite
+
+**Vorläufig hinterlegt:** Klima 16–30 °C, Schrittweite 0,5 K. Anders als bei
 der Strombegrenzung (Punkt B1) ist ein falscher Bereich hier ungefährlich —
 eine Solltemperatur kann keine Zuleitung überlasten. Er wird trotzdem
-korrigiert, sobald die Geräte bekannt sind.
+korrigiert, sobald das Gerät bekannt ist.
 
-**Was bis dahin bewusst fehlt:** Betriebsarten, ein „heizt gerade"-Zustand und
-Warmwasser. Alles drei setzt voraus, dass das Gerät es meldet — nachgebaut
-wird keine Regelung.
+Eine **Lüftung** wird nicht angenommen. Ob eine anzubindende existiert, ist
+offen.
 
 ### G2 · Temperatursensoren — `TEILWEISE` (2026-08-10)
 

@@ -235,6 +235,14 @@ class Entity:
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt „Nicht konfiguriert“ (Kapitel 18 §101)."""
 
+    unverified: bool = False
+    """``True`` heißt: Ob die Funktion über die Schnittstelle überhaupt
+    verfügbar ist, ist nicht bestätigt.
+
+    Nicht dasselbe wie ``configured: False``. Dort fehlt die Zuordnung, hier
+    fehlt die Gewissheit, dass es etwas zuzuordnen gibt.
+    """
+
     capacity_l: float | None = None
     """Nutzbare Kapazität eines Tanks in Litern.
 
@@ -247,6 +255,23 @@ class Entity:
     nominal_voltage: float | None = None
     """Nur für die Batterie. Fehlt eines von beiden, gibt es keine Angabe in
     Kilowattstunden und keine Restlaufzeit — beide wären sonst geraten."""
+
+    kind: str = "measurement"
+    """Die Art der Entity, wie sie konfiguriert ist.
+
+    Die Oberfläche braucht sie nicht — sie richtet sich nach den Capabilities
+    und bekommt diese Angabe deshalb gar nicht erst. Der Simulator braucht
+    sie: ``contact`` und ``status`` sind beide einheitenlos und befehlslos,
+    verhalten sich aber verschieden, und ein Brenner, der „CLOSED" meldet,
+    wäre kein Prüfbild, sondern ein Fehler in Gestalt eines Zustands.
+    """
+
+    states: tuple[str, ...] = ()
+    """Die möglichen Zustände eines mehrwertigen Zustands.
+
+    Internes Vokabular von Kehler OS. Die Übersetzung von Rohwerten der
+    Hardware auf diese Namen macht der Adapter.
+    """
 
     min_value: float | None = None
     max_value: float | None = None

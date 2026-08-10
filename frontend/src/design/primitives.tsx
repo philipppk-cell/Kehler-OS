@@ -101,6 +101,20 @@ export function Value({
     return <span className={`${cls} value--muted`}>{t("state.unavailable")}</span>;
   }
 
+  // „Noch zu verifizieren" geht vor „nicht konfiguriert". Beides trifft auf
+  // eine unbestätigte Funktion zu, aber nur das erste sagt, woran es liegt:
+  // Nicht die Zuordnung fehlt, sondern die Gewissheit, dass es etwas
+  // zuzuordnen gibt. Die Reihenfolge steht hier und nicht auf den Seiten,
+  // damit Dashboard und Fachseite nicht Verschiedenes über dieselbe Entity
+  // sagen.
+  if (entity.definition?.unverified) {
+    return (
+      <span className={`${cls} value--muted`} title={t("state.unverifiedHint")}>
+        {t("state.unverified")}
+      </span>
+    );
+  }
+
   if (!entity.definition?.configured) {
     // Fehlende Hardware wird hochwertig dargestellt, nicht als Platzhalter
     // (Kapitel 18 §101).

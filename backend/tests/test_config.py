@@ -213,13 +213,181 @@ class TestMitgelieferteKonfiguration:
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         entities = {e.id: e for e in build_entities(vehicle)}
 
-        for entity_id in ("climate.cooling.target", "heating.target"):
+        for entity_id in ("climate.cooling.target", "climate.cooling.state"):
             assert entity_id in entities, entity_id
-            assert "set_value" in entities[entity_id].capabilities, entity_id
 
-        for entity_id in ("climate.cooling.state", "heating.state"):
-            assert entity_id in entities, entity_id
-            assert "set_state" in entities[entity_id].capabilities, entity_id
+        # Die Heizung hat eigene Sollwerte an der Anlage — keinen gemeinsamen
+        # mit dem Klima.
+        assert "heating.temperature.target" in entities
+        assert "climate.cooling.target" != "heating.temperature.target"
+
+    def test_heizung_ist_die_scheer_anlage(self):
+        """Die Anlage ist mehr als Ein/Aus und ein Sollwert (Punkt G1).
+
+        Verbaut ist eine SCHEER selection mit HeatMate-Steuerung: zwei
+        Wärmequellen, zwei Heizkreise, Warmwasser, Elektroheizung. Ein
+        einzelner Raumsollwert würde die Anlage falsch darstellen — der Test
+        hält fest, dass die Struktur vorhanden ist.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        ids = {e.id for e in vehicle.entities}
+
+        for entity_id in (
+            "heating.system.state",
+            "heating.system.fault",
+            "heating.burner.state",
+            "heating.temperature.actual",
+            "heating.temperature.target",
+            "heating.radiators.state",
+            "heating.floor.state",
+            "heating.night.state",
+            "heating.water.state",
+            "heating.water.plus",
+            "heating.electric.state",
+            "heating.electric.mode",
+            "heating.supply.mains",
+            "heating.supply.wakeup",
+        ):
+            assert entity_id in ids, entity_id
+
+    def test_zwei_heizkreise_mit_namen(self):
+        """BESTÄTIGT (2026-08-10): zwei Kreise, keine drei.
+
+        Kreis 1 sind die Heizkörper, Kreis 2 ist die Fußbodenheizung. Ein
+        früherer Entwurf führte die Fußbodenheizung als dritten Kreis daneben
+        — das war erfunden und hätte in der Oberfläche einen Kreis gezeigt,
+        den es nicht gibt.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        kreise = sorted(
+            e.id
+            for e in vehicle.entities
+            if e.id.startswith("heating.") and e.id.endswith(".state")
+            if e.id.split(".")[1] in ("radiators", "floor", "circuit1", "circuit2")
+        )
+        assert kreise == ["heating.floor.state", "heating.radiators.state"]
+
+    def test_die_anlage_fuehrt_genau_eine_temperatur(self):
+        """BESTÄTIGT (2026-08-10): ein Ist- und ein Sollwert.
+
+        Kessel und Warmwasser werden nicht getrennt geführt. Zwei
+        Temperaturen anzuzeigen hätte eine Genauigkeit vorgetäuscht, die die
+        Anlage nicht hat.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        temperaturen = sorted(
+            e.id
+            for e in vehicle.entities
+            if e.id.startswith("heating.") and e.unit == "celsius"
+        )
+        assert temperaturen == [
+            "heating.temperature.actual",
+            "heating.temperature.target",
+        ]
+
+    def test_elektroheizung_hat_drei_stufen_in_kilowatt(self):
+        """BESTÄTIGT (2026-08-10): 1 kW, 2 kW, 3 kW.
+
+        Stufe und Leistung sind dasselbe — Stufe 2 *ist* 2 kW. Deshalb ein
+        Eintrag mit der Einheit kW und nicht zwei.
+
+        Der Bereich ist bestätigt, der Schreibzugriff nicht: `unverified`
+        bleibt, und damit entsteht vorerst kein Bedienelement. Bestätigte
+        Grenzen und bestätigter Schreibzugriff sind zwei verschiedene Fragen.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        leistung = next(e for e in vehicle.entities if e.id == "heating.electric.power")
+        assert (leistung.min_value, leistung.max_value, leistung.step) == (1, 3, 1)
+        assert leistung.unit == "kW"
+        assert leistung.unverified
+
+        entity = next(
+            e for e in build_entities(vehicle) if e.id == "heating.electric.power"
+        )
+        assert entity.capabilities == ()
+
+    def test_unbestaetigte_funktion_erzeugt_keinen_befehl(self):
+        """Die wichtigste Zusicherung der Heizungsanbindung.
+
+        Die Modbus-Registerliste der HeatMate liegt nicht vor. Ob sich eine
+        Funktion überhaupt schalten lässt, weiß niemand — also entsteht kein
+        Befehl und damit kein Bedienelement (Kapitel 18 §98/§136).
+
+        Ohne diese Regel wäre die Konfiguration eine Wunschliste, aus der die
+        Oberfläche Schalter baut, hinter denen nichts liegt.
+        """
+        entity = build_entities(
+            VehicleConfig(
+                entities=[
+                    EntityConfig(
+                        id="heating.water.plus",
+                        name_key="w",
+                        type="switch",
+                        unverified=True,
+                    )
+                ]
+            )
+        )[0]
+        assert entity.capabilities == ()
+
+        # Gegenprobe: Ohne das Kennzeichen entsteht der Befehl wie gewohnt.
+        bestaetigt = build_entities(
+            VehicleConfig(
+                entities=[
+                    EntityConfig(id="heating.water.plus", name_key="w", type="switch")
+                ]
+            )
+        )[0]
+        assert bestaetigt.capabilities == ("set_state",)
+
+    def test_heizungsanlage_ist_vollstaendig_unbestaetigt(self):
+        """Solange die Registerliste fehlt, ist keine Funktion bedienbar.
+
+        Der Test prüft die gelieferte Konfiguration und nicht nur den
+        Mechanismus: Ein versehentlich vergessenes `unverified` würde in der
+        Oberfläche einen Schalter erzeugen, der eine Heizungsanlage schaltet.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        heizung = [e for e in vehicle.entities if e.id.startswith("heating.")]
+        assert heizung
+
+        for config in heizung:
+            assert config.unverified, config.id
+            assert not config.configured, config.id
+
+        for entity in build_entities(vehicle):
+            if entity.id.startswith("heating."):
+                assert entity.capabilities == (), entity.id
+
+    def test_zustandsnamen_sind_zeichenketten(self):
+        """YAML liest `ON` und `OFF` als Wahrheitswerte.
+
+        Ohne Anführungszeichen wird aus der Pumpenstellung `true`/`false` —
+        und aus einer Brennerphase ein Wahrheitswert, den niemand übersetzen
+        kann. Der Fehler ist beim Lesen der Datei nicht zu sehen; hier ist er
+        es.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        for config in vehicle.entities:
+            for zustand in config.states:
+                assert isinstance(zustand, str), config.id
+                assert zustand == zustand.upper(), config.id
+
+    def test_status_ist_lesbar_und_nicht_schaltbar(self):
+        """Eine Betriebsphase wird gemeldet, nicht gesetzt.
+
+        Der Brenner meldet `OFF`, `DEMAND`, `HEATING`, `POSTRUN`, `FAULT` —
+        fünf Zustände, die weder in einen Kontakt passen noch von Kehler OS
+        gesetzt werden dürfen. Die Phase entsteht in der HeatMate-Regelung.
+        """
+        entity = build_entities(
+            VehicleConfig(
+                entities=[
+                    EntityConfig(id="heating.burner.state", name_key="b", type="status")
+                ]
+            )
+        )[0]
+        assert entity.capabilities == ()
 
     def test_sollwert_ohne_grenzen_ist_nicht_verstellbar(self):
         """Ohne Obergrenze kein Befehl — und damit kein Bedienelement.

@@ -76,6 +76,9 @@ def _build_entity(config: EntityConfig) -> Entity:
         deadband=config.deadband,
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
+        unverified=config.unverified,
+        kind=config.type,
+        states=tuple(config.states),
         capacity_l=config.capacity_l,
         capacity_ah=config.capacity_ah,
         nominal_voltage=config.nominal_voltage,
@@ -97,7 +100,18 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
     die Durchsetzung des Capability-Prinzips: Die Oberfläche kann nichts
     anbieten, was hier nicht steht.
     """
-    if config.type in ("measurement", "contact"):
+    if config.type in ("measurement", "contact", "status"):
+        return ()
+
+    # Solange nicht bestätigt ist, dass sich eine Funktion über die
+    # Schnittstelle überhaupt schalten lässt, entsteht kein Befehl — und damit
+    # kein Bedienelement. Die Konfiguration darf die Anlage bereits vollständig
+    # beschreiben; ein Schalter in der Oberfläche wäre trotzdem ein
+    # Versprechen, das niemand geprüft hat (Kapitel 18 §98/§136).
+    #
+    # Bei der SCHEER-Heizung ist das der Regelfall: Die Modbus-Registerliste
+    # liegt nicht vor, also ist keine einzige schreibende Funktion bestätigt.
+    if config.unverified:
         return ()
 
     common = {

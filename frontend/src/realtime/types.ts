@@ -50,6 +50,19 @@ export interface EntityDefinition {
   unit: string | null;
   configured: boolean;
 
+  /**
+   * Ob überhaupt bestätigt ist, dass die Funktion über die Schnittstelle
+   * verfügbar ist.
+   *
+   * Nicht dasselbe wie `configured: false`. Dort fehlt die Zuordnung, hier
+   * fehlt die Gewissheit, dass es etwas zuzuordnen gibt — bei der
+   * SCHEER-Heizung liegt die Modbus-Registerliste noch nicht vor. Die
+   * Oberfläche sagt deshalb „noch zu verifizieren" statt „nicht
+   * konfiguriert"; das eine ist eine offene Zuordnung, das andere eine
+   * offene Frage.
+   */
+  unverified: boolean;
+
   /** Tankkapazität in Litern. `null` heißt: keine Literangabe. */
   capacity_l: number | null;
   /** Batteriekapazität und Nennspannung. Beide nötig für den Energieinhalt. */

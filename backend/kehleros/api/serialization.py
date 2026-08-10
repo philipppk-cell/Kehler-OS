@@ -38,6 +38,7 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
         "area": entity.area,
         "unit": entity.unit,
         "configured": entity.configured,
+        "unverified": entity.unverified,
         "capacity_l": entity.capacity_l,
         "capacity_ah": entity.capacity_ah,
         "nominal_voltage": entity.nominal_voltage,
