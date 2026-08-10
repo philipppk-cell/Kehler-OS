@@ -20,7 +20,6 @@ import {
   IconHeating,
   IconLeveling,
   IconSettings,
-  IconUser,
   IconVehicle,
   IconWater,
   IconWifi,
@@ -112,6 +111,7 @@ export function Shell({
 }
 
 function Header() {
+  const { connection } = useAppState();
   const now = new Date();
   return (
     <header className="header">
@@ -130,12 +130,20 @@ function Header() {
         KEHLER <span className="header__brand-os">OS</span>
       </div>
 
+      {/* Hier stand ein Benutzersymbol. Es ist entfallen: Es gibt keine
+          Benutzer (Beschluss W14), und ein Symbol, das ein Konto andeutet,
+          hinter dem keines liegt, ist ein Versprechen.
+
+          Das Netzsymbol blieb — aber es zeigt jetzt den tatsächlichen
+          Verbindungszustand, statt unverändert dazustehen. Ein Symbol, das
+          wie eine Statusanzeige aussieht und keine ist, wäre Dekoration an
+          genau der Stelle, an der Kapitel 7 §5 sie verbietet. */}
       <div className="header__right">
-        <span className="header__net">
+        <span
+          className={`header__net header__net--${connection}`}
+          title={t(`conn.${connection}`, connection)}
+        >
           <IconWifi size={18} />
-        </span>
-        <span className="header__user">
-          <IconUser size={18} />
         </span>
       </div>
     </header>

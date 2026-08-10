@@ -69,10 +69,22 @@ Kapitel 15 §24).
 def _allow_all(
     command: Command, entity: Entity, spec: CommandSpec
 ) -> RejectionReason | None:
-    """Vorgabe bis zur Benutzerverwaltung in M7.
+    """Jeder Befehl ist erlaubt — es gibt keine Benutzer.
 
-    Der Haken existiert bewusst von Anfang an: Kapitel 18 §120 verbietet,
-    erst zu bauen und später abzusichern.
+    Das ist eine Entscheidung des Fahrzeughalters vom 2026-08-10 und keine
+    offene Baustelle (Beschluss W14): Ein Fahrzeug mit einem Besitzer braucht
+    keine Anmeldung, und eine Rollenverwaltung für einen Menschen wäre eine
+    Hürde ohne Schutz.
+
+    **Was daraus folgt, steht ausdrücklich hier**, damit es niemand übersieht:
+    Wer dieses Backend über das Netz erreicht, darf alles, was Kehler OS
+    kann — Tor öffnen, Markise ausfahren, Wechselrichter schalten. Die
+    Absicherung liegt damit vollständig auf der Netztrennung (Punkt I3), so
+    wie sie es für die S7-Kommunikation ohnehin schon tut (ADR 0002).
+
+    Der Haken bleibt bestehen. Er kostet nichts, und Kapitel 18 §120 verbietet,
+    erst zu bauen und später abzusichern: Käme je eine Prüfung dazu, liegt die
+    Stelle dafür fest und die Befehle laufen bereits alle hindurch.
     """
     return None
 

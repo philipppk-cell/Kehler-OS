@@ -325,14 +325,33 @@ Entprellung, Verzögerungen, Cooldown, Schleifenerkennung, Historie, Dry Run.
 > zeitlich begrenzte Übersteuerung, die Komfortregeln respektieren und
 > Sicherheitsregeln übersteuern (W5).
 
-### M7 – Benutzer und Sicherheit · `PLANNED`
+### M7 – Benutzer und Sicherheit · `ENTFALLEN` (2026-08-10)
 
-Authentifizierung, Geräteregistrierung, Rollen und granulare Berechtigungen,
-Sessions mit Widerruf, Audit-Log, Service-Modus, abgesicherte APIs.
+Vorgesehen waren Authentifizierung, Geräteregistrierung, Rollen und granulare
+Berechtigungen, Sessions mit Widerruf, Audit-Log, Service-Modus, abgesicherte
+APIs.
 
-> Grundlegende Sicherheitsgrenzen entstehen bereits in M1 — Kapitel 18 §120
-> verbietet ausdrücklich, erst zu bauen und später abzusichern. M7
-> vervollständigt, es beginnt nicht.
+> **Auf Wunsch des Fahrzeughalters entfallen** (Beschluss W14): keine Benutzer,
+> keine Berechtigungen. Für ein Fahrzeug mit einem Besitzer verwaltet eine
+> Anmeldung nichts und steht im Weg.
+>
+> **Was daraus folgt, ist der wichtigste Satz dieser Roadmap:** Die Absicherung
+> liegt jetzt **vollständig** auf der Netztrennung (Punkt I3). Wer das Backend
+> über das Netz erreicht, darf alles, was Kehler OS kann.
+>
+> Neu ist das nicht — für die S7-Kommunikation galt es schon immer, weil
+> PUT/GET weder Verschlüsselung noch Authentifizierung kennt (ADR 0002). Aber
+> I3 ist damit die einzige tragende Maßnahme und bleibt **blockierend für den
+> Produktivbetrieb**.
+>
+> Der `Authorizer`-Haken im Command Bus bleibt bestehen. Er kostet nichts, und
+> Kapitel 18 §120 verbietet, erst zu bauen und später abzusichern: Käme je eine
+> Prüfung dazu, liegt die Stelle dafür fest.
+>
+> Der **Service-Modus** aus dieser Liste ist damit nicht erledigt, sondern
+> heimatlos. Er ist keine Berechtigungsfrage, sondern eine Betriebsart, in der
+> Automatik und Warnungen bewusst schweigen. Er wird bei Bedarf einzeln
+> aufgegriffen.
 
 ### M8 – Reale SPS-Integration · `PLANNED` · **blockiert durch A1–A3, A5**
 

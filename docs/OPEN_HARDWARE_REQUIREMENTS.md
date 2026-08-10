@@ -545,6 +545,16 @@ Authentifizierung** (ADR 0002). Das war eine bewusste Entscheidung, aber sie
 kam mit einer Bedingung: Die Absicherung liegt vollständig auf der
 Netztrennung (Kapitel 15 §47).
 
+**Seit dem 2026-08-10 gilt das für das gesamte System und nicht nur für die
+SPS.** Der Fahrzeughalter möchte keine Benutzer und keine Berechtigungen
+(Beschluss W14). Damit ist auch die Kehler-OS-API ohne Anmeldung erreichbar:
+Wer im Netz ist, kann das Garagentor öffnen, die Markise ausfahren und den
+Wechselrichter schalten.
+
+Die Sicherheitslage verschiebt sich dadurch nicht — sie war für die SPS
+ohnehin schon so. Aber dieser Punkt ist jetzt die **einzige** tragende
+Maßnahme, und er bleibt blockierend für den Produktivbetrieb.
+
 Diese Trennung gibt es derzeit nicht. In einem flachen Netz hinter einem
 LTE-Router heißt das konkret: Wer im WLAN ist — ein Gast, ein kompromittiertes
 Gerät, ein vergessenes Handy —, kann die SPS ohne Passwort ansprechen. Nicht

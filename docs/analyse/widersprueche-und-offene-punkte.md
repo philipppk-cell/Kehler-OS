@@ -389,6 +389,60 @@ erzwingt keinen Umbau.
 
 **Status:** `ZURÜCKGESTELLT` (2026-08-10) — auf Aussage des Fahrzeughalters.
 
+## W14 – Keine Benutzer und keine Berechtigungen
+
+**Requirement**
+Kapitel 15 beschreibt Benutzer, Rollen und Berechtigungen; Kapitel 6 §12
+vertagt lediglich die endgültige Rollenstruktur. Als Meilenstein M7 geplant.
+
+**Problem**
+Der Fahrzeughalter möchte am 2026-08-10 ausdrücklich **keine Benutzer und
+keine Berechtigungen**.
+
+Das ist für ein Fahrzeug mit einem Besitzer nachvollziehbar: Eine Anmeldung
+schützt gegen Personen, die verschiedene Rechte haben sollen. Gibt es nur
+einen Menschen, verwaltet sie nichts und steht im Weg — im Zweifel nachts,
+barfuß, wenn die Heizung ausgeht.
+
+**Alternative**
+Es gibt keine Anmeldung und keine Rollen. Der Haken im Command Bus
+(`Authorizer`) bleibt bestehen, weil er nichts kostet und Kapitel 18 §120
+verbietet, erst zu bauen und später abzusichern — aber er lässt alles durch,
+und das steht so im Code.
+
+Was **bleibt**, ist die Rückfrage bei riskanten Aktionen (`Risk.HIGH`): Sie
+schützt vor dem versehentlichen Antippen, nicht vor einem Unbefugten. Beides
+zu verwechseln wäre der Fehler; deshalb steht es in der Konfiguration jetzt
+ausdrücklich nebeneinander.
+
+**Reason**
+Eine Rollenverwaltung für einen Menschen ist eine Hürde ohne Schutz. Wichtiger
+ist die Ehrlichkeit über das, was daraus folgt — siehe unten.
+
+**Impact**
+
+* **Das Feld `permission` in der Entity-Konfiguration ist entfallen.** Es wurde
+  von niemandem ausgewertet. Eine Konfiguration, die stillschweigend
+  wirkungslos bleibt, ist schlimmer als keine: Wer sie setzte, glaubte etwas
+  abgesichert zu haben. Da unbekannte Felder verboten sind, scheitert ein
+  solcher Eintrag jetzt laut.
+* **Das Benutzersymbol im Kopfbereich ist entfallen.** Ein Symbol, das ein
+  Konto andeutet, hinter dem keines liegt, ist ein Versprechen. Das
+  Netzsymbol daneben blieb — aber es zeigt jetzt den tatsächlichen
+  Verbindungszustand, statt unverändert dazustehen.
+* **Die Absicherung liegt damit vollständig auf der Netztrennung** (Punkt I3).
+  Das ist die eine Folge, die niemand übersehen darf: Wer das Backend über das
+  Netz erreicht, darf alles, was Kehler OS kann — Tor öffnen, Markise
+  ausfahren, Wechselrichter schalten.
+
+  Neu ist das nicht. Für die S7-Kommunikation gilt es ohnehin schon: PUT/GET
+  kennt weder Verschlüsselung noch Authentifizierung, und ADR 0002 hat das
+  bewusst gegen die Netztrennung getauscht. Die Entscheidung hier verschiebt
+  nichts an der Sicherheitslage — sie macht I3 nur endgültig zur einzigen
+  tragenden Maßnahme.
+
+**Status:** `GEKLÄRT` (2026-08-10) — auf Aussage des Fahrzeughalters.
+
 ## Bewusst von der Spezifikation offen gelassen
 
 Diese Punkte sind keine Widersprüche, sondern ausdrücklich vertagte

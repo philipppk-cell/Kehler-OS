@@ -196,3 +196,20 @@
   .header__right { display: none; }
   .content { padding: var(--space-4); }
 }
+
+/* Das Netzsymbol ist eine Statusanzeige und keine Verzierung: Es folgt dem
+   tatsächlichen Verbindungszustand. Der ausführliche Hinweis steht im Banner
+   über der Seite — hier genügt die Farbe, weil daneben ohnehin Text steht. */
+
+.header__net--online {
+  color: var(--ok);
+}
+
+.header__net--connecting,
+.header__net--reconnecting {
+  color: var(--warn);
+}
+
+.header__net--offline {
+  color: var(--error);
+}

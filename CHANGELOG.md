@@ -195,6 +195,32 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Entfernt — Keine Benutzer und keine Berechtigungen (Beschluss W14)
+
+- Der Fahrzeughalter möchte **keine Benutzer und keine Berechtigungen**. Für
+  ein Fahrzeug mit einem Besitzer verwaltet eine Anmeldung nichts und steht im
+  Weg. M7 entfällt.
+- **Das Feld `permission` in der Entity-Konfiguration ist entfernt.** Es wurde
+  von niemandem ausgewertet — eine Konfiguration, die stillschweigend
+  wirkungslos bleibt, ist schlimmer als keine: Wer sie setzte, glaubte etwas
+  abgesichert zu haben. Da unbekannte Felder verboten sind, scheitert ein
+  solcher Eintrag jetzt laut statt zu schweigen.
+- **Das Benutzersymbol im Kopfbereich ist entfernt.** Ein Symbol, das ein Konto
+  andeutet, hinter dem keines liegt, ist ein Versprechen.
+- **Das Netzsymbol daneben zeigt jetzt den Verbindungszustand**, statt
+  unverändert dazustehen. Ein Symbol, das wie eine Statusanzeige aussieht und
+  keine ist, wäre Dekoration an genau der Stelle, an der Kapitel 7 §5 sie
+  verbietet.
+- Die Rückfrage bei riskanten Aktionen (`Risk.HIGH`) bleibt. Sie schützt vor
+  dem versehentlichen Antippen, nicht vor einem Unbefugten — beides zu
+  verwechseln wäre der Fehler, und das steht jetzt so in der Konfiguration.
+- Der `Authorizer`-Haken im Command Bus bleibt bestehen und lässt alles durch.
+  Das steht ausdrücklich im Code, samt der Folge: **Die Absicherung liegt
+  damit vollständig auf der Netztrennung** (Punkt I3). Wer das Backend über
+  das Netz erreicht, darf alles, was Kehler OS kann. Neu ist das nicht — für
+  die S7-Kommunikation galt es schon immer (ADR 0002) —, aber I3 ist jetzt die
+  einzige tragende Maßnahme.
+
 ### Hinzugefügt — M5b: Messhistorie
 
 - **Verlaufskarte auf Wasser und Energie** mit Auswahl von Messgröße und

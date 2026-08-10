@@ -79,7 +79,16 @@ class EntityConfig(_Strict):
     """
 
     risk: Risk = Risk.LOW
-    permission: str | None = None
+    """Ab ``HIGH`` verlangt die Oberfläche eine bewusste Bestätigung
+    (Kapitel 15 §21). Das ist eine Rückfrage und keine Berechtigung — sie
+    schützt vor dem versehentlichen Antippen, nicht vor einem Unbefugten.
+
+    Ein Feld ``permission`` gab es hier ebenfalls. Es ist entfallen: Es wurde
+    von niemandem ausgewertet, und eine Konfiguration, die stillschweigend
+    wirkungslos bleibt, ist schlimmer als keine. Wer sie setzte, glaubte etwas
+    abgesichert zu haben. Da ``extra="forbid"`` gilt, scheitert ein Eintrag
+    jetzt laut, statt zu schweigen (Beschluss W14).
+    """
 
     configured: bool = True
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die

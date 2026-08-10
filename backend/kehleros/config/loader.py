@@ -117,7 +117,6 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
     common = {
         "timeout_ms": config.timeout_ms,
         "risk": config.risk,
-        "permission": config.permission,
     }
 
     if config.type == "switch":

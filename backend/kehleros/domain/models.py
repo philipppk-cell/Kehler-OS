@@ -196,7 +196,6 @@ class CommandSpec:
     verschiedene physikalische Reaktionszeiten (Kapitel 13 §70)."""
 
     risk: Risk = Risk.LOW
-    permission: str | None = None
     params: tuple[str, ...] = ()
     """Erlaubte Parameternamen. Alles andere wird abgewiesen."""
 
