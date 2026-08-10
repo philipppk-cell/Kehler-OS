@@ -102,6 +102,30 @@ def create_app(application: Application) -> FastAPI:
             "state_version": info.state_version,
         }
 
+    @router.get("/vehicle")
+    async def vehicle() -> dict[str, Any]:
+        """Das Fahrzeug, wie es konfiguriert ist — nicht, wie es gerade steht.
+
+        Kapitel 6 §14 trennt die **Fahrzeugkonfiguration** ausdrücklich von den
+        Benutzereinstellungen: Sie beschreibt das konkrete Fahrzeug — welche
+        Tanks es hat, wie groß sie sind, welche Bereiche es gibt. Diese Angaben
+        stehen in ``config/vehicle/`` und werden beim Start gelesen
+        (Kapitel 17 §48).
+
+        **Nur lesend.** Die Oberfläche zeigt sie an; ändern lassen sie sich
+        über die Konfigurationsdatei. Ein Eingabefeld für die Tankgröße wäre
+        eine Zusage, die dieses System nicht einlöst: Es gibt keine
+        Einstellungspersistenz, und der Zustand wird nach einem Neustart
+        bewusst nicht wiederhergestellt (Kapitel 6 §44).
+        """
+        return {
+            "name": application.vehicle.name,
+            "areas": [
+                {"id": area.id, "name_key": area.name_key}
+                for area in application.vehicle.areas
+            ],
+        }
+
     @router.get("/diagnostics/services")
     async def services() -> dict[str, Any]:
         """Dienststatus für die Diagnoseansicht (Kapitel 16 §55)."""

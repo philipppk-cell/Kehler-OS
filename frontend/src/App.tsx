@@ -7,6 +7,7 @@ import { Klima } from "./pages/Klima";
 import { Heizung } from "./pages/Heizung";
 import { Fahrzeug } from "./pages/Fahrzeug";
 import { Diagnose } from "./pages/Diagnose";
+import { Einstellungen } from "./pages/Einstellungen";
 import { Placeholder } from "./pages/Placeholder";
 import { RealtimeClient, realtimeUrl } from "./realtime/client";
 import { fetchSystem } from "./api/client";
@@ -48,6 +49,8 @@ export function App() {
         <Fahrzeug />
       ) : page === "diagnostics" ? (
         <Diagnose />
+      ) : page === "settings" ? (
+        <Einstellungen />
       ) : (
         <Placeholder title={t(`nav.${page}`)} />
       )}

@@ -1,0 +1,137 @@
+/* Einstellungen. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  width: 100%;
+  /* Schmaler als die Fachseiten: Hier steht Text und keine Messtechnik, und
+     Fließtext über die volle Breite eines 13-Zoll-Bildschirms liest sich
+     schlecht. */
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* Der Geltungsbereich einer Einstellung steht vor ihr, nicht hinter ihr. Wer
+   erst nach dem Umschalten erfährt, dass es nur dieses Gerät betrifft, hat
+   die Auskunft zu spät bekommen. */
+.settings__note {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-caption);
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.settings__hint {
+  margin: 0 0 var(--space-4);
+  padding-left: var(--space-1);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.settings__value {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.settings__pair {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.settings__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-2);
+}
+
+/* ── Hinterlegte Werte ───────────────────────────────────────────────────
+   Eine Liste und keine Tabelle: Die Angaben sind je Entity verschieden —
+   ein Tank hat Liter und Schwellen, die Batterie hat Amperestunden und
+   Nennspannung. Feste Spalten wären zu drei Vierteln leer. */
+
+.confvals {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.confval {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.confval:last-child {
+  border-bottom: none;
+}
+
+.confval__name {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.confval__facts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.confval__fact {
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Was fehlt ───────────────────────────────────────────────────────────
+   Ruhig gesetzt, nicht als Mängelliste. Jede Zeile nennt die Sache und den
+   Grund — eine erklärte Lücke ist etwas anderes als eine vergessene. */
+
+.missing {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.missing__item {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.missing__item:last-child {
+  border-bottom: none;
+}
+
+.missing__what {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.missing__why {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: 1.55;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 760px) {
+  .missing__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+}

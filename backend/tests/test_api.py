@@ -53,6 +53,35 @@ class TestSystem:
         assert "stale-sweep" in payload
 
 
+class TestFahrzeugbeschreibung:
+    """Was das System über das Fahrzeug weiß — und nur das.
+
+    Kapitel 6 §14 trennt die Fahrzeugkonfiguration von den
+    Benutzereinstellungen. Sie ist nur lesbar: Es gibt keinen Endpunkt, der
+    sie ändert, weil es keine Einstellungspersistenz gibt.
+    """
+
+    def test_liefert_bezeichnung_und_bereiche(self, client: TestClient):
+        payload = client.get(f"{API_PREFIX}/vehicle").json()
+
+        assert payload["name"] == "Kehler"
+        bereiche = {area["id"] for area in payload["areas"]}
+        assert {"living", "garage", "tech"} <= bereiche
+        assert all(area["name_key"] for area in payload["areas"])
+
+    def test_ohne_angabe_wird_kein_name_erfunden(self):
+        """Fehlt die Bezeichnung, bleibt sie leer statt „Wohnmobil"
+        (Kapitel 18 §98)."""
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        namenlos = Application(Settings(), vehicle.model_copy(update={"name": None}))
+
+        with TestClient(create_app(namenlos)) as client:
+            assert client.get(f"{API_PREFIX}/vehicle").json()["name"] is None
+
+    def test_ist_nur_lesbar(self, client: TestClient):
+        assert client.post(f"{API_PREFIX}/vehicle", json={}).status_code == 405
+
+
 class TestSimulationswerkzeuge:
     """Die Diagnoseoberfläche fragt ab, was sich auslösen lässt.
 

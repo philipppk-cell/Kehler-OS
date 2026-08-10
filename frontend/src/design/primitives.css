@@ -422,3 +422,25 @@
   font-size: var(--text-label);
   white-space: nowrap;
 }
+
+/* ── Kennzeichnung ───────────────────────────────────────────────────────
+   Ein offener Punkt wird ruhig gekennzeichnet, nicht als Warnung — er ist
+   eine Aufgabe, keine Störung (Kapitel 18 §101).
+
+   Steht im Designsystem und nicht auf einer Seite: Diagnose und
+   Einstellungen kennzeichnen dieselbe Sache, und zwei Kopien derselben Regel
+   sehen genau so lange gleich aus, bis eine davon geändert wird
+   (Kapitel 7 §39/§40).                                                     */
+
+.tag {
+  flex: 0 0 auto;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-label);
+  white-space: nowrap;
+}
+
+.tag--open {
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+}

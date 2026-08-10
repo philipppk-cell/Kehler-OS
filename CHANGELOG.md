@@ -195,6 +195,50 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — M5: Einstellungen
+
+- **Seite „Einstellungen"** — bewusst kurz. Kapitel 6 §13 nennt neun mögliche
+  Einstellungen; genau eine davon hat heute eine echte Wirkung.
+- **Nachtmodus.** Die Farbdämpfung war im Designsystem seit Beginn gebaut
+  (`:root[data-night]`) und hatte nie einen Schalter — ein fertiges Merkmal
+  ohne Zugang. Sie wird vor dem ersten Rendern angewandt, sonst blitzt die
+  helle Darstellung auf, bevor sie greift: nachts im Fahrzeug genau der
+  Moment, den die Einstellung verhindern soll.
+- **Bildschirm wach halten.** Ein fest verbautes Bedienpanel, das nach zwei
+  Minuten schwarz wird, ist kein Bedienpanel. Der Schalter zeigt den Wunsch,
+  die Anzeige daneben den tatsächlichen Zustand — das Betriebssystem kann die
+  Sperre ablehnen oder beim Wegblenden einziehen, und „ein" zu zeigen, während
+  das Display ausgeht, wäre eine Behauptung (Kapitel 18 §37). „Vom Gerät
+  abgelehnt" ist dabei von „nicht aktiv" unterschieden: Wer nach dem Umlegen
+  nur „nicht aktiv" liest, sucht den Fehler bei sich.
+- Die Anzeigeeinstellungen gehören **diesem Gerät** und sagen das auch. Ein
+  Benutzersystem gibt es nicht (M7), eine Einstellungspersistenz im Backend
+  ebenso wenig — „global gespeichert" wäre eine Erfindung, „folgt dir" eine
+  Halbwahrheit. Ein fremder oder älterer Eintrag im lokalen Speicher wird
+  feldweise geprüft, nicht blind übernommen.
+- **Fahrzeugkonfiguration**, nur lesend: Bezeichnung, Bereiche und die
+  hinterlegten Zahlen — Tankkapazitäten, Batteriekapazität und Nennspannung,
+  Sollwertgrenzen, Warn- und Kritischschwellen. Kapitel 6 §14 trennt sie von
+  den Benutzereinstellungen; eine Tankgröße ist keine Vorliebe. Neuer Endpunkt
+  `GET /api/v1/vehicle`, ausschließlich lesend.
+- Zeilen zu noch nicht bestätigten Funktionen tragen ihre Kennzeichnung mit:
+  Bei der Heizung stehen 1 bis 3 kW in der Beschreibung, ohne dass bestätigt
+  wäre, dass sich die Stufen schalten lassen. Ohne den Hinweis läse sich die
+  Zeile wie eine Zusage.
+- **Die sieben fehlenden Einstellungen werden benannt, nicht verschwiegen** —
+  Sprache, Einheiten, Displayhelligkeit, helles Thema, Zeitformat,
+  Benachrichtigungen, Netzwerk, Automatisierungen, Benutzer: jede mit ihrem
+  Grund. Eine erklärte Lücke ist etwas anderes als eine vergessene.
+
+### Behoben — Der Einheitenschlüssel stand im Text
+
+- „16 bis 30 celsius" statt „16 bis 30 °C". Die Zuordnung von
+  Einheitenschlüssel zu lesbarem Zeichen lag privat in `primitives.tsx`; die
+  neue Seite baute sich daraufhin ihre eigene. Sie ist jetzt exportiert, und
+  die Kennzeichnung offener Punkte (`.tag`) ist aus der Diagnoseseite ins
+  Designsystem gewandert — zwei Kopien derselben Regel sehen genau so lange
+  gleich aus, bis eine geändert wird (Kapitel 7 §39/§40).
+
 ### Hinzugefügt — M5: Diagnose
 
 - **Seite „Diagnose"** — die einzige Seite, auf der Kehler OS technische

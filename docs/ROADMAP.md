@@ -214,7 +214,33 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    Zwei Fehler kamen dabei heraus, siehe CHANGELOG: ein gesunder, ruhiger
    Fühler alterte fälschlich zu `STALE` und `UNKNOWN`, und zwei getrennt
    gerechnete Zähler ergaben mehr offene Punkte als es Entities gibt.
-7. **Einstellungen**
+7. **Einstellungen** · `ERREICHT` — bewusst kurz.
+
+   Kapitel 6 §13 nennt neun mögliche Einstellungen. Von diesen hat heute genau
+   eine eine echte Wirkung: der **Nachtmodus**, der als Farbdämpfung im
+   Designsystem längst gebaut war und nur nie einen Schalter hatte. Dazu kommt
+   **Bildschirm wach halten**, das der Browser tatsächlich kann.
+
+   Die übrigen sieben sind nicht gebaut und werden **benannt statt
+   verschwiegen** — jede mit ihrem Grund, in einer eigenen Karte. Eine
+   Sprachauswahl mit einem Eintrag, ein Helligkeitsregler, den der Browser
+   nicht erreicht, ein Netzwerkbereich ohne Netzwerkverwaltung: Jedes davon
+   wäre ein Bedienelement ohne Wirkung.
+
+   Die Anzeigeeinstellungen gehören ausdrücklich **diesem Gerät**. Ein
+   Benutzersystem gibt es nicht (M7) und eine Einstellungspersistenz im
+   Backend ebenso wenig — „global gespeichert" wäre eine Erfindung, „folgt
+   dir" eine Halbwahrheit. Sie liegen im Speicher des Tablets, und die
+   Oberfläche sagt das.
+
+   Die **Fahrzeugkonfiguration** steht darunter, nur lesend: Bereiche,
+   Kapazitäten, Schwellen, Sollwertgrenzen. Kapitel 6 §14 trennt sie von den
+   Benutzereinstellungen, und die Trennung ist keine Förmlichkeit — eine
+   Tankgröße ist keine Vorliebe.
+
+   Nebenbefund, dokumentiert unter I4: „Bildschirm wach halten" gibt es nur
+   über HTTPS. Über einfaches HTTP fehlt die Browser-Schnittstelle
+   vollständig — ein Argument mehr für die ohnehin anstehende Netzarbeit.
 8. **Nivellierung** — bewusst spät, siehe unten
 9. **Kameras** — abhängig von realer Hardware
 

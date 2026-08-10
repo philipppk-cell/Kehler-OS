@@ -424,6 +424,87 @@ const de: Record<string, string> = {
   "sim.fault.SILENT": "Verstummt",
   "sim.fault.BLOCKED": "Blockiert",
 
+  // ── Einstellungen ────────────────────────────────────────────────────
+  "settings.display": "Anzeige",
+  "settings.displayScope":
+    "Diese Einstellungen gelten für dieses Gerät und betreffen nur die Darstellung. Sie erreichen keine Fahrzeugfunktion und gelten nicht für andere Bildschirme.",
+
+  "settings.night": "Nachtmodus",
+  "settings.nightHint":
+    "Dämpft Helligkeit und Leuchten. Kritische Warnungen behalten ihre Farbe und bleiben auch nachts erkennbar.",
+
+  "settings.keepAwake": "Bildschirm wach halten",
+  "settings.keepAwakeHint":
+    "Verhindert, dass der Bildschirm abschaltet, solange Kehler OS sichtbar ist. Das Betriebssystem kann die Sperre jederzeit zurücknehmen — die Anzeige daneben sagt, ob sie gerade steht.",
+  "settings.awake.held": "Aktiv",
+  "settings.awake.idle": "Nicht aktiv",
+  // Abgelehnt ist nicht dasselbe wie aus: Wer nach dem Umlegen nur „nicht
+  // aktiv" liest, sucht den Fehler bei sich.
+  "settings.awake.denied": "Vom Gerät abgelehnt",
+  "settings.awake.unsupported": "Von diesem Browser nicht unterstützt",
+  "settings.awake.insecure":
+    "Nur über eine gesicherte Verbindung verfügbar (HTTPS) — siehe offener Punkt I3",
+
+  "settings.reset": "Anzeigeeinstellungen zurücksetzen",
+
+  "settings.vehicle": "Fahrzeug",
+  "settings.vehicleScope":
+    "Die Fahrzeugbeschreibung wird beim Start aus der Konfiguration gelesen und ist hier nur einsehbar. Sie ist keine Vorliebe, sondern eine Eigenschaft der Anlage — geändert wird sie in der Konfigurationsdatei.",
+  "settings.vehicleName": "Bezeichnung",
+  "settings.areas": "Bereiche",
+  "settings.configuredValues": "Hinterlegte Werte",
+
+  "settings.capacityL": "{value} L",
+  "settings.capacityAh": "{value} Ah",
+  "settings.nominalV": "{value} V nominal",
+  "settings.range": "{min} bis {max} {unit}",
+  "settings.warnBelow": "Warnung unter {value} %",
+  "settings.warnAbove": "Warnung über {value} %",
+  "settings.criticalBelow": "Kritisch unter {value} %",
+  "settings.criticalAbove": "Kritisch über {value} %",
+
+  "settings.missingTitle": "Was hier bewusst fehlt",
+  "settings.missingIntro":
+    "Kapitel 6 nennt eine Reihe möglicher Einstellungen. Die folgenden gibt es nicht — nicht weil sie vergessen wurden, sondern weil ein Bedienelement ohne Wirkung schlimmer ist als keines.",
+
+  "settings.miss.language": "Sprache",
+  "settings.miss.languageWhy":
+    "Die Oberfläche ist vollständig über Schlüssel angebunden, ausgeliefert wird aber nur Deutsch. Eine Auswahl mit einem Eintrag ist keine Auswahl.",
+  "settings.miss.units": "Einheiten",
+  "settings.miss.unitsWhy":
+    "Das System rechnet durchgehend metrisch. Eine zweite Einheitenwelt gibt es nicht, also auch keinen Umschalter dafür.",
+  "settings.miss.brightness": "Displayhelligkeit",
+  "settings.miss.brightnessWhy":
+    "Die Hintergrundbeleuchtung des Tablets ist aus dem Browser nicht erreichbar. Was möglich ist, ist die gedämpfte Darstellung — das ist der Nachtmodus oben.",
+  "settings.miss.theme": "Helles Thema",
+  "settings.miss.themeWhy":
+    "Die dunkle Oberfläche ist der vorgesehene Zustand und keine Option (Kapitel 7 §3). Ein zweites Farbschema müsste jede Farbe auf Kontrast neu belegen.",
+  "settings.miss.time": "Zeitformat",
+  "settings.miss.timeWhy":
+    "Datum und Uhrzeit folgen der deutschen Schreibweise. Ein Umschalter auf ein Format, das hier niemand benutzt, wäre eine Einstellung um ihrer selbst willen.",
+  "settings.miss.notify": "Benachrichtigungen",
+  "settings.miss.notifyWhy":
+    "Es gibt noch keine Zustellung außerhalb der Oberfläche. Warnungen erscheinen im Dashboard und in der Diagnose.",
+  "settings.miss.network": "Netzwerk",
+  "settings.miss.networkWhy":
+    "Adressen und Zugangsdaten stehen in der nicht versionierten Hardwarekonfiguration und werden nicht über die Oberfläche verwaltet (Kapitel 18 §97).",
+  "settings.miss.automation": "Automatisierungen",
+  "settings.miss.automationWhy":
+    "Entsteht als eigener Bereich mit M6 — dort gehört mehr hin als ein Schalter.",
+  "settings.miss.users": "Benutzer und Berechtigungen",
+  "settings.miss.usersWhy":
+    "Entsteht mit M7. Bis dahin gibt es keine Benutzer, also auch keine benutzerbezogenen Einstellungen — die Anzeigeeinstellungen oben gehören deshalb dem Gerät.",
+
+  // Bereiche des Fahrzeugs
+  "area.cab": "Fahrerhaus",
+  "area.living": "Wohnraum",
+  "area.kitchen": "Küche",
+  "area.bedroom": "Schlafbereich",
+  "area.bathroom": "Bad",
+  "area.garage": "Garage",
+  "area.tech": "Technik",
+  "area.exterior": "Außen",
+
   // Platzhalter für noch nicht gebaute Seiten
   "page.comingSoon": "Dieser Bereich entsteht in einem späteren Schritt.",
 };

@@ -594,11 +594,43 @@ neben ihr kein Platz für ein 11,5 m langes Fahrzeug.
 - Der Bildschirm ist nicht dauerhaft an. Das entkoppelt Kehler OS von der
   Anzeige: Der Pi läuft weiter, auch wenn niemand hinsieht.
 
+#### Nachtrag (2026-08-10): „Bildschirm wach halten" braucht HTTPS
+
+Beim Bau der Einstellungsseite kam ein konkreter Grund für TLS dazu, der
+vorher nicht auf der Liste stand.
+
+Die Browser-Schnittstelle, mit der sich das Abschalten des Bildschirms
+verhindern lässt (*Screen Wake Lock*), existiert **nur in einem gesicherten
+Kontext** — also über HTTPS oder auf `localhost`. Wird die Oberfläche vom Pi
+über einfaches `http://` ausgeliefert, ist sie auf dem iPad schlicht nicht
+vorhanden.
+
+Für ein fest verbautes Bedienpanel ist das spürbar: Der Bildschirm geht nach
+der Zeitspanne aus, die iPadOS vorgibt, und lässt sich softwareseitig nicht
+davon abhalten.
+
+Die Oberfläche blendet die Einstellung deshalb nicht kommentarlos aus, sondern
+sagt den Grund — es ist kein Mangel des Tablets, sondern eine Folge der
+Auslieferung. Gelöst wird es zusammen mit I3: Wer ohnehin ein eigenes Segment
+für die SPS aufbaut, kann dem Pi bei der Gelegenheit ein Zertifikat geben.
+
+**Kein zusätzlicher Bedarf an Angaben** — nur ein Argument mehr für den
+Punkt, der ohnehin vor dem Produktivbetrieb ansteht.
+
 ### I5 · Zeitbasis ohne Internet — `OFFEN` · `NICHT BLOCKIEREND`
 
 Besitzt der Pi eine gepufferte Echtzeituhr (RTC-Modul)? Ohne RTC und ohne
 Internet ist nach einem Stromausfall keine korrekte Zeit verfügbar, was die
 Historie beeinträchtigt (Kapitel 16 §85).
+
+**Bereits berücksichtigt (2026-08-10):** Die Diagnoseseite rechnet aus genau
+diesem Grund keine Altersangabe gegen die Uhr des iPads. Sie vergleicht
+ausschließlich Zeitstempel des Fahrzeugrechners untereinander („Rückstand").
+Damit bleibt die Spalte auch dann brauchbar, wenn die beiden Uhren
+auseinandergehen — was ohne RTC nach jedem Stromausfall der Fall wäre.
+
+Für die **Historie** löst das nichts: Dort geht es um absolute Zeit, und die
+braucht eine verlässliche Quelle.
 
 ---
 

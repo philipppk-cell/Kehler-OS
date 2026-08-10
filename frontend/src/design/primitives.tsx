@@ -162,7 +162,14 @@ export function Value({
   );
 }
 
-function formatUnit(unit: string | null): string {
+/**
+ * Der Einheitenschlüssel aus der Konfiguration als lesbares Zeichen.
+ *
+ * Exportiert, weil sonst jede Seite ihre eigene Zuordnung anlegt — und dann
+ * steht an einer Stelle „°C" und an der nächsten „celsius". Genau das ist
+ * passiert, bevor es hier stand.
+ */
+export function formatUnit(unit: string | null): string {
   if (!unit) return "";
   return { percent: "%", celsius: "°C", V: "V", A: "A", W: "W", l: "L" }[unit] ?? unit;
 }

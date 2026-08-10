@@ -342,21 +342,6 @@
   font-size: var(--text-caption);
 }
 
-/* Ein offener Punkt wird ruhig gekennzeichnet, nicht als Warnung — er ist
-   eine Aufgabe, keine Störung (Kapitel 18 §101). */
-.tag {
-  flex: 0 0 auto;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-full);
-  font-size: var(--text-label);
-  white-space: nowrap;
-}
-
-.tag--open {
-  background: var(--surface-2);
-  color: var(--text-tertiary);
-}
-
 /* Auf schmalen Ansichten fallen Kennung und Quelle weg. Beide sind
    Zusatzinformation; Name, Verbindung, Qualität und Wert sind es nicht. */
 @media (max-width: 1100px) {
