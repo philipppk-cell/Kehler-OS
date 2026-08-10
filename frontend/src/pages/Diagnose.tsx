@@ -31,7 +31,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Button, Card, Status, type Tone } from "../design/primitives";
+import { Button, Card, Segmented, Status, type Tone } from "../design/primitives";
 import { useAppState } from "../realtime/hooks";
 import { Link, Quality, type EntityView } from "../realtime/types";
 import {
@@ -132,17 +132,16 @@ export function Diagnose() {
             onChange={(event) => setQuery(event.target.value)}
             aria-label={t("diag.searchHint")}
           />
-          <div className="diag__scopes" role="group" aria-label={t("diag.scope")}>
-            <ScopeButton current={scope} value="all" onPick={setScope}>
-              {t("diag.scopeAll")}
-            </ScopeButton>
-            <ScopeButton current={scope} value="issues" onPick={setScope}>
-              {t("diag.scopeIssues")} ({counts.issues})
-            </ScopeButton>
-            <ScopeButton current={scope} value="open" onPick={setScope}>
-              {t("diag.scopeOpen")} ({counts.open})
-            </ScopeButton>
-          </div>
+          <Segmented
+            label={t("diag.scope")}
+            value={scope}
+            onChange={setScope}
+            options={[
+              { value: "all", label: t("diag.scopeAll") },
+              { value: "issues", label: `${t("diag.scopeIssues")} (${counts.issues})` },
+              { value: "open", label: `${t("diag.scopeOpen")} (${counts.open})` },
+            ]}
+          />
         </div>
 
         <div className="dtable" role="table">
@@ -473,29 +472,6 @@ function Lag({
     >
       {seconds === null ? "—" : duration(seconds)}
     </span>
-  );
-}
-
-function ScopeButton({
-  current,
-  value,
-  onPick,
-  children,
-}: {
-  current: Scope;
-  value: Scope;
-  onPick: (scope: Scope) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      className={`scope${current === value ? " scope--active" : ""}`}
-      aria-pressed={current === value}
-      onClick={() => onPick(value)}
-    >
-      {children}
-    </button>
   );
 }
 

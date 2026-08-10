@@ -284,6 +284,46 @@ export function QuickTile({
   );
 }
 
+/* ── Segmentierte Auswahl ────────────────────────────────────────────────
+   Wenige, gleichrangige Möglichkeiten, von denen genau eine gilt: Filter,
+   Zeiträume, Messgrößen. Ein Aufklappmenü wäre hier falsch — es versteckt
+   die Alternativen hinter einem Klick und braucht im fahrenden Fahrzeug
+   zwei Berührungen statt einer (Kapitel 8 §13).
+
+   Steht im Designsystem, weil Diagnose und Historie dieselbe Bedienung
+   brauchen. Zwei Kopien sähen genau so lange gleich aus, bis eine geändert
+   wird (Kapitel 7 §39/§40).                                                */
+
+export function Segmented<T extends string | number>({
+  options,
+  value,
+  onChange,
+  label,
+}: {
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (next: T) => void;
+  label: string;
+}) {
+  return (
+    <div className="segmented" role="group" aria-label={label}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={`segmented__option${
+            option.value === value ? " segmented__option--active" : ""
+          }`}
+          aria-pressed={option.value === value}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* ── Weitere Bausteine ───────────────────────────────────────────────────  */
 
 export function Row({

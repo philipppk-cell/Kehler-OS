@@ -195,6 +195,56 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — M5b: Messhistorie
+
+- **Verlaufskarte auf Wasser und Energie** mit Auswahl von Messgröße und
+  Zeitraum (6 Stunden bis 30 Tage). Damit ist bei beiden Fachmodulen der
+  jeweils letzte offene Punkt geschlossen.
+- **Aufzeichnung** in einer eigenen SQLite-Datei nach ADR 0004: Rohtabelle
+  plus vorberechnete Rollups für Minute und Stunde. Zeitstempel in UTC —
+  eine lokale Zeit würde beim Zeitzonenwechsel Stunden doppeln oder
+  verschlucken (Kapitel 16 §85).
+- Geschrieben wird nach den drei Bedingungen aus Kapitel 16 §8:
+  Qualitätswechsel, Wertänderung über das Deadband, oder Herzschlagzeit
+  abgelaufen. Der Herzschlag ist der wichtige Teil — ohne ihn ließe sich
+  „der Wert war konstant" nicht von „das System war aus" unterscheiden.
+- **Lücken bleiben Lücken** (Kapitel 16 §97), durchgesetzt an vier Stellen:
+  Ein unbelastbarer Wert kommt als `NULL` in die Datenbank, ein verdichteter
+  Eimer ohne gültige Werte bekommt keine Kennzahl, gelesen wird nichts
+  aufgefüllt, und die Kurve zerfällt in eigenständige Abschnitte statt über
+  das Loch hinwegzuzeichnen.
+- Eine Lücke wird zusätzlich **gezeichnet** und nicht nur ausgelassen: Eine
+  kurze Lücke ist wenige Pixel breit und sähe sonst aus wie ein
+  Darstellungsfehler statt wie eine Aussage.
+- Die Kurve ist von Hand als SVG gebaut. Gebraucht werden eine Linie, eine
+  Achse und die Fähigkeit, Lücken als Lücken zu zeichnen — Letzteres ist
+  genau das, was fertige Diagrammbibliotheken standardmäßig falsch machen.
+  Eine Abhängigkeit mitzunehmen, um ihr Standardverhalten abzuschalten, wäre
+  der schlechtere Handel (Kapitel 18 §4).
+- Die Achse beginnt **nicht** bei null, wenn die Werte es nicht tun: Ein
+  Ladezustand zwischen 58 % und 62 % gegen eine Achse ab 0 % ist eine flache
+  Linie, die nichts zeigt.
+- „Historie nicht verfügbar" ist von „keine Werte in diesem Zeitraum"
+  unterschieden. Das erste ist eine Aussage über die Datenhaltung, das zweite
+  eine über das Fahrzeug.
+
+### Behoben — Speicherzugriffsfehler beim Beenden
+
+- Eine abgebrochene Koroutine bricht keinen Thread ab. Wurde der
+  Historiendienst beim Herunterfahren abgebrochen, während er gerade schrieb,
+  lief der Schreibvorgang weiter — und die unmittelbar danach geschlossene
+  Verbindung ließ SQLite auf freigegebenen Speicher zugreifen. In der
+  Testsuite reproduzierbar als Segfault.
+- Die Datenbank hat jetzt einen eigenen Executor mit genau einem Arbeiter,
+  und beim Schließen wird gewartet, bis nichts mehr läuft. Erst die Arbeit zu
+  Ende, dann die Verbindung zu.
+
+### Geändert — Segmentierte Auswahl im Designsystem
+
+- Diagnose und Historie brauchen dieselbe Bedienung: wenige gleichrangige
+  Möglichkeiten, von denen genau eine gilt. Sie liegt jetzt als `Segmented`
+  im Designsystem statt zweimal in je einer Seite (Kapitel 7 §39/§40).
+
 ### Hinzugefügt — M5: Einstellungen
 
 - **Seite „Einstellungen"** — bewusst kurz. Kapitel 6 §13 nennt neun mögliche

@@ -424,6 +424,26 @@ const de: Record<string, string> = {
   "sim.fault.SILENT": "Verstummt",
   "sim.fault.BLOCKED": "Blockiert",
 
+  // ── Historie ─────────────────────────────────────────────────────────
+  "history.title": "Verlauf",
+  "history.metric": "Messgröße",
+  "history.span": "Zeitraum",
+  "history.span6h": "6 Std",
+  "history.span24h": "24 Std",
+  "history.span7d": "7 Tage",
+  "history.span30d": "30 Tage",
+  "history.loading": "Wird geladen …",
+  "history.empty": "Für diesen Zeitraum liegen keine Werte vor",
+  // Der Unterschied ist wesentlich: „keine Werte" ist eine Aussage über den
+  // Zeitraum, „nicht verfügbar" eine über die Datenhaltung. Eine leere Kurve
+  // für beides zu zeigen, hieße einen Ausfall wie Ruhe aussehen zu lassen.
+  "history.unavailable": "Historie derzeit nicht verfügbar",
+  "history.chartLabel": "Verlauf der ausgewählten Messgröße",
+  "history.pointCount": "{count} Punkte",
+  "history.resolution.raw": "Einzelwerte",
+  "history.resolution.minute": "Minutenmittel",
+  "history.resolution.hour": "Stundenmittel",
+
   // ── Einstellungen ────────────────────────────────────────────────────
   "settings.display": "Anzeige",
   "settings.displayScope":

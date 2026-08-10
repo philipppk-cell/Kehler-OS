@@ -109,7 +109,7 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    sichtbar. Die Tanks sind gleichmäßig geformt, die Literangabe damit exakt.
    Die Punkte C2 und C3 sind geschlossen.
 
-   Offen bleibt nur die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
+   Die Historie ist mit M5b dazugekommen; damit ist Wasser vollständig.
 2. **Energie** · `SIMULATED` — Batterie (Ladezustand, Spannung, Strom,
    Leistung), Energiefluss über Solar, Landstrom, Batterie und Verbrauch,
    Landstromanschluss, Wechselrichter.
@@ -128,7 +128,7 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    kapazität (900 Ah). Die Restlaufzeit ist als Hochrechnung des
    augenblicklichen Verbrauchs gekennzeichnet und entfällt beim Laden.
 
-   Offen bleibt die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
+   Die Historie ist mit M5b dazugekommen; damit ist Energie vollständig.
 3. **Klima** und **Heizung** · `SIMULATED` / `VORBEREITET` — zwei Bereiche,
    weil es zwei Systeme sind.
 
@@ -260,7 +260,7 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 > die reale Integration gilt und sinnvollerweise auch für die
 > Modulreihenfolge.
 
-### M5b – Historie und Zeitreihen · `IN ARBEIT` (2026-08-10)
+### M5b – Historie und Zeitreihen · `SIMULATED` (2026-08-10)
 
 Sie zählt zu M5 und nicht zu einem neuen Thema: Bei **Wasser** und **Energie**
 steht sie jeweils als *einziger* offener Punkt. Erst mit ihr sind die beiden
@@ -288,6 +288,18 @@ Konfiguration: `sample_interval_s`, `raw_days` und die Deadbands je Entity.
 Die Deadbands selbst sind für **reale** Sensorik gewählt (0,5 A, 5 W, 0,2 °C).
 Dass der Simulator sie im Sekundentakt überschreitet, ist eine Eigenschaft des
 Simulators und kein Grund, sie zu ändern.
+
+**Erreicht.** Verlaufskarte auf Wasser und Energie mit Auswahl von Messgröße
+und Zeitraum (6 Stunden bis 30 Tage). Die Kurve ist von Hand als SVG gebaut
+und nicht mit einer Diagrammbibliothek: Gebraucht werden eine Linie, eine
+Achse und die Fähigkeit, Lücken als Lücken zu zeichnen — und Letzteres ist
+genau das, was fertige Bibliotheken standardmäßig falsch machen.
+
+Eine Lücke wird dabei nicht nur ausgelassen, sondern **gezeichnet**: Eine kurze
+Lücke ist wenige Pixel breit und sähe sonst aus wie ein Darstellungsfehler
+statt wie eine Aussage. Gegen einen laufenden Server geprüft mit einem gezielt
+ausgelösten Sensorfehler — die Kurve zerfällt an dieser Stelle sichtbar in
+zwei Abschnitte mit einer gekennzeichneten Lücke dazwischen.
 
 ### M6 – Automatisierungen · `ZURÜCKGESTELLT` (2026-08-10)
 

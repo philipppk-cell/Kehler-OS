@@ -21,6 +21,7 @@ import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useEnergy, type Direction, type EnergySummary, type Reading } from "../energy/useEnergy";
+import { HistoryCard } from "../history/HistoryCard";
 import { t } from "../i18n/de";
 import "./energie.css";
 
@@ -36,6 +37,15 @@ export function Energie() {
       <div className="energie__main">
         <BatteryCard energy={energy} online={online} />
         <FlowCard energy={energy} online={online} />
+
+        <HistoryCard
+          metrics={[
+            { entityId: "energy.battery.soc" },
+            { entityId: "energy.battery.voltage", decimals: 1 },
+            { entityId: "energy.solar.power" },
+            { entityId: "energy.consumption.power" },
+          ]}
+        />
       </div>
 
       <aside className="energie__side">

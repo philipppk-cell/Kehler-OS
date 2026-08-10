@@ -210,36 +210,6 @@
   text-align: right;
 }
 
-.diag__scopes {
-  display: inline-flex;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  border-radius: var(--radius-full);
-  background: var(--surface-sunken);
-}
-
-.scope {
-  min-height: 40px;
-  padding: 0 var(--space-4);
-  border: none;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-sans);
-  font-size: var(--text-caption);
-  cursor: pointer;
-}
-
-.scope--active {
-  background: var(--accent-wash-strong);
-  color: var(--accent-bright);
-}
-
-.scope:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 /* ── Entity-Tabelle ──────────────────────────────────────────────────── */
 
 .dtable {

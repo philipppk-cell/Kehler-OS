@@ -444,3 +444,38 @@
   background: var(--surface-2);
   color: var(--text-tertiary);
 }
+
+/* ── Segmentierte Auswahl ────────────────────────────────────────────────
+   Die Schaltflächen bleiben fingergerecht: 40 px Höhe im 4-px-Rahmen ergibt
+   die 48 px aus Kapitel 7 §31.                                            */
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+}
+
+.segmented__option {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.segmented__option--active {
+  background: var(--accent-wash-strong);
+  color: var(--accent-bright);
+}
+
+.segmented__option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

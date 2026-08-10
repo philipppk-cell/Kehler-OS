@@ -19,6 +19,7 @@ import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
+import { HistoryCard } from "../history/HistoryCard";
 import { t } from "../i18n/de";
 import "./wasser.css";
 
@@ -34,6 +35,18 @@ export function Wasser() {
       <div className="wasser__main">
         <FreshCard fresh={water?.fresh} online={online} />
         <WasteCard tanks={water?.waste} online={online} />
+
+        {/* Der Verlauf steht unter den aktuellen Ständen und nicht daneben:
+            Erst die Frage „wie viel ist drin", dann „wie schnell geht es
+            weg". */}
+        <HistoryCard
+          metrics={[
+            { entityId: "water.tank.fresh.large" },
+            { entityId: "water.tank.fresh.small" },
+            { entityId: "water.tank.grey" },
+            { entityId: "water.tank.black" },
+          ]}
+        />
       </div>
 
       <aside className="wasser__side">
