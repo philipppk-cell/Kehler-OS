@@ -39,8 +39,13 @@ Wake-up-Funktion für den Wechselrichter.
 Sie führt dabei **eine** Temperatur, nicht getrennt nach Kessel und
 Warmwasser, und die Elektroheizung hat **drei Stufen: 1 kW, 2 kW, 3 kW**.
 
-Die HeatMate besitzt laut Hersteller CAN und Modbus. **Die Registerliste liegt
-nicht vor.**
+Die HeatMate besitzt laut Hersteller CAN und Modbus. An der Anlage **gibt es
+einen Modbus-Anschluss** — er ist aber **noch nicht verdrahtet** (bestätigt
+2026-08-10). Die Heizung ist derzeit gar nicht mit der SPS verbunden, weder
+über einen Bus noch über Kontakte.
+
+**Die Registerliste liegt ebenfalls nicht vor.** Die Reihenfolge ist damit
+vorgegeben: erst der Draht, dann die Dokumentation, dann der Adapter.
 
 ## Warum Kehler OS nicht regelt
 
@@ -75,8 +80,12 @@ Der Raspberry Pi könnte Modbus selbst sprechen. Dagegen sprechen drei Punkte:
 Der Preis: Die SPS-Projektierung muss die Modbus-Werte in Datenbausteine
 legen. Das ist Arbeit im TIA-Portal, aber keine Architekturfrage.
 
-> Ob CAN gegenüber Modbus Vorteile hat, ist offen. Die Entscheidung fällt mit
-> der Registerliste — sie ändert nur das erste Glied der Kette, nicht den Rest.
+> Zwischen CAN und Modbus ist entschieden: Es wird **Modbus**, weil die Anlage
+> den Anschluss dafür bereits hat. Offen bleibt RTU gegen TCP — und das ist
+> keine Formalie, sondern die Frage, ob Hardware fehlt: RTU über RS-485
+> braucht eine Kommunikationsbaugruppe in der S7-1500, die auf dem Foto des
+> Schaltschranks nicht zu sehen ist. TCP käme über die vorhandene
+> PROFINET-Schnittstelle.
 
 ## Was „vorbereitet, aber unbestätigt" konkret heißt
 
@@ -154,10 +163,12 @@ Diagnose über eine fremde Anlage (Kapitel 13 §60).
 
 ## Offen
 
+* **Die Verdrahtung selbst** — der Modbus-Anschluss der Anlage ist nicht
+  angeschlossen. Der erste Schritt, und ohne ihn nützt alles Übrige nichts.
+* **Modbus RTU oder TCP?** Entscheidet, ob der S7-1500 eine
+  Kommunikationsbaugruppe fehlt (Punkt A3).
 * Modbus-Registerliste der HeatMate V4.02 (Punkt G1) — **blockierend**
-* Entscheidung CAN gegen Modbus
-* Physikalische Anbindung an die S7-1500 (Modbus-Master-Baugruppe oder
-  CM-Modul) und die Aufteilung der Datenbausteine (Punkt A3)
+* Aufteilung der Datenbausteine in der SPS
 * Welche Funktionen die HeatMate **schreibend** freigibt. Möglicherweise ist
   ein Teil der Anlage dauerhaft nur lesbar — das ist dann kein Mangel,
   sondern die Eigenschaft des Geräts.

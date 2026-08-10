@@ -171,12 +171,14 @@ const de: Record<string, string> = {
   // wäre „Außen" kein Name, sondern eine Richtung.
   "climate.outside_actual": "Außentemperatur",
   "climate.living_actual": "Innentemperatur",
-  "climate.cooling": "Klimaanlage",
+  "climate.cooling": "Klimaanlage LG",
   "climate.cooling_target": "Solltemperatur Klima",
   "climate.noteSeparate":
     "Klima und Heizung sind getrennte Systeme mit eigenen Geräten und eigenen Sollwerten. Was hier eingestellt wird, gilt nicht für die Heizung.",
   "climate.noteDevice":
-    "Der einstellbare Bereich ist vorläufig, solange das verbaute Gerät nicht bekannt ist. Betriebsarten zeigt Kehler OS erst, wenn das Gerät sie meldet — nachgebaut wird keine.",
+    "Verbaut ist eine wandmontierte LG-Anlage. Sie ist noch nicht an die Steuerung angebunden — auf welchem Weg das geschehen soll, ist offen. Bis dahin gibt es hier keine Bedienung, sondern nur die Beschreibung.",
+  "climate.noteRange":
+    "Der einstellbare Bereich ist vorläufig und wird mit der Anbindung geprüft. Betriebsarten zeigt Kehler OS erst, wenn das Gerät sie meldet — nachgebaut wird keine.",
 
   // ── Heizung: SCHEER selection 10/17 kW mit HeatMate V4.02 ────────────────
   "heating.title": "Heizung",

@@ -25,16 +25,15 @@
   grid-area: hero;
   position: relative;
 
-  /* Breite der Statuskarte und der Platz, den sie mit ihrem Rand belegt.
-     Beides steht hier, weil zwei Dinge davon abhängen: die Karte selbst und
-     der Bildausschnitt der 3D-Ansicht, die das Fahrzeug daran vorbeirückt.
+  /* Breite der Statuskarte und der Platz, den sie samt Rand belegt. Beides
+     steht hier, weil zwei Dinge davon abhängen: die Karte selbst und der
+     Bildausschnitt der 3D-Ansicht, die das Fahrzeug daran vorbeirückt.
 
      `--vehicle-shift` ist die Verbindung zwischen CSS und Szene. Vorher
-     entschied die Szene selbst anhand ihrer Leinwandbreite, ob sie
-     verschiebt — und das Umschalten der Karte hing am Viewport. Zwei
-     Schwellen für dieselbe Frage, die sich zwangsläufig widersprachen:
-     Auf dem iPad im Querformat lag die Karte auf dem Fahrzeug, während die
-     Szene sich für zu schmal zum Ausweichen hielt. */
+     entschied die Szene anhand ihrer Leinwandbreite (820 px), ob sie
+     verschiebt, während das Umschalten der Karte am Viewport hing (1200 px).
+     Zwei Schwellen für dieselbe Frage — und genau dazwischen liegt das iPad
+     im Querformat, mit der Karte quer über dem Fahrerhaus. */
   --status-width: 268px;
   --status-space: calc(var(--status-width) + var(--space-5) * 2);
   --vehicle-shift: calc(var(--status-space) / 2);
@@ -191,20 +190,17 @@
 }
 
 /* ── Statuskarte: auf dem Fahrzeug oder darunter ────────────────────────
-   Die Karte liegt nur dann auf dem Fahrzeug, wenn daneben genug Platz
-   bleibt.
+   Die Karte liegt nur dann auf dem Fahrzeug, wenn daneben Platz bleibt.
 
-   Auf dem iPad im Querformat ist die Bühne rund 720 px breit; davon belegt
-   die Karte 288. Was übrig bleibt, reicht für ein 11,5 m langes Fahrzeug
-   nicht — es lag mit dem Fahrerhaus unter der Karte. Das Ausweichen des
-   Modells allein löst das nicht: Man kann ein Fahrzeug nicht so weit nach
-   rechts schieben, dass es neben die Karte passt, ohne es aus dem Bild zu
-   schieben.
+   Auf dem iPad Pro 13" im Querformat ist die Bühne rund 720 px breit; davon
+   belegt die Karte 288. Was übrig bleibt, reicht für ein 11,5 m langes
+   Fahrzeug nicht. Ausweichen allein löst das nicht: Man kann ein Fahrzeug
+   nicht so weit nach rechts schieben, dass es neben die Karte passt, ohne
+   es aus dem Bild zu schieben.
 
-   Die Grenze liegt deshalb höher als der Umbruch des Rasters (1200 px):
-   Das Raster darf auf dem iPad zweispaltig bleiben, die Karte muss trotzdem
-   schon unter das Fahrzeug. Zwei Fragen, zwei Schwellen — diesmal
-   absichtlich und nicht aus Versehen. */
+   Die Grenze liegt deshalb höher als der Umbruch des Rasters (1200 px): Das
+   Raster darf auf dem iPad zweispaltig bleiben, die Karte muss trotzdem
+   schon darunter. Zwei Schwellen — diesmal absichtlich. */
 
 @media (max-width: 1500px) {
   .dash__hero { --vehicle-shift: 0px; }

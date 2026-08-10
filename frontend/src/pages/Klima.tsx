@@ -193,6 +193,14 @@ function TargetBlock({
           stale={stale}
           disabled={!online}
         />
+      ) : definition?.unverified ? (
+        /* Solange die Anbindung nicht entschieden ist, gibt es keinen Wert —
+           und der Grund dafür steht dort, wo sonst die Zahl stünde. „Unbekannt"
+           wäre hier zwar richtig, aber es sagt das Falsche: Nicht der Messwert
+           fehlt, sondern die Verbindung. */
+        <span className="klima__inline klima__inline--unknown">
+          {t("state.unverified")}
+        </span>
       ) : (
         /* Ohne konfigurierte Grenzen bleibt der Wert sichtbar, aber
            unverstellbar. */
@@ -210,16 +218,26 @@ function TargetBlock({
 function PowerRow({ entityId, online }: { entityId: string; online: boolean }) {
   const entity = useEntity(entityId);
   const { pending, connection } = useAppState();
-  const configured = entity?.definition?.configured ?? false;
+  const definition = entity?.definition;
 
-  // Das Gerät benennt sich selbst: „Klimaanlage“ oder „Heizung“ steht in der
-  // Konfiguration, nicht in dieser Datei. Ein bloßes „Ein/Aus“ ließe offen,
-  // was da eingeschaltet wird.
-  const label = entity?.definition?.name_key
-    ? t(entity.definition.name_key)
-    : t("klima.power");
+  // Das Gerät benennt sich selbst: „Klimaanlage“ steht in der Konfiguration,
+  // nicht in dieser Datei. Ein bloßes „Ein/Aus“ ließe offen, was da
+  // eingeschaltet wird.
+  const label = definition?.name_key ? t(definition.name_key) : t("klima.power");
 
-  if (!configured) {
+  // „Noch zu verifizieren“ geht vor „nicht konfiguriert“ — beides trifft zu,
+  // aber nur das erste sagt, woran es liegt. Beim LG-Gerät fehlt nicht die
+  // Zuordnung, sondern die Entscheidung, auf welchem Weg es überhaupt an die
+  // Steuerung kommt (Punkt G1b).
+  if (definition?.unverified) {
+    return (
+      <Row label={label}>
+        <Status tone="unknown" label={t("state.unverified")} compact />
+      </Row>
+    );
+  }
+
+  if (!definition?.configured) {
     return (
       <Row label={label}>
         <Status tone="unknown" label={t("state.notConfigured")} compact />
@@ -253,7 +271,7 @@ export function Klima() {
       targetId="climate.cooling.target"
       stateId="climate.cooling.state"
       extra={[{ id: "climate.outside.temperature", label: t("climate.outside") }]}
-      notes={[t("climate.noteSeparate"), t("climate.noteDevice")]}
+      notes={[t("climate.noteDevice"), t("climate.noteRange"), t("climate.noteSeparate")]}
     />
   );
 }

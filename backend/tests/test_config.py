@@ -340,6 +340,26 @@ class TestMitgelieferteKonfiguration:
         )[0]
         assert bestaetigt.capabilities == ("set_state",)
 
+    def test_klimageraet_ist_unbestaetigt(self):
+        """Die LG-Anlage ist nicht an die Steuerung angebunden.
+
+        BESTÄTIGT (2026-08-10): Auf welchem Weg das geschehen soll, ist noch
+        nicht entschieden. Ein Schalter in der Oberfläche verspräche damit
+        eine Bedienung, deren Weg nicht einmal ausgewählt ist.
+
+        Die beiden Temperaturfühler gehören nicht zum Gerät und bleiben
+        unberührt — sonst verlöre die Seite auch ihren Messwert.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        entities = {e.id: e for e in build_entities(vehicle)}
+
+        for entity_id in ("climate.cooling.state", "climate.cooling.target"):
+            assert entities[entity_id].unverified, entity_id
+            assert entities[entity_id].capabilities == (), entity_id
+
+        for entity_id in ("climate.living.temperature", "climate.outside.temperature"):
+            assert not entities[entity_id].unverified, entity_id
+
     def test_heizungsanlage_ist_vollstaendig_unbestaetigt(self):
         """Solange die Registerliste fehlt, ist keine Funktion bedienbar.
 

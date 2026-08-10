@@ -80,14 +80,12 @@ State Store oder UI davon berührt werden.
 
 **Teilweise beantwortet (2026-08-10, Foto des Schaltschranks):** Der Aufbau
 ist sichtbar — CPU 1511-1 PN (6ES7511-1AL03-0AB0, im Zustand RUN), dazu
-DI 16×24 V HF, DQ 8×24 V/2 A HF und DQ 16×24 V. Die Typenschlüssel stehen in
-`config/hardware/devices.yaml`.
+DI 16x24 V HF, DQ 8x24 V/2 A HF und DQ 16x24 V. Die Typenschlüssel stehen in
+`config/hardware/devices.yaml` (ungetrackt).
 
-> **Auf dem Foto ist keine Kommunikationsbaugruppe zu sehen.** Für Modbus RTU
-> zur Heizung wäre eine nötig (CM PtP); über Modbus TCP ginge es über die
-> PN-Schnittstelle. Sichtbar sind dagegen digitale Ein- und Ausgänge — es ist
-> also möglich, dass die Heizung über potentialfreie Kontakte an der SPS hängt
-> und gar nicht über einen Bus. Das ist zu klären, siehe Punkt G1.
+> **Keine Kommunikationsbaugruppe sichtbar.** Für Modbus RTU zur Heizung wäre
+> eine nötig (CM PtP); über Modbus TCP ginge es über die vorhandene
+> PROFINET-Schnittstelle. Siehe Punkt G1.
 
 Für **jede** Funktion, die real angebunden werden soll, wird benötigt:
 
@@ -145,8 +143,8 @@ Der Cerbo GX bietet lokal zwei dokumentierte Wege:
 Register, die über MQTT nicht sauber verfügbar sind.
 
 **Beantwortet (2026-08-10):** Die IP-Adresse des Cerbo GX ist bekannt und in
-`config/hardware/devices.yaml` hinterlegt (ungetrackt — Adressen gehören nicht
-ins Repository).
+`config/hardware/devices.yaml` hinterlegt — ungetrackt, denn Adressen gehören
+nicht ins Repository.
 
 **Weiterhin offen:**
 - Ist der lokale MQTT-Broker aktiviert? Mit oder ohne TLS/Authentifizierung?
@@ -362,6 +360,15 @@ Anzeigeebene (Details in [ADR 0009](architektur/adr/0009-heizungsanbindung-schee
 **Beantwortet:** Die Anlage besitzt CAN und Modbus. Datenkette:
 SCHEER/HeatMate → Modbus → Siemens S7-1500 → Kehler OS.
 
+**Beantwortet (2026-08-10) — der Stand der Verbindung:** An der SCHEER-Anlage
+**gibt es einen Modbus-Anschluss**, er ist aber **noch nicht verdrahtet**. Die
+Heizung ist derzeit gar nicht mit der SPS verbunden — weder über einen Bus
+noch über Kontakte. Das soll nachgeholt werden.
+
+> Damit ist die Reihenfolge klar: **Erst die Verdrahtung, dann die
+> Registerliste.** Solange kein Draht liegt, ändert die beste Dokumentation
+> nichts — es gibt keinen Weg, über den gelesen werden könnte.
+
 **Beantwortet (2026-08-10), nachgetragen:**
 
 | Angabe | Wert |
@@ -376,36 +383,28 @@ SCHEER/HeatMate → Modbus → Siemens S7-1500 → Kehler OS.
 
 #### Was das Foto der Bedieneinheit zeigt (2026-08-10)
 
-Die HeatMate sitzt im selben Schaltschrank wie die SPS. Auf der Bedieneinheit
-sind zu sehen:
+Die HeatMate sitzt im selben Schaltschrank wie die SPS. Zu sehen sind:
 
 - ein **Display mit einer Temperatur in °C** (im Foto 63 °C) — passt zu der
-  Angabe, dass die Anlage genau eine Temperatur führt
+  Angabe, dass die Anlage genau **eine** Temperatur führt
 - ein **Drehknopf**, über den der Wert verstellt wird
 - eine **Ein/Aus-Taste** mit grüner Leuchte
 - vier **Statusleuchten** in der Kopfzeile
 - fünf **Tasten mit eigener Leuchte** an der rechten Seite, darunter eine mit
-  Mondsymbol (Nachtabsenkung) und eine mit grün leuchtender Anzeige
+  Mondsymbol (Nachtabsenkung)
 
 Was die einzelnen Symbole bedeuten, wird aus dem Foto **nicht** abgeleitet.
 Zuordnung ist Sache der Gerätedokumentation, nicht der Bildbetrachtung.
 
-> **Eine Frage, die das Foto aufwirft und die vieles vereinfachen könnte:**
-> Direkt neben der HeatMate stehen digitale Ein- und Ausgangsbaugruppen der
-> SPS, aber keine sichtbare Kommunikationsbaugruppe. Möglicherweise ist die
-> Heizung über **potentialfreie Kontakte** an die SPS geführt — parallel zu
-> den Tasten der Bedieneinheit — und gar nicht über Modbus.
->
-> Wäre das so, bräuchte es für Ein/Aus, Heizkreise und Nachtabsenkung **keine
-> Registerliste**. Die Anbindung fiele deutlich kleiner aus: schalten über
-> Ausgänge, zurücklesen über Eingänge. Nur die Zahlenwerte (Temperatur,
-> Betriebsstunden) brauchten weiterhin einen Bus.
->
-> Wer den Schaltschrank gebaut hat, weiß das. Die Frage lautet schlicht:
-> **Ist die Heizung mit der SPS verdrahtet — und wenn ja, wie?**
-
 #### Weiterhin offen — **blockierend**
 
+- **Die Verdrahtung selbst.** Der Anschluss existiert, ist aber nicht
+  angeschlossen — der erste Schritt.
+- **Modbus RTU oder TCP?** Am Anschluss der Anlage abzulesen: zwei bzw. drei
+  Adern (RS-485) bedeuten RTU, und dann braucht die S7-1500 eine
+  Kommunikationsbaugruppe, die auf dem Foto nicht zu sehen ist. Eine
+  Netzwerkbuchse bedeutet TCP und käme über die vorhandene
+  PROFINET-Schnittstelle. **Diese Frage entscheidet, ob Hardware fehlt.**
 - **Modbus-Registerliste der HeatMate V4.02.** Welcher Wert liegt unter
   welcher Adresse, in welcher Skalierung, mit welchem Datentyp?
 - **Welche Funktionen sind schreibbar?** Möglicherweise ist ein Teil der
@@ -417,7 +416,6 @@ Zuordnung ist Sache der Gerätedokumentation, nicht der Bildbetrachtung.
   nichts.
 - **Stellbereich der Solltemperatur.** Ohne ihn gibt es keine Verstellung,
   nur die Anzeige.
-- **CAN oder Modbus?** Ändert nur das erste Glied der Kette.
 - **Physikalische Anbindung an die S7-1500** (Modbus-Master-Baugruppe oder
   CM-Modul) und Aufteilung der Datenbausteine — siehe auch Punkt A3.
 - **Zirkulationspumpe:** verbaut und angebunden, oder nicht vorhanden?
@@ -437,44 +435,60 @@ meldet — nachgebaut wird keine Regelung (Kapitel 12 §67, Kapitel 18 §29).
 
 ### G1b · Klimagerät — `TEILWEISE` (2026-08-10) · `NICHT BLOCKIEREND`
 
-**Beantwortet (Screenshot der Hersteller-App):**
+**Beantwortet:** Es ist eine wandmontierte **LG**-Anlage.
 
 | Angabe | Wert |
 | --- | --- |
-| Gerät | wandmontierte Klimaanlage (Split) |
+| Hersteller | **LG** |
 | Modellnummer | `S3-M09JA3FA` |
 | Seriennummer | `202TKYU02330` |
 | Geräte-App | 5116.01 |
 | Modemmodul | `clip_hna_v1.9.237_RT` |
 | Firmware 1 | `SAA38690409.00000409.0` |
 
-Der **Hersteller** geht aus dem Screenshot nicht hervor und wird nicht
-geraten. Er steht üblicherweise auf dem Innengerät oder im Startbildschirm
-der App.
+**Beantwortet:** **Wie das Gerät an die Steuerung kommt, ist noch nicht
+entschieden** — es soll aber geschehen.
 
-#### Die eigentliche Frage: Wie hängt das Gerät an der Steuerung?
+#### Was daraus für Kehler OS folgt
 
-Das Gerät hat ein eigenes WLAN-Modul und wird über eine App bedient. Bestätigt
-ist dagegen (2026-08-10), dass Klima **über die Steuerung** laufen soll. Beides
-zusammen ergibt eine offene Frage, die vor jeder Umsetzung zu klären ist:
+Die Klimaanlage ist **derzeit nicht angebunden**, und der Weg dorthin steht
+nicht fest. Deshalb tragen `climate.cooling.state` und `climate.cooling.target`
+seit dem 2026-08-10 `unverified: true` — dieselbe Behandlung wie die Heizung.
 
-1. **Potentialfreier Kontakt an der SPS** — die SPS schaltet das Gerät ein und
-   aus, mehr nicht. Einfach und robust; Sollwert und Betriebsart blieben bei
-   der App.
-2. **Infrarot** — die SPS oder ein Zusatzgerät sendet die Befehle der
-   Fernbedienung. Funktioniert, ist aber blind: Es gibt keine Rückmeldung,
-   und Kehler OS dürfte den Zustand dann nicht behaupten.
-3. **Über das WLAN-Modul** — die Herstellerwolke oder eine lokale
-   Schnittstelle. Das widerspricht Local First (Kapitel 6 §31), sofern es
-   nicht ohne Internet funktioniert.
-4. **Gar nicht** — die Klimaanlage bleibt bei ihrer App, und Kehler OS zeigt
-   sie nicht an. Auch das ist eine gültige Antwort; dann entfällt der Bereich,
-   wie beim Licht.
+Das ist keine Formalie: Vorher zeigte die Klimaseite einen Schalter und einen
+Sollwertsteller. Beides hätte eine Bedienung versprochen, deren Weg noch nicht
+einmal ausgewählt ist. Jetzt zeigt sie die Anlage und sagt dazu, dass die
+Anbindung aussteht.
 
-**Vorläufig hinterlegt:** Klima 16–30 °C, Schrittweite 0,5 K. Anders als bei
-der Strombegrenzung (Punkt B1) ist ein falscher Bereich hier ungefährlich —
-eine Solltemperatur kann keine Zuleitung überlasten. Er wird korrigiert,
-sobald Hersteller und Anbindungsweg feststehen.
+Die beiden Temperaturfühler bleiben davon unberührt — sie gehören zum
+Fahrzeug, nicht zum Klimagerät (Punkt G2).
+
+#### Die offene Frage: auf welchem Weg?
+
+Vier Möglichkeiten, mit sehr verschiedenen Folgen. Welche zutrifft, ist beim
+Fachbetrieb bzw. bei LG zu klären — geraten wird nichts:
+
+1. **Potentialfreier Kontakt an der SPS** — die Steuerung schaltet ein und
+   aus, mehr nicht. Einfach und robust; Sollwert und Betriebsart blieben am
+   Gerät. Kehler OS zeigte dann nur Ein/Aus, und das wäre ehrlich.
+2. **Kabelgebundene Schnittstelle des Herstellers** — LG bietet für die
+   Gebäudetechnik Module und Gateways an. Ob dieses Modell dafür vorbereitet
+   ist und welches Modul passt, ist **beim Hersteller zu erfragen**; die
+   Modellnummer oben genügt für die Anfrage.
+3. **Infrarot** — die Befehle der Fernbedienung nachbilden. Funktioniert, ist
+   aber blind: Es gibt keine Rückmeldung, und ohne Rückmeldung darf Kehler OS
+   keinen Zustand behaupten (Kapitel 18 §37). Das wäre die schlechteste der
+   vier Varianten.
+4. **Über das WLAN-Modul** — die Anlage hat eines und wird darüber per App
+   bedient. Läuft das über die Herstellerwolke, widerspricht es Local First
+   (Kapitel 6 §31); eine rein lokale Schnittstelle wäre dagegen brauchbar.
+
+**Empfehlung:** Zuerst Weg 2 prüfen — er ist der einzige, der Zustand *und*
+Sollwert liefert, ohne von einer Wolke abzuhängen. Weg 1 als Rückfallebene.
+
+**Vorläufig hinterlegt:** 16–30 °C, Schrittweite 0,5 K. Anders als bei der
+Strombegrenzung ist ein falscher Bereich hier ungefährlich; er wird mit der
+Anbindung geprüft.
 
 Eine **Lüftung** wird nicht angenommen. Ob eine anzubindende existiert, ist
 offen.
@@ -524,7 +538,7 @@ Installationsdokumentation, nicht blockierend.
 Ein Netz, ein Segment, keine Trennung. Subnetz und Adressen stehen in
 `config/hardware/devices.yaml` (ungetrackt).
 
-#### Was daraus folgt — und warum es der wichtigste offene Punkt ist
+#### Was daraus folgt — der wichtigste offene Punkt vor dem Produktivbetrieb
 
 Die S7-Kommunikation über PUT/GET kennt **weder Verschlüsselung noch
 Authentifizierung** (ADR 0002). Das war eine bewusste Entscheidung, aber sie
@@ -536,30 +550,28 @@ LTE-Router heißt das konkret: Wer im WLAN ist — ein Gast, ein kompromittierte
 Gerät, ein vergessenes Handy —, kann die SPS ohne Passwort ansprechen. Nicht
 Kehler OS umgehen, sondern **direkt die Steuerung**.
 
-Das ist kein Grund zur Eile, solange nichts real angesteuert wird. Vor dem
-Produktivbetrieb muss es aber gelöst sein.
+Solange nichts real angesteuert wird, ist das folgenlos. Vor dem
+Produktivbetrieb muss es gelöst sein.
 
 **Zwei gangbare Wege:**
 
-1. **VLAN auf dem Switch** — SPS in ein eigenes Segment, der Pi mit einem Bein
-   in beiden. Setzt einen verwalteten Switch voraus.
+1. **VLAN auf dem Switch** — die SPS in ein eigenes Segment, der Pi mit einem
+   Bein in beiden. Setzt einen verwalteten Switch voraus.
 2. **Zweite Netzwerkschnittstelle am Pi** — die SPS hängt an einem eigenen
-   Kabel direkt am Pi, sonst nichts. Braucht keinen verwalteten Switch und ist
-   die einfachere Lösung; der Pi wird damit zum einzigen Weg zur SPS.
+   Kabel direkt am Pi, sonst nichts. Braucht keinen verwalteten Switch, und
+   die Trennung ist physisch statt konfiguriert.
 
-Der zweite Weg ist im Fahrzeug meist der praktischere: ein Kabel, kein
-Konfigurationsaufwand, und die Trennung ist physisch statt konfiguriert.
+Im Fahrzeug ist der zweite Weg meist der praktischere: ein Kabel, kein
+Konfigurationsaufwand, und der Pi wird zum einzigen Weg zur SPS.
 
-**Offen:** Modell des Routers und des Switches — kann der Switch VLANs? Falls
-nicht, entfällt Weg 1.
+**Offen:** Modelle von Router und Switch — kann der Switch VLANs? Falls nicht,
+entfällt Weg 1.
 
 ### I4 · Hauptdisplay — `GEKLÄRT` (2026-08-10)
 
-**Antwort:** Ein **iPad Pro 13 Zoll**. Damit ist es kein angeschlossenes
-Display, sondern ein eigenes Gerät im Netz — die Oberfläche läuft in Safari
-und nicht als Kiosk auf dem Pi.
-
-**Was daraus folgt:**
+**Antwort:** Ein **iPad Pro 13 Zoll**. Damit ist die Anzeige kein
+angeschlossener Bildschirm, sondern ein eigenes Gerät im Netz — die Oberfläche
+läuft in Safari und nicht als Kiosk auf dem Pi.
 
 | Frage | Antwort |
 | --- | --- |
@@ -577,12 +589,10 @@ neben ihr kein Platz für ein 11,5 m langes Fahrzeug.
 **Offen, aber nicht blockierend:**
 
 - Soll die Oberfläche als Web-App auf dem Startbildschirm liegen (Vollbild
-  ohne Safari-Leiste)? Die dafür nötigen Angaben stehen bereits in
-  `index.html`.
-- Wie kommt das iPad ins Fahrzeugnetz — WLAN des LTE-Routers?
-- Der Bildschirm ist nicht dauerhaft montiert und nicht dauerhaft an. Das
-  entkoppelt Kehler OS von der Anzeige: Der Pi läuft weiter, auch wenn
-  niemand hinsieht.
+  ohne Safari-Leiste)? Die nötigen Angaben stehen bereits in `index.html`.
+- Wie kommt das iPad ins Fahrzeugnetz — über das WLAN des LTE-Routers?
+- Der Bildschirm ist nicht dauerhaft an. Das entkoppelt Kehler OS von der
+  Anzeige: Der Pi läuft weiter, auch wenn niemand hinsieht.
 
 ### I5 · Zeitbasis ohne Internet — `OFFEN` · `NICHT BLOCKIEREND`
 
