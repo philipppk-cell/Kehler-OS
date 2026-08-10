@@ -389,9 +389,7 @@ def _mount_frontend(api: FastAPI) -> None:
         )
         return
 
-    api.mount(
-        "/assets", StaticFiles(directory=static / "assets"), name="assets"
-    )
+    api.mount("/assets", StaticFiles(directory=static / "assets"), name="assets")
 
     @api.get("/", include_in_schema=False)
     async def index() -> FileResponse:
@@ -405,6 +403,10 @@ def _status_for(phase: CommandPhase) -> int:
         CommandPhase.REJECTED: 409,
         CommandPhase.FAILED: 502,
         CommandPhase.TIMEOUT: 504,
+        # Abgelöst ist kein Serverfehler: Der Befehl wurde ordnungsgemäß
+        # verarbeitet und dann von einem Stopp beendet. 409 sagt „nicht im
+        # gewünschten Zustand abgeschlossen", ohne einen Defekt zu behaupten.
+        CommandPhase.SUPERSEDED: 409,
     }.get(phase, 202)
 
 

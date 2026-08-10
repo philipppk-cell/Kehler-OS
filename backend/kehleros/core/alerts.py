@@ -47,14 +47,30 @@ def _threshold_alerts(entity: Entity, value: object) -> list[Alert]:
     value = round(value)
 
     checks = (
-        (entity.critical_below, value < (entity.critical_below or 0), Severity.CRITICAL,
-         "alert.levelCriticalLow"),
-        (entity.critical_above, value > (entity.critical_above or 0), Severity.CRITICAL,
-         "alert.levelCriticalHigh"),
-        (entity.warn_below, value < (entity.warn_below or 0), Severity.WARNING,
-         "alert.levelLow"),
-        (entity.warn_above, value > (entity.warn_above or 0), Severity.WARNING,
-         "alert.levelHigh"),
+        (
+            entity.critical_below,
+            value < (entity.critical_below or 0),
+            Severity.CRITICAL,
+            "alert.levelCriticalLow",
+        ),
+        (
+            entity.critical_above,
+            value > (entity.critical_above or 0),
+            Severity.CRITICAL,
+            "alert.levelCriticalHigh",
+        ),
+        (
+            entity.warn_below,
+            value < (entity.warn_below or 0),
+            Severity.WARNING,
+            "alert.levelLow",
+        ),
+        (
+            entity.warn_above,
+            value > (entity.warn_above or 0),
+            Severity.WARNING,
+            "alert.levelHigh",
+        ),
     )
 
     for threshold, breached, severity, message_key in checks:
@@ -77,6 +93,36 @@ def _threshold_alerts(entity: Entity, value: object) -> list[Alert]:
         ]
 
     return []
+
+
+BLOCKED = "BLOCKED"
+"""Ein bewegliches Teil, das nicht bis zur Endlage gekommen ist.
+
+Der Zustand geht von selbst nicht weg — er bleibt, bis jemand nachsieht.
+Genau deshalb gehört er in die Warnungen und nicht nur auf die Fahrzeugseite:
+Ein Fahrzeug, dessen Stufe klemmt, ist nicht „in Ordnung".
+"""
+
+
+def _motion_alerts(entity: Entity, value: object) -> list[Alert]:
+    """Eine blockierte Mechanik ist eine Warnung, kein bloßer Zustand.
+
+    Sie unterscheidet sich von einem Sensorfehler: Der Wert ist einwandfrei,
+    nur die Sache dahinter klemmt. Ohne diese Warnung stünde im Systemstatus
+    „Alles in Ordnung", während die Stufe halb ausgefahren feststeckt — genau
+    der Widerspruch, den die Zustandsanzeige vermeiden soll (Kapitel 13 §55).
+    """
+    if value != BLOCKED:
+        return []
+    return [
+        Alert(
+            type="motion.blocked",
+            entity_id=entity.id,
+            severity=Severity.WARNING,
+            message_key="alert.motionBlocked",
+            params={"name_key": entity.name_key},
+        )
+    ]
 
 
 def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
@@ -169,6 +215,7 @@ def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
         # bereits die Warnung darüber.
         if quality in _USABLE:
             alerts.extend(_threshold_alerts(entity, entity_state.state.value))
+            alerts.extend(_motion_alerts(entity, entity_state.state.value))
 
     # Wichtigstes zuerst — das Dashboard zeigt oben, was zählt
     # (Kapitel 8 §9).

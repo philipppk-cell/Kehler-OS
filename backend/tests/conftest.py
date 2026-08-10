@@ -5,6 +5,8 @@ from __future__ import annotations
 import pytest
 
 from kehleros.adapters.simulation import SimulationAdapter
+from kehleros.config.loader import build_entities
+from kehleros.config.models import EntityConfig, VehicleConfig
 from kehleros.core.command_bus import CommandBus
 from kehleros.core.event_bus import EventBus
 from kehleros.core.registry import Registry
@@ -50,11 +52,29 @@ SETPOINT = (
     ),
 )
 
-MOVABLE = (
-    CommandSpec(verb="open", expects="OPEN", timeout_ms=500),
-    CommandSpec(verb="close", expects="CLOSED", timeout_ms=500),
-    CommandSpec(verb="stop", expects="STOPPED", timeout_ms=500),
-)
+
+def _specs_for(entity_type: str, **felder) -> tuple[CommandSpec, ...]:
+    """Die echten Befehle eines Typs — aus dem Loader, nicht nachgebaut.
+
+    Nachgebaute Specs waren hier eine stille Fehlerquelle: Sie sahen richtig
+    aus und wichen doch von dem ab, was die Fahrzeugkonfiguration erzeugt.
+    Ein Test, der eine andere Spec prüft als die ausgelieferte, prüft nichts.
+    """
+    config = VehicleConfig(
+        entities=[
+            EntityConfig(
+                id="vehicle.garage.door",
+                name_key="t",
+                type=entity_type,
+                timeout_ms=500,
+                **felder,
+            )
+        ]
+    )
+    return build_entities(config)[0].commands
+
+
+MOVABLE = _specs_for("movable")
 
 
 @pytest.fixture

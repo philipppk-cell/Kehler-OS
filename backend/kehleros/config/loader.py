@@ -131,10 +131,18 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
         )
 
     if config.type == "movable":
+        # Eine Fahrt endet auf drei Arten: am Ziel, angehalten oder blockiert.
+        # Nur die erste ist ein Erfolg — aber alle drei sind eine Antwort, und
+        # keine davon ist ein Timeout.
+        ends = {
+            "superseded_states": ("STOPPED",),
+            "failure_states": ("BLOCKED",),
+        }
         return (
-            CommandSpec(verb="open", expects="OPEN", **common),
-            CommandSpec(verb="close", expects="CLOSED", **common),
-            CommandSpec(verb="stop", expects="STOPPED", **common),
+            CommandSpec(verb="open", expects="OPEN", **common, **ends),
+            CommandSpec(verb="close", expects="CLOSED", **common, **ends),
+            # Der Stopp unterbricht und wird selbst nicht unterbrochen.
+            CommandSpec(verb="stop", expects="STOPPED", preempts=True, **common),
         )
 
     if config.type == "setpoint":

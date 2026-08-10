@@ -148,9 +148,7 @@ class TestFehlerfaelle:
 
 
 class TestSerialisierung:
-    async def test_zweiter_fahrbefehl_wird_abgewiesen(
-        self, bus: CommandBus, simulation
-    ):
+    async def test_zweiter_fahrbefehl_wird_abgewiesen(self, bus: CommandBus, simulation):
         """Solange eine Bewegung läuft, wird nicht überlagert (Kapitel 13 §21)."""
         laufend = asyncio.create_task(submit(bus, "vehicle.garage.door", "open"))
         await asyncio.sleep(0.1)
@@ -162,6 +160,101 @@ class TestSerialisierung:
         laufend.cancel()
         with pytest.raises(asyncio.CancelledError):
             await laufend
+
+
+class TestStopp:
+    """Der Stopp ist der eine Befehl, der immer durchkommen muss."""
+
+    async def test_stopp_wird_nicht_wegen_laufender_bewegung_abgewiesen(
+        self, bus: CommandBus, simulation
+    ):
+        """Sonst sperrt die laufende Bewegung genau ihren eigenen Abbruch.
+
+        Das war der Zustand vor dieser Änderung: Ein fahrendes Garagentor
+        beantwortete den Stopp mit „es läuft bereits ein Befehl".
+        """
+        laufend = asyncio.create_task(submit(bus, "vehicle.garage.door", "open"))
+        await asyncio.sleep(0.1)
+
+        stopp = await submit(bus, "vehicle.garage.door", "stop")
+        assert stopp.rejection is not RejectionReason.BUSY
+        assert stopp.phase is CommandPhase.COMPLETED
+
+        # Und die abgelöste Bewegung endet sofort mit — nicht im Timeout.
+        abgeloest = await asyncio.wait_for(laufend, timeout=1.0)
+        assert abgeloest.phase is CommandPhase.SUPERSEDED
+        assert abgeloest.phase.is_success is False
+
+    async def test_abgeloest_ist_kein_fehler_aber_auch_kein_erfolg(
+        self, bus: CommandBus, simulation
+    ):
+        """Wer ein Tor anhält, hat erreicht, was er wollte.
+
+        Der abgelöste Fahrbefehl hat sein Ziel trotzdem nicht erreicht — beides
+        muss unterscheidbar bleiben (Kapitel 18 §20).
+        """
+        laufend = asyncio.create_task(submit(bus, "vehicle.garage.door", "open"))
+        await asyncio.sleep(0.1)
+        await submit(bus, "vehicle.garage.door", "stop")
+
+        abgeloest = await asyncio.wait_for(laufend, timeout=1.0)
+        assert abgeloest.phase is not CommandPhase.FAILED
+        assert abgeloest.phase is not CommandPhase.TIMEOUT
+        assert abgeloest.phase.is_success is False
+
+    async def test_blockierte_bewegung_meldet_sofort(self, bus: CommandBus, simulation):
+        """Blockiert ist eine Antwort — und zwar eine schnelle.
+
+        Vorher lief der Befehl in den vollen Timeout und meldete „keine
+        Rückmeldung". Die Hardware hatte aber geantwortet.
+        """
+        simulation.inject("vehicle.garage.door", Fault.BLOCKED)
+
+        laufend = asyncio.create_task(submit(bus, "vehicle.garage.door", "open"))
+        # Warten, bis die Bewegung tatsächlich angelaufen ist — der Adapter
+        # meldet den Zwischenzustand mit einer kleinen Verzögerung.
+        await asyncio.sleep(0.15)
+
+        # Ein Zyklus des Adapters — dabei stellt er die Blockade fest. In der
+        # laufenden Anwendung macht das die Schleife des Adapters selbst.
+        await simulation.poll()
+
+        begonnen = asyncio.get_running_loop().time()
+        ergebnis = await asyncio.wait_for(laufend, timeout=1.0)
+        gedauert = asyncio.get_running_loop().time() - begonnen
+
+        assert ergebnis.phase is CommandPhase.FAILED
+        assert ergebnis.phase is not CommandPhase.TIMEOUT
+        # Der Befehl endet mit der Meldung, nicht mit dem Timeout (500 ms).
+        assert gedauert < 0.2, f"erst nach {gedauert:.2f} s gemeldet"
+
+    async def test_ein_zuvor_gestopptes_teil_laesst_sich_wieder_fahren(
+        self, bus: CommandBus, state: StateStore, simulation
+    ):
+        """Der alte Endzustand darf den neuen Befehl nicht sofort beenden.
+
+        `STOPPED` bedeutet „abgelöst" — steht das Teil aber schon vorher auf
+        `STOPPED`, ist das kein Ergebnis des neuen Befehls. Ohne diese
+        Unterscheidung ließe sich ein gestopptes Tor nie wieder bewegen: Der
+        zweite Fahrbefehl endete sofort, weil er den eigenen Ausgangszustand
+        für sein Ergebnis hielte.
+        """
+        laufend = asyncio.create_task(submit(bus, "vehicle.garage.door", "open"))
+        await asyncio.sleep(0.1)
+        await submit(bus, "vehicle.garage.door", "stop")
+        await laufend
+        assert state.require("vehicle.garage.door").state.value == "STOPPED"
+
+        erneut = asyncio.create_task(submit(bus, "vehicle.garage.door", "open"))
+        await asyncio.sleep(0.15)
+
+        # Die Bewegung läuft — der alte `STOPPED`-Stand hat sie nicht beendet.
+        assert not erneut.done()
+        assert state.require("vehicle.garage.door").state.value == "OPENING"
+
+        erneut.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await erneut
 
 
 class TestNachvollziehbarkeit:
@@ -224,9 +317,7 @@ class TestWertebereich:
 
     async def test_wert_unter_der_grenze_wird_abgewiesen(self, bus, registry):
         command = await bus.submit(
-            Command(
-                entity_id="energy.shore.limit", verb="set_value", params={"value": 1}
-            )
+            Command(entity_id="energy.shore.limit", verb="set_value", params={"value": 1})
         )
 
         assert command.phase is CommandPhase.REJECTED

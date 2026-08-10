@@ -98,9 +98,7 @@ class StateStore:
         """
         for entity in self._registry:
             link = (
-                LinkState.INITIALIZING
-                if entity.configured
-                else LinkState.NOT_CONFIGURED
+                LinkState.INITIALIZING if entity.configured else LinkState.NOT_CONFIGURED
             )
             self._states[entity.id] = EntityState(
                 entity_id=entity.id,

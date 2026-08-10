@@ -200,6 +200,31 @@ class CommandSpec:
     params: tuple[str, ...] = ()
     """Erlaubte Parameternamen. Alles andere wird abgewiesen."""
 
+    preempts: bool = False
+    """Ob dieser Befehl einen laufenden unterbrechen darf.
+
+    Genau ein Fall: der **Stopp**. Ihn mit „es läuft bereits ein Befehl"
+    abzuweisen, hieße die Handbremse zu sperren, weil das Fahrzeug fährt
+    (Kapitel 13 §21 meint überlagerte *Fahr*befehle, nicht deren Abbruch).
+    """
+
+    superseded_states: tuple[str, ...] = ()
+    """Zustände, die bedeuten: Ein anderer Befehl hat übernommen.
+
+    Meldet ein Tor `STOPPED`, während `open` noch auf `OPEN` wartet, ist die
+    Bewegung beendet — nur eben anders. Ohne diese Angabe liefe der Befehl
+    bis zum Timeout und meldete „keine Rückmeldung", obwohl die Hardware sehr
+    wohl geantwortet hat.
+    """
+
+    failure_states: tuple[str, ...] = ()
+    """Zustände, die bedeuten: Die Bewegung ist gescheitert.
+
+    Bei `BLOCKED` sofort zu melden ist der eigentliche Gewinn — sonst steht
+    der Benutzer zwanzig Sekunden vor einem klemmenden Garagentor und
+    erfährt dann das Falsche.
+    """
+
     def expected_value(self, command: Command) -> Any:
         """Der konkrete Zielzustand dieses Befehls.
 
@@ -362,6 +387,16 @@ class Command:
     phase: CommandPhase = CommandPhase.REQUESTED
     rejection: RejectionReason | None = None
     detail: str | None = None
+
+    ended_state: str | None = None
+    """Der Zustand, in dem eine Bewegung tatsächlich geendet ist.
+
+    Nur gesetzt, wenn das Ziel **nicht** erreicht wurde — `STOPPED` bei einer
+    Ablösung, `BLOCKED` bei einer Blockade. Damit kann die Oberfläche den
+    Grund nennen, statt auf „Befehl konnte nicht ausgeführt werden"
+    auszuweichen. `detail` bleibt Rohtext für die Diagnose; dieses Feld ist
+    maschinenlesbar (Kapitel 17 §22).
+    """
     """Technische Begründung für Diagnose und Audit — nicht für die
     normale Oberfläche (Kapitel 17 §22)."""
 

@@ -195,6 +195,61 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — M5: Fahrzeug
+
+- **Seite „Fahrzeug"** mit der drehbaren Ansicht, den beweglichen Teilen
+  (Garagentor, Einstiegsstufe, Markise) und der Eingangstür als Sensor.
+- Damit ist das letzte Bedienmuster gebaut. Bisher: Messwert, Schalter,
+  Sollwert, mehrwertiger Zustand. **Bewegliche Teile** sind das fünfte — und
+  das einzige mit Zwischenzuständen: geschlossen, öffnend, offen, schließend,
+  gestoppt, blockiert.
+- Während einer Fahrt sind Öffnen und Schließen gesperrt (der Command Bus
+  weist sie ohnehin ab), der **Stopp** dagegen nie — und er hebt sich ab,
+  solange etwas fährt.
+- Die Bestätigungspflicht steht in der Capability, nicht in der Oberfläche.
+- Der gemeinsame Baustein `useVehicleState` liegt jetzt neben der Darstellung
+  statt im Dashboard. Mit der Fahrzeugseite gibt es zwei Nutzer — und damit
+  wäre eine zweite Auslegung desselben Zustands möglich geworden.
+
+### Behoben — Der Stopp wurde abgewiesen, während etwas fuhr
+
+- Ein laufender Fahrbefehl sperrte die Entity, und der **Stopp** lief in
+  dieselbe Sperre: „Für vehicle.garage.door läuft bereits ein Befehl". Damit
+  verhinderte die Bewegung genau ihren eigenen Abbruch.
+- Die Regel aus Kapitel 13 §21 meint überlagerte *Fahr*befehle. Ein Stopp ist
+  kein zweiter Fahrbefehl, sondern das Ende des ersten. Er trägt jetzt
+  `preempts` und geht sofort durch.
+- Der abgelöste Fahrbefehl endet als **`SUPERSEDED`** — ein neuer Zustand, der
+  ausdrücklich **kein Fehler** ist. Wer ein fahrendes Tor anhält, hat erreicht,
+  was er wollte; eine Fehlermeldung dafür wäre eine Belehrung. Erfolgreich ist
+  der Befehl trotzdem nicht: Das Teil steht auf „Gestoppt", nicht auf „Offen".
+
+### Behoben — Blockierte Mechanik meldete zu spät und das Falsche
+
+- Ein blockiertes Teil lief bis zum vollen Timeout (Garagentor: 20 s, Stufe:
+  12 s) und meldete dann „keine Rückmeldung". Beides war falsch: Die Hardware
+  **hatte** geantwortet, nämlich `BLOCKED`.
+- Eine Bewegung endet auf drei Arten — am Ziel, angehalten oder blockiert. Alle
+  drei sind eine Antwort, und keine davon ist ein Zeitablauf. Der Command Bus
+  unterscheidet sie jetzt über `superseded_states` und `failure_states`.
+- Gemessen: Die Meldung kommt nach rund zwei Sekunden statt nach zwölf, und sie
+  lautet „Die Bewegung wurde blockiert und angehalten" statt „Befehl konnte
+  nicht ausgeführt werden". Der Grund reist als maschinenlesbares
+  `ended_state` mit; `detail` bleibt Rohtext für die Diagnose.
+- **Blockierte Bewegung erzeugt jetzt eine Warnung.** Vorher stand
+  „Alles in Ordnung" im Systemstatus, während eine Stufe feststeckte — derselbe
+  Widerspruch, der zwischen Systemzustand und Warnungen schon einmal behoben
+  wurde.
+- Nebeneffekt: Die Testsuite läuft in 5 statt 15 Sekunden, weil zwei Tests
+  nicht mehr auf echte Timeouts warten.
+
+### Geändert — Testbausteine leiten die Befehle aus dem Loader ab
+
+- Die Befehlsspezifikationen für bewegliche Teile waren im Testaufbau von Hand
+  nachgebaut. Sie sahen richtig aus und wichen doch von dem ab, was die
+  Fahrzeugkonfiguration erzeugt — ein Test, der eine andere Spezifikation
+  prüft als die ausgelieferte, prüft nichts. Sie kommen jetzt aus dem Loader.
+
 ### Hinzugefügt — Reale Geräteangaben eingearbeitet
 
 - **Hauptdisplay ist ein iPad Pro 13 Zoll** (Punkt I4 geklärt). Damit ist die

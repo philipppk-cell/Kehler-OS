@@ -88,7 +88,7 @@ _RANGES: dict[str, tuple[float, float, float, float]] = {
     "percent": (0.0, 100.0, 62.0, 0.04),
     "celsius.inside": (14.0, 28.0, 21.5, 0.004),
     "celsius.outside": (-8.0, 34.0, 12.0, 0.006),
-    "V": (22.0, 29.0, 26.2, 0.002),   # 24-V-System
+    "V": (22.0, 29.0, 26.2, 0.002),  # 24-V-System
     "A": (-120.0, 120.0, -8.0, 0.05),
     # Zehn Module auf dem Dach; die Spitze liegt bei klarem Himmel und guter
     # Ausrichtung in dieser Größenordnung.
@@ -313,9 +313,7 @@ class SimulationAdapter(Adapter):
         else:
             value = device.value
 
-        return StateValue.valid(
-            value, unit=device.entity.unit, source=self.source
-        )
+        return StateValue.valid(value, unit=device.entity.unit, source=self.source)
 
     def _advance_motion(self, device: _Device, elapsed: float) -> str:
         """Bewegt ein Aufbauteil über die Zwischenzustände zum Ziel.
@@ -407,9 +405,7 @@ class SimulationAdapter(Adapter):
         # Zyklus wartet.
         self._state.apply(
             device.entity.id,
-            StateValue.valid(
-                device.value, unit=device.entity.unit, source=self.source
-            ),
+            StateValue.valid(device.value, unit=device.entity.unit, source=self.source),
         )
 
     def _start_motion(self, device: _Device, verb: str) -> None:
@@ -418,9 +414,7 @@ class SimulationAdapter(Adapter):
             device.progress = 0.0
             return
         device.progress = 0.0
-        device.value = (
-            Motion.OPENING.value if verb == "open" else Motion.CLOSING.value
-        )
+        device.value = Motion.OPENING.value if verb == "open" else Motion.CLOSING.value
 
     # ── Fehlerinjektion ─────────────────────────────────────────────────────
 

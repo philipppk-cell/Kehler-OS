@@ -21,10 +21,10 @@ import {
   IconStep,
   IconWarning,
 } from "../design/icons";
-import type { Part } from "../vehicle/VehicleView";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
+import { useVehicleState } from "../vehicle3d/useVehicleState";
 import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
-import { Quality, type EntityView } from "../realtime/types";
+import { Quality } from "../realtime/types";
 import { useWater, type Level, type TankView as WaterTank } from "../water/useWater";
 import { sendCommand } from "../api/client";
 import { t } from "../i18n/de";
@@ -68,42 +68,6 @@ export function Dashboard() {
 }
 
 /* ── Fahrzeug ────────────────────────────────────────────────────────── */
-
-function useVehicleState() {
-  const garage = useEntity("vehicle.garage.door");
-  const door = useEntity("vehicle.door.main");
-  const step = useEntity("vehicle.step.entry");
-  const awning = useEntity("vehicle.awning.main");
-  const { connection } = useAppState();
-
-  // Ohne Verbindung darf die Zeichnung keine Stellung mehr zeigen. Ein
-  // angehobenes Garagentor wäre sonst eine Aussage über das Fahrzeug, die das
-  // System gar nicht mehr belegen kann (Kapitel 18 §37/§106).
-  const live = connection === "online";
-
-  return {
-    garage: toPart(garage, live),
-    door: toPart(door, live),
-    step: toPart(step, live),
-    awning: toPart(awning, live),
-  };
-}
-
-/** Übersetzt einen Hardwarezustand in eine Darstellung — ohne zu raten. */
-function toPart(entity: EntityView | undefined, live: boolean): Part {
-  // Ohne Hardwarezuordnung wird das Teil gar nicht gezeichnet. Ein
-  // gestrichelter Umriss hieße „vorhanden, Lage unbekannt“ — das wäre hier
-  // falsch (Kapitel 18 §101).
-  if (!entity || entity.definition?.configured === false) return "absent";
-
-  const value = textOf(entity);
-  if (!live || isUnknown(entity) || !value) return "unknown";
-  if (value === "OPENING" || value === "CLOSING") return "moving";
-  if (value === "OPEN") return "open";
-  if (value === "CLOSED" || value === "STOPPED") return "closed";
-  if (value === "BLOCKED") return "unknown";
-  return "unknown";
-}
 
 function VehicleStatusCard() {
   const rows: { id: string; icon: JSX.Element; label: string }[] = [

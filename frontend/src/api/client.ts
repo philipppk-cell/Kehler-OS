@@ -47,7 +47,15 @@ export async function sendCommand(
 
     const result = (await response.json()) as CommandResult;
 
-    if (!result.success) {
+    // „Abgelöst" ist kein Fehler. Wer ein fahrendes Tor anhält, hat genau
+    // das erreicht, was er wollte — der abgelöste Fahrbefehl ist nur
+    // nebenbei zu Ende gegangen. Eine Fehlermeldung dafür wäre eine
+    // Belehrung, und sie käme ausgerechnet in dem Moment, in dem jemand
+    // eingegriffen hat.
+    //
+    // Erfolgreich ist der Befehl trotzdem nicht: Der Zustand des Teils zeigt
+    // „Gestoppt" und nicht „Offen".
+    if (!result.success && result.phase !== "SUPERSEDED") {
       store.setError(entityId, explain(result));
     }
     return result;
@@ -70,5 +78,12 @@ function explain(result: CommandResult): string {
     return t(`cmd.rejected.${result.rejection}`, t("cmd.failed"));
   }
   if (result.phase === "TIMEOUT") return t("cmd.timeout");
+
+  // Der Endzustand sagt, woran es lag. „Blockiert" ist eine Auskunft, mit
+  // der jemand etwas anfangen kann; „Befehl konnte nicht ausgeführt werden"
+  // ist keine.
+  if (result.ended_state) {
+    return t(`cmd.ended.${result.ended_state}`, t("cmd.failed"));
+  }
   return t("cmd.failed");
 }

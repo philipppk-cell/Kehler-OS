@@ -156,8 +156,32 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 
    Offen bleibt die Registerliste. Ihr Eintreffen ist eine
    Konfigurationsänderung, kein Umbau.
-4. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen
-5. **Garage**
+4. **Fahrzeug** · `SIMULATED` — Garagentor, Einstiegsstufe, Markise,
+   Eingangstür.
+
+   **Erreicht.** Die Seite behandelt das letzte fehlende Bedienmuster:
+   **bewegliche Teile**. Ein Schalter kennt zwei Zustände, ein bewegliches
+   Teil sechs — vier davon sind keine Endlagen.
+
+   Daraus folgten zwei Korrekturen im Kern, die erst diese Seite sichtbar
+   gemacht hat:
+
+   * **Der Stopp wurde abgewiesen**, solange eine Bewegung lief — mit „es
+     läuft bereits ein Befehl". Genau der Befehl, dessen Zweck der Abbruch
+     ist. Er unterbricht jetzt, statt zu warten.
+   * **Eine blockierte Mechanik lief in den Timeout** und meldete danach
+     „keine Rückmeldung". Die Hardware hatte geantwortet, nur eben `BLOCKED`.
+     Die Meldung kommt jetzt sofort und benennt den Grund.
+
+   Blockierte Bewegung erscheint außerdem in den Warnungen — sonst stünde
+   „Alles in Ordnung" über einer feststeckenden Stufe.
+
+   Bewusst **nicht** enthalten: Fenster und Verriegelungen (keine Entities,
+   also keine Bedienelemente) und eine Gesamtbewertung „abfahrbereit" (W11).
+5. **Garage** — voraussichtlich entfallend: Das Garagentor ist ein
+   bewegliches Aufbauteil und steht vollständig auf der Fahrzeugseite. Ein
+   eigener Reiter mit einem einzigen Bedienelement wäre eine Verdopplung.
+   Bleibt vorerst als Platzhalter stehen, bis der Fahrzeughalter entscheidet.
 6. **Einstellungen**
 7. **Diagnose**
 8. **Nivellierung** — bewusst spät, siehe unten

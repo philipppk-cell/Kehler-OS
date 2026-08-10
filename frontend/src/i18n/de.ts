@@ -54,6 +54,7 @@ const de: Record<string, string> = {
   "alert.sensorFaulty": "Der gemeldete Wert ist nicht verwertbar",
   "alert.sensorStale": "Seit längerem keine Rückmeldung",
   "alert.sensorLost": "Liefert keine Werte mehr",
+  "alert.motionBlocked": "Bewegung blockiert — Endlage nicht erreicht",
   "alert.levelLow": "Nur noch {value} % — Warnschwelle {threshold} %",
   "alert.levelHigh": "Bei {value} % — Warnschwelle {threshold} %",
   "alert.levelCriticalLow": "Kritisch: nur noch {value} % — Grenze {threshold} %",
@@ -276,6 +277,23 @@ const de: Record<string, string> = {
   "heating.noteSource":
     "Welche Wärmequelle arbeitet, wird aus Brennerphase und Elektroheizung zusammen bestimmt. Ist eine von beiden unbekannt, bleibt die Aussage aus — „keine aktiv“ wäre dann eine Behauptung.",
 
+  // Fahrzeugseite
+  "vehicle.title": "Fahrzeug",
+  "vehicle.movingParts": "Bewegliche Teile",
+  "vehicle.sensors": "Sensoren",
+  "vehicle.notesTitle": "Hinweise",
+  "vehicle.open": "Öffnen",
+  "vehicle.close": "Schließen",
+  "vehicle.stop": "Stopp",
+  "vehicle.confirmMove":
+    "{name} wirklich bewegen? Achte darauf, dass niemand und nichts im Weg ist.",
+  "vehicle.noteStop":
+    "Der Stopp wirkt jederzeit — auch mitten in der Bewegung. Er wird nie deshalb gesperrt, weil gerade etwas fährt.",
+  "vehicle.noteMissing":
+    "Fenster und Verriegelungen fehlen hier, weil es dafür keine angebundenen Geber gibt. Was nicht gemeldet wird, erscheint nicht.",
+  "vehicle.noteNoReadiness":
+    "Es gibt bewusst keine Gesamtbewertung „abfahrbereit“. Die Einzelzustände stehen vollständig da; die Ja/Nein-Zusammenfassung wäre eine Bewertung, für die Kehler OS nicht geradestehen kann.",
+
   // Fahrzeug
   "vehicle.garage_door": "Garage",
   "vehicle.step": "Stufen",
@@ -303,6 +321,9 @@ const de: Record<string, string> = {
   "cmd.rejected.BUSY": "Es läuft bereits ein Vorgang",
   "cmd.rejected.NOT_AUTHORIZED": "Dafür fehlt die Berechtigung",
   "cmd.rejected.SAFETY_CONDITION": "Aus Sicherheitsgründen nicht möglich",
+  // Die Bewegung hat geantwortet — nur nicht mit dem Ziel.
+  "cmd.ended.BLOCKED": "Die Bewegung wurde blockiert und angehalten",
+  "cmd.ended.STOPPED": "Die Bewegung wurde gestoppt",
 
   // Platzhalter für noch nicht gebaute Seiten
   "page.comingSoon": "Dieser Bereich entsteht in einem späteren Schritt.",

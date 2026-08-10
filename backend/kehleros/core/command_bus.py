@@ -35,6 +35,9 @@ from .state_store import StateStore
 
 log = logging.getLogger(__name__)
 
+_CONFIRMED = object()
+"""Kennzeichnet die bestätigte Ausführung — abgegrenzt von jedem Zustandsnamen."""
+
 
 class AdapterError(RuntimeError):
     """Der Adapter konnte den Befehl nicht ausführen."""
@@ -119,7 +122,13 @@ class CommandBus:
 
         # Solange eine Bewegung läuft, wird ein zweiter Fahrbefehl abgewiesen
         # statt überlagert (Kapitel 13 §21).
-        if lock.locked():
+        #
+        # **Außer beim Stopp.** Ihn abzuweisen, weil eine Bewegung läuft, kehrt
+        # den Sinn um: Ein Stopp ist kein zweiter Fahrbefehl, sondern das Ende
+        # des ersten. Er nimmt deshalb die Sperre nicht und wartet nicht — er
+        # geht sofort durch, und der laufende Befehl merkt am Zustand, dass er
+        # abgelöst wurde.
+        if lock.locked() and not spec.preempts:
             command.reject(
                 RejectionReason.BUSY,
                 f"Für {command.entity_id} läuft bereits ein Befehl",
@@ -127,8 +136,11 @@ class CommandBus:
             await self._announce(command)
             return command
 
-        async with lock:
+        if spec.preempts:
             await self._dispatch(command, entity, spec, target)
+        else:
+            async with lock:
+                await self._dispatch(command, entity, spec, target)
 
         await self._announce(command)
         return command
@@ -246,11 +258,27 @@ class CommandBus:
 
             command.phase = CommandPhase.ACKNOWLEDGED
 
-            confirmed = await self._await_confirmation(
+            ended = await self._await_confirmation(
                 subscription, entity.id, spec, command, baseline
             )
-            if confirmed:
+            if ended is _CONFIRMED:
                 command.complete()
+            elif ended in spec.superseded_states:
+                command.ended_state = str(ended)
+                # Kein Fehler: Wer ein fahrendes Tor anhält, hat erreicht, was
+                # er wollte. Erfolgreich ist dieser Befehl trotzdem nicht — er
+                # hat sein Ziel nicht erreicht.
+                command.fail(
+                    CommandPhase.SUPERSEDED,
+                    f"Abgelöst — Endzustand '{ended}'",
+                )
+            elif ended in spec.failure_states:
+                command.ended_state = str(ended)
+                # Die Hardware hat geantwortet, nur eben schlecht. Das sofort
+                # zu melden ist der Punkt: Sonst stünde der Benutzer die volle
+                # Timeout-Zeit vor einem klemmenden Tor und erführe danach
+                # „keine Rückmeldung" — die falsche Auskunft.
+                command.fail(CommandPhase.FAILED, f"Endzustand '{ended}'")
             else:
                 # Kein Erfolg vortäuschen: Ohne Bestätigung bleibt offen, was
                 # die Hardware getan hat (Kapitel 18 §20/§37).
@@ -269,15 +297,21 @@ class CommandBus:
         spec: CommandSpec,
         command: Command,
         baseline_seq: int,
-    ) -> bool:
-        """Wartet, bis die Hardware den Zielzustand bestätigt.
+    ) -> object:
+        """Wartet, bis die Hardware antwortet.
 
         Zwischenzustände sind ausdrücklich erlaubt: Ein Garagentor darf über
         ``OPENING`` nach ``OPEN`` laufen. Gewartet wird auf den Zielzustand,
         nicht auf die erste beste Änderung.
+
+        Rückgabe: ``_CONFIRMED`` bei Erfolg, sonst der Zustandsname, in dem
+        die Bewegung tatsächlich geendet ist, oder ``None`` bei Zeitablauf.
+        Diese drei sind verschiedene Dinge und werden nicht zu einem
+        ``False`` zusammengefasst — sonst hieße jedes Ende „keine
+        Rückmeldung".
         """
         if self._satisfies(entity_id, spec, command, baseline_seq):
-            return True
+            return _CONFIRMED
 
         timeout = spec.timeout_ms / 1000
         loop = asyncio.get_running_loop()
@@ -286,15 +320,37 @@ class CommandBus:
         while True:
             remaining = deadline - loop.time()
             if remaining <= 0:
-                return False
+                return None
             try:
                 delta = await asyncio.wait_for(subscription.get(), timeout=remaining)
             except TimeoutError:
-                return False
+                return None
             if delta.entity_id != entity_id:
                 continue
             if self._satisfies(entity_id, spec, command, baseline_seq):
-                return True
+                return _CONFIRMED
+            ended = self._ended_elsewhere(entity_id, spec, baseline_seq)
+            if ended is not None:
+                return ended
+
+    def _ended_elsewhere(
+        self, entity_id: str, spec: CommandSpec, baseline_seq: int
+    ) -> str | None:
+        """Ob die Bewegung in einem anderen Endzustand steht.
+
+        Nur Zustände **nach** dem Ausgangsstand zählen. Sonst schlüge ein
+        `open` sofort fehl, wenn das Tor vorher schon gestoppt war — der alte
+        Zustand ist kein Ergebnis des neuen Befehls.
+        """
+        current = self._state.get(entity_id)
+        if current is None or current.seq <= baseline_seq:
+            return None
+        if current.state.quality is not Quality.VALID:
+            return None
+        value = current.state.value
+        if value in spec.superseded_states or value in spec.failure_states:
+            return str(value)
+        return None
 
     def _satisfies(
         self,
@@ -320,9 +376,7 @@ class CommandBus:
 
     async def _announce(self, command: Command) -> None:
         """Meldet das Ergebnis als Ereignis — Grundlage für Audit und Historie."""
-        severity = (
-            Severity.INFO if command.phase.is_success else Severity.WARNING
-        )
+        severity = Severity.INFO if command.phase.is_success else Severity.WARNING
         await self._events.publish(
             Event(
                 type=f"command.{command.phase.value.lower()}",

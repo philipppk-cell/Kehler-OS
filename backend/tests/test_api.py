@@ -7,6 +7,7 @@ hat (Kapitel 18 §20).
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import pytest
@@ -104,20 +105,35 @@ class TestBefehle:
         assert antwort.status_code == 409
         assert antwort.json()["rejection"] == "NOT_CONFIGURED"
 
-    def test_timeout_ergibt_keinen_erfolgsstatus(
+    def test_blockierte_mechanik_meldet_sofort_und_ohne_erfolg(
         self, client: TestClient, app: Application
     ):
-        """Blockierte Mechanik darf niemals 200 liefern."""
+        """Blockierte Mechanik darf niemals 200 liefern — und nicht warten.
+
+        Früher lief dieser Befehl in den vollen Timeout (12 s) und meldete
+        dann „keine Rückmeldung". Das war doppelt falsch: Die Hardware hatte
+        geantwortet, nur eben `BLOCKED`, und der Benutzer stand zwölf Sekunden
+        vor einer klemmenden Stufe, um danach die falsche Auskunft zu
+        bekommen.
+        """
         simulation = app.adapters[0]
         simulation.inject("vehicle.step.entry", Fault.BLOCKED)
 
+        begonnen = time.monotonic()
         antwort = client.post(
             f"{API_PREFIX}/commands",
             json={"entity_id": "vehicle.step.entry", "verb": "open"},
         )
-        assert antwort.status_code == 504
+        gedauert = time.monotonic() - begonnen
+
+        assert antwort.status_code == 502
         assert antwort.json()["success"] is False
-        assert antwort.json()["phase"] == "TIMEOUT"
+        assert antwort.json()["phase"] == "FAILED"
+
+        # Der Zeitwert ist der eigentliche Gewinn. Die Grenze liegt weit unter
+        # dem Timeout der Entity (12 s) und weit über jeder realistischen
+        # Verarbeitungszeit.
+        assert gedauert < 3.0, f"Meldung erst nach {gedauert:.1f} s"
 
 
 class TestRealtime:

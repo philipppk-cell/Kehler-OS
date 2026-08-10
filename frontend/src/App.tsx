@@ -5,6 +5,7 @@ import { Wasser } from "./pages/Wasser";
 import { Energie } from "./pages/Energie";
 import { Klima } from "./pages/Klima";
 import { Heizung } from "./pages/Heizung";
+import { Fahrzeug } from "./pages/Fahrzeug";
 import { Placeholder } from "./pages/Placeholder";
 import { RealtimeClient, realtimeUrl } from "./realtime/client";
 import { fetchSystem } from "./api/client";
@@ -42,6 +43,8 @@ export function App() {
         <Klima />
       ) : page === "heating" ? (
         <Heizung />
+      ) : page === "vehicle" ? (
+        <Fahrzeug />
       ) : (
         <Placeholder title={t(`nav.${page}`)} />
       )}

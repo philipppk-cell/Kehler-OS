@@ -112,6 +112,8 @@ export interface CommandResult {
   phase: string;
   success: boolean;
   rejection: string | null;
+  /** Zustand, in dem eine Bewegung geendet ist, wenn nicht am Ziel. */
+  ended_state: string | null;
   detail: string | null;
   duration_ms: number | null;
 }

@@ -86,9 +86,7 @@ class TestNichtKonfiguriert:
         """Fehlende Hardwarezuordnung ist ein offener Punkt in der
         Einrichtung, kein Betriebsfehler."""
         alerts = [
-            a
-            for a in derive_alerts(state, registry)
-            if a.type == "system.not_configured"
+            a for a in derive_alerts(state, registry) if a.type == "system.not_configured"
         ]
 
         assert alerts, "Die nicht konfigurierte Markise sollte auftauchen"
@@ -234,3 +232,20 @@ class TestSchwellen:
         level = [a for a in alerts if a.type == "level.threshold"]
         assert len(level) == 1
         assert level[0].params["value"] == "19"
+
+
+class TestBlockierteMechanik:
+    """Ein klemmendes Teil ist eine Warnung, kein bloßer Zustand."""
+
+    def test_blockiert_erzeugt_eine_warnung(self, state, registry):
+        """Sonst stünde „Alles in Ordnung" über einer feststeckenden Stufe."""
+        state.apply("vehicle.garage.door", StateValue.valid("BLOCKED"))
+
+        typen = {a.type for a in derive_alerts(state, registry)}
+        assert "motion.blocked" in typen
+
+    def test_erreichte_endlage_erzeugt_keine(self, state, registry):
+        for lage in ("OPEN", "CLOSED", "STOPPED"):
+            state.apply("vehicle.garage.door", StateValue.valid(lage))
+            typen = {a.type for a in derive_alerts(state, registry)}
+            assert "motion.blocked" not in typen, lage

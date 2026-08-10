@@ -129,6 +129,9 @@ def command_result(command: Command) -> dict[str, Any]:
         "phase": command.phase.value,
         "success": command.phase.is_success,
         "rejection": command.rejection.value if command.rejection else None,
+        # Maschinenlesbarer Grund, warum das Ziel nicht erreicht wurde —
+        # anders als `detail`, das Rohtext für die Diagnose bleibt.
+        "ended_state": command.ended_state,
         "detail": command.detail,
         "duration_ms": command.duration_ms,
     }

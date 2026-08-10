@@ -1,0 +1,107 @@
+/* Fahrzeugseite. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+
+.fahrzeug {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-4);
+  align-items: start;
+
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.fahrzeug__main,
+.fahrzeug__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Die Ansicht bekommt eine feste Höhe statt eines Seitenverhältnisses: Sie
+   soll auf jeder Bildschirmgröße gleich groß bleiben, damit das Fahrzeug
+   nicht auf dem iPad im Hochformat die halbe Seite einnimmt. */
+.fahrzeug__scene {
+  position: relative;
+  height: 380px;
+  margin: calc(var(--space-4) * -1);
+  margin-top: calc(var(--space-2) * -1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ── Ein bewegliches Teil ────────────────────────────────────────────────
+   Symbol, Name, Zustand, Bedienung — in dieser Reihenfolge, weil man erst
+   wissen will, was etwas tut, bevor man es bedient. */
+
+.part {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--touch-min);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.part:last-child {
+  border-bottom: none;
+}
+
+.part__icon {
+  display: inline-flex;
+  color: var(--text-tertiary);
+}
+
+.part__name {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+/* Feste Breite, damit die Schaltflächen nicht wandern, wenn aus
+   „Geschlossen" ein „Öffnet" wird. */
+.part__state {
+  display: inline-flex;
+  justify-content: flex-end;
+  min-width: 13ch;
+}
+
+.part__controls {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.fahrzeug__notes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1500px) {
+  .fahrzeug {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Auf schmalen Anzeigen rutschen die Schaltflächen unter den Namen — sonst
+   werden sie schmaler als ein Finger (Kapitel 7 §13). */
+@media (max-width: 720px) {
+  .part {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .part__controls {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .fahrzeug__scene {
+    height: 240px;
+  }
+}

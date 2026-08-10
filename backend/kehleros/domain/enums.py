@@ -88,6 +88,15 @@ class CommandPhase(StrEnum):
     TIMEOUT = "TIMEOUT"
     REJECTED = "REJECTED"
 
+    SUPERSEDED = "SUPERSEDED"
+    """Ein anderer Befehl hat übernommen — typisch: Stopp während der Fahrt.
+
+    Bewusst **kein** Fehler. Wer ein fahrendes Tor anhält, hat genau das
+    erreicht, was er wollte; eine Fehlermeldung dafür wäre eine Belehrung.
+    Erfolgreich ist der abgelöste Befehl trotzdem nicht — er hat sein Ziel
+    nicht erreicht, und das bleibt sichtbar (Kapitel 18 §20).
+    """
+
     @property
     def is_final(self) -> bool:
         return self in _FINAL_PHASES
