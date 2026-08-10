@@ -21,6 +21,35 @@ Ergebnis: `tools/demo/kehler-os-demo.html` — **diese Datei ist versioniert**
 und liegt fertig im Repository. Man braucht die Schritte oben nur, um sie zu
 erneuern.
 
+## Zum Weiterleiten: der PDF-Rundgang
+
+```bash
+node tools/demo/rundgang.mjs
+```
+
+Ergebnis: `tools/demo/kehler-os-rundgang.pdf` — ebenfalls versioniert.
+
+Er beantwortet eine andere Frage als die Demo: **„Wie sieht das aus?"** statt
+„Wie fühlt sich das an?". Dafür gibt es ihn:
+
+Zum Weiterleiten taugt eine 1,6-MB-HTML-Datei schlecht. Der Empfänger muss sie
+herunterladen und öffnen, und manche Messenger und Mailprogramme führen die
+enthaltenen Skripte nicht aus — dann sieht er eine leere Seite. Ein PDF öffnet
+sich überall, ohne Rückfrage und ohne Download-Ordner.
+
+Die Bilder entstehen aus **derselben Datei**, die auch ausgeliefert wird. Es
+sind Aufnahmen der laufenden Oberfläche und keine nachgestellten Entwürfe.
+
+Zur Sichtprüfung des Umbruchs:
+
+```bash
+RUNDGANG_PRUEFEN=/tmp/pruefung node tools/demo/rundgang.mjs
+```
+
+Ein fertiges PDF lässt sich im Prüfbrowser nicht anzeigen — Chromium lädt es
+herunter, statt es zu zeichnen. Geprüft wird deshalb die Vorlage, aus der es
+entsteht: derselbe Inhalt, dasselbe Blattmaß.
+
 ## Eine Datei für alle Geräte
 
 Es gab zwischenzeitlich zwei, eine je Gerät. Ihr einziger Unterschied war die
