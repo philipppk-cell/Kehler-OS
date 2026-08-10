@@ -175,6 +175,11 @@ class CommandBus:
             )
             return None
 
+        invalid = _check_value(command, entity, spec)
+        if invalid is not None:
+            command.reject(RejectionReason.INVALID_PARAMS, invalid)
+            return None
+
         denial = self._authorize(command, entity, spec)
         if denial is not None:
             command.reject(denial, "Berechtigungsprüfung fehlgeschlagen")
@@ -347,3 +352,41 @@ _UNREACHABLE = frozenset(
         LinkState.NOT_CONFIGURED,
     }
 )
+
+
+def _check_value(command: Command, entity: Entity, spec: CommandSpec) -> str | None:
+    """Prüft den Zielwert eines Befehls gegen die Grenzen der Entity.
+
+    **Das ist die eigentliche Schutzfunktion bei einstellbaren Werten** — nicht
+    ein Bestätigungsdialog in der Oberfläche. Ein Client, der die Oberfläche
+    umgeht, muss hier scheitern (Kapitel 15 §42: ein ausgeblendeter Knopf ist
+    keine Zugriffskontrolle).
+
+    Konkret verhindert das, dass jemand die Eingangsstrombegrenzung über die
+    Absicherung des Landstromanschlusses hinaus stellt.
+
+    Zurückgegeben wird die Begründung oder ``None``, wenn alles stimmt.
+    """
+    if spec.expects_param is None:
+        return None
+
+    if spec.expects_param not in command.params:
+        # Ein Befehl, der seinen Zielwert nicht mitbringt, hat keinen —
+        # er würde ins Leere laufen und im Timeout enden.
+        return f"Parameter '{spec.expects_param}' fehlt"
+
+    value = command.params[spec.expects_param]
+
+    if entity.min_value is None and entity.max_value is None:
+        return None
+
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return f"'{spec.expects_param}' muss ein Zahlenwert sein"
+
+    if entity.min_value is not None and value < entity.min_value:
+        return f"{value} liegt unter dem Mindestwert {entity.min_value}"
+
+    if entity.max_value is not None and value > entity.max_value:
+        return f"{value} liegt über dem Höchstwert {entity.max_value}"
+
+    return None

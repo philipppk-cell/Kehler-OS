@@ -141,6 +141,29 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   eigenen Wertebereich. Vorher trafen 640 W Solar auf 640 W Verbrauch, und
   ein Darstellungsfehler wäre in dieser Unordnung nicht aufgefallen.
 
+### Hinzugefügt — Batteriekapazität und Landstromabsicherung
+
+- **900 Ah bei 24 V nominal** ergeben 21,6 kWh Energieinhalt. Die Energieseite
+  zeigt jetzt den verbleibenden Inhalt in Kilowattstunden und eine
+  **Restlaufzeit**.
+- Die Restlaufzeit ist ausdrücklich als Hochrechnung des augenblicklichen
+  Verbrauchs gekennzeichnet und gibt es nur beim **Entladen** — beim Laden
+  liefe nichts ab, und eine sehr große Zahl sähe dort aus wie eine
+  Zusicherung. Über 48 Stunden wird nur noch „mehr als" angezeigt: Eine
+  Hochrechnung auf 212 Stunden spiegelt eine Genauigkeit vor, die sie nicht
+  hat.
+- **16 A Absicherung** macht die Eingangsstrombegrenzung bedienbar, über
+  einen Stepper mit fingergerechten Flächen statt eines Schiebereglers.
+- **Der Command Bus prüft jetzt Wertebereiche.** Das ist die eigentliche
+  Schutzfunktion — nicht ein Dialog in der Oberfläche: Ein Client, der die
+  Oberfläche umgeht, wird ebenso abgewiesen. Ebenfalls neu geprüft: ein
+  Befehl, der seinen Zielwert gar nicht mitbringt (er wäre sonst in einen
+  Timeout gelaufen).
+- Das Risiko der Strombegrenzung ist von `HIGH` auf `MEDIUM` gesetzt. Innerhalb
+  von 3–16 A kann kein Wert die Zuleitung überlasten, weil die Obergrenze die
+  Absicherung *ist*. Eine Bestätigung bei jedem Schritt wäre Reibung ohne
+  Schutzwirkung.
+
 ### Hinzugefügt — Warnschwellen in zwei Stufen
 
 - **Schwellen sind konfiguriert und wirken** (Punkt C3 geklärt):

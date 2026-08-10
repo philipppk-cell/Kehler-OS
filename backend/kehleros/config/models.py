@@ -86,6 +86,15 @@ class EntityConfig(_Strict):
     siehe ``EntityType``.
     """
 
+    capacity_ah: float | None = Field(default=None, gt=0)
+    nominal_voltage: float | None = Field(default=None, gt=0)
+    """Nur für die Batterie. Aus beidem folgt der Energieinhalt.
+
+    Die Nennspannung steht bewusst in der Konfiguration und nicht im Code:
+    Ob ein „24-V-System" nominal mit 24,0 oder 25,6 V rechnet, ist eine
+    Eigenschaft der Anlage.
+    """
+
     capacity_l: float | None = Field(default=None, gt=0)
     """Nur für Tanks. Ohne Angabe zeigt die Oberfläche keine Literwerte —
     eine Kapazität wird nicht geraten (Kapitel 18 §98)."""

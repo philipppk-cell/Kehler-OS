@@ -77,6 +77,8 @@ def _build_entity(config: EntityConfig) -> Entity:
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
         capacity_l=config.capacity_l,
+        capacity_ah=config.capacity_ah,
+        nominal_voltage=config.nominal_voltage,
         min_value=config.min_value,
         max_value=config.max_value,
         step=config.step,

@@ -50,6 +50,15 @@ aber über dem Rauschen.
 
 Direction = Literal["charging", "discharging", "idle"]
 
+RUNTIME_CAP_H = 48.0
+"""Ab dieser Restlaufzeit wird nur noch „mehr als …" angezeigt.
+
+Die Restlaufzeit ist eine Hochrechnung des **augenblicklichen** Verbrauchs.
+Bei geringer Last ergibt sie rechnerisch Hunderte von Stunden — eine Zahl,
+die eine Genauigkeit vorspiegelt, die die Hochrechnung nicht hat. Zwei Tage
+sind die Grenze, ab der die Aussage ohnehin nur noch „reichlich" lautet.
+"""
+
 
 @dataclass(frozen=True, slots=True)
 class Reading:
@@ -79,6 +88,27 @@ class EnergySummary:
     direction: Direction | None
     """Richtung des Batterieflusses. ``None``, wenn sie nicht belegbar ist."""
 
+    capacity_wh: float | None
+    """Energieinhalt der vollen Batterie. ``None`` ohne konfigurierte
+    Kapazität und Nennspannung — beide werden nicht geraten."""
+
+    remaining_wh: float | None
+    """Verbleibender Energieinhalt beim aktuellen Ladezustand."""
+
+    runtime_h: float | None
+    """Hochrechnung beim augenblicklichen Entladestrom.
+
+    ``None`` in drei Fällen, die alle dasselbe bedeuten — es gibt keine
+    belastbare Aussage:
+
+    * die Batterie lädt oder ruht (dann läuft nichts ab),
+    * Kapazität oder Ladezustand fehlen,
+    * die Entladeleistung ist nicht bekannt.
+    """
+
+    runtime_capped: bool
+    """Ob die Hochrechnung über der Anzeigegrenze liegt."""
+
 
 def summarise(
     states: Mapping[str, EntityState],
@@ -97,9 +127,22 @@ def summarise(
         return Reading(number, state.state.quality)
 
     battery_power = read(BATTERY_POWER)
+    soc = read(BATTERY_SOC)
+
+    battery = by_id.get(BATTERY_SOC)
+    capacity_wh = None
+    if battery is not None and battery.capacity_ah and battery.nominal_voltage:
+        capacity_wh = battery.capacity_ah * battery.nominal_voltage
+
+    remaining_wh = None
+    if capacity_wh is not None and soc.usable:
+        remaining_wh = capacity_wh * max(0.0, min(100.0, soc.value)) / 100.0
+
+    runtime_h = _runtime(remaining_wh, battery_power)
+    capped = runtime_h is not None and runtime_h > RUNTIME_CAP_H
 
     return EnergySummary(
-        soc=read(BATTERY_SOC),
+        soc=soc,
         voltage=read(BATTERY_VOLTAGE),
         current=read(BATTERY_CURRENT),
         battery_power=battery_power,
@@ -108,7 +151,29 @@ def summarise(
         shore_power=read(SHORE_POWER),
         shore_connected=_contact(states.get(SHORE_CONNECTED)),
         direction=_direction(battery_power),
+        capacity_wh=capacity_wh,
+        remaining_wh=remaining_wh,
+        runtime_h=min(runtime_h, RUNTIME_CAP_H) if capped else runtime_h,
+        runtime_capped=capped,
     )
+
+
+def _runtime(remaining_wh: float | None, power: Reading) -> float | None:
+    """Wie lange der aktuelle Verbrauch noch getragen wird.
+
+    Eine Hochrechnung, keine Vorhersage: Sie gilt nur, solange die Last
+    gleich bleibt. Die Oberfläche sagt das dazu.
+
+    Es gibt sie ausschließlich beim **Entladen**. Beim Laden oder Ruhen wäre
+    „Restlaufzeit" sinnlos — und eine sehr große Zahl an dieser Stelle sähe
+    aus wie eine Zusicherung.
+    """
+    if remaining_wh is None or not power.usable:
+        return None
+    draw = -power.value
+    if draw <= IDLE_WATT:
+        return None
+    return remaining_wh / draw
 
 
 def _direction(power: Reading) -> Direction | None:

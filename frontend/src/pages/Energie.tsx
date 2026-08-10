@@ -68,7 +68,10 @@ function BatteryCard({ energy, online }: { energy: EnergySummary | null; online:
           )}
         </span>
 
-        <Status tone={directionTone(direction)} label={directionLabel(direction)} />
+        <div className="energie__aside">
+          <Status tone={directionTone(direction)} label={directionLabel(direction)} />
+          <Runtime energy={energy} online={online} />
+        </div>
       </div>
 
       <div className="energie__split">
@@ -81,8 +84,55 @@ function BatteryCard({ energy, online }: { energy: EnergySummary | null; online:
         <Row label={t("energy.batteryPower")}>
           <Number reading={energy?.battery_power} online={online} unit="W" signed />
         </Row>
+        <Row label={t("energy.content")}>
+          <Energy energy={energy} online={online} />
+        </Row>
       </div>
     </Card>
+  );
+}
+
+/**
+ * Die Restlaufzeit.
+ *
+ * Eine Hochrechnung des augenblicklichen Verbrauchs — das steht auch dran.
+ * Beim Laden und bei ruhender Batterie gibt es sie nicht: Dort liefe nichts
+ * ab, und eine sehr große Zahl sähe aus wie eine Zusicherung.
+ */
+function Runtime({ energy, online }: { energy: EnergySummary | null; online: boolean }) {
+  const hours = online ? energy?.runtime_h ?? null : null;
+  if (hours === null) return null;
+
+  const capped = energy?.runtime_capped ?? false;
+  const text =
+    hours < 1
+      ? `${Math.round(hours * 60)} min`
+      : `${hours.toFixed(hours < 10 ? 1 : 0)} h`;
+
+  return (
+    <span className="energie__runtime">
+      <span className="numeric">{capped ? `> ${text}` : text}</span>
+      <span className="energie__runtime-hint">{t("energy.atCurrentLoad")}</span>
+    </span>
+  );
+}
+
+/** Energieinhalt in Kilowattstunden — nur bei bekannter Kapazität. */
+function Energy({ energy, online }: { energy: EnergySummary | null; online: boolean }) {
+  const remaining = online ? energy?.remaining_wh ?? null : null;
+  const capacity = energy?.capacity_wh ?? null;
+
+  if (remaining === null || capacity === null) {
+    return <span className="energie__number energie__number--unknown">{t("state.unknown")}</span>;
+  }
+
+  return (
+    <span className="energie__number">
+      <span className="numeric">{(remaining / 1000).toFixed(1)}</span>
+      <span className="energie__unit-inline">
+        {`kWh ${t("energy.of")} ${(capacity / 1000).toFixed(1)}`}
+      </span>
+    </span>
   );
 }
 
@@ -221,16 +271,110 @@ function ShoreCard({ energy, online }: { energy: EnergySummary | null; online: b
       </Row>
 
       <Row label={t("energy.limit")}>
-        <Number
-          reading={readingOf(limit)}
-          online={online}
-          unit="A"
-          decimals={0}
-        />
+        {adjustable ? (
+          <Stepper
+            entityId="energy.shore.limit"
+            value={typeof limit?.state.value === "number" ? limit.state.value : null}
+            min={limit?.definition?.min_value ?? null}
+            max={limit?.definition?.max_value ?? null}
+            step={limit?.definition?.step ?? 1}
+            unit="A"
+            disabled={!online}
+          />
+        ) : (
+          <Number reading={readingOf(limit)} online={online} unit="A" decimals={0} />
+        )}
       </Row>
 
-      {!adjustable && <p className="energie__note">{t("energy.limitNotAdjustable")}</p>}
+      {adjustable ? (
+        /* Die Grenzen kommen aus der Konfiguration und werden hier
+           eingesetzt. Stünden sie fest im Text, würde er bei einer
+           geänderten Absicherung stillschweigend falsch. */
+        <p className="energie__note">
+          {t("energy.limitBounded", undefined, {
+            min: String(limit?.definition?.min_value ?? "?"),
+            max: String(limit?.definition?.max_value ?? "?"),
+          })}
+        </p>
+      ) : (
+        <p className="energie__note">{t("energy.limitNotAdjustable")}</p>
+      )}
     </Card>
+  );
+}
+
+/**
+ * Schrittweise Verstellung eines Sollwerts.
+ *
+ * Bewusst ein Stepper und kein Schieberegler: Im fahrenden Fahrzeug trifft
+ * man eine Fläche, aber keinen Punkt (Kapitel 7 §13). Ein Regler verstellt
+ * sich außerdem beim versehentlichen Wischen.
+ *
+ * Die Grenzen kommen aus der Entity und begrenzen hier nur die Anzeige — die
+ * eigentliche Prüfung macht der Command Bus, damit ein Client, der die
+ * Oberfläche umgeht, ebenfalls scheitert (Kapitel 15 §42).
+ */
+function Stepper({
+  entityId,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  disabled,
+}: {
+  entityId: string;
+  value: number | null;
+  min: number | null;
+  max: number | null;
+  step: number;
+  unit: string;
+  disabled?: boolean;
+}) {
+  const { pending } = useAppState();
+  const busy = pending.has(entityId);
+  const known = value !== null;
+
+  function change(delta: number) {
+    if (!known) return;
+    let next = value + delta;
+    if (min !== null) next = Math.max(min, next);
+    if (max !== null) next = Math.min(max, next);
+    if (next === value) return;
+    sendCommand(entityId, "set_value", { value: next });
+  }
+
+  return (
+    <span className="stepper">
+      <button
+        type="button"
+        className="stepper__btn"
+        onClick={() => change(-step)}
+        disabled={disabled || busy || !known || (min !== null && value <= min)}
+        aria-label={t("energy.decrease")}
+      >
+        −
+      </button>
+      <span className={`stepper__value${busy ? " stepper__value--pending" : ""}`}>
+        {known ? (
+          <>
+            <span className="numeric">{value}</span>
+            <span className="energie__unit-inline">{unit}</span>
+          </>
+        ) : (
+          <span className="energie__number--unknown">{t("state.unknown")}</span>
+        )}
+      </span>
+      <button
+        type="button"
+        className="stepper__btn"
+        onClick={() => change(step)}
+        disabled={disabled || busy || !known || (max !== null && value >= max)}
+        aria-label={t("energy.increase")}
+      >
+        +
+      </button>
+    </span>
   );
 }
 

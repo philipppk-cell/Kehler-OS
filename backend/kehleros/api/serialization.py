@@ -39,6 +39,8 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
         "unit": entity.unit,
         "configured": entity.configured,
         "capacity_l": entity.capacity_l,
+        "capacity_ah": entity.capacity_ah,
+        "nominal_voltage": entity.nominal_voltage,
         "min_value": entity.min_value,
         "max_value": entity.max_value,
         "step": entity.step,

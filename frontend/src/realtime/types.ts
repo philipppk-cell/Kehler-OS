@@ -49,6 +49,24 @@ export interface EntityDefinition {
   area: string | null;
   unit: string | null;
   configured: boolean;
+
+  /** Tankkapazität in Litern. `null` heißt: keine Literangabe. */
+  capacity_l: number | null;
+  /** Batteriekapazität und Nennspannung. Beide nötig für den Energieinhalt. */
+  capacity_ah: number | null;
+  nominal_voltage: number | null;
+
+  /** Grenzen eines einstellbaren Wertes. Ohne `max_value` gibt es keinen
+   *  Befehl — und damit kein Bedienelement. */
+  min_value: number | null;
+  max_value: number | null;
+  step: number | null;
+
+  warn_below: number | null;
+  warn_above: number | null;
+  critical_below: number | null;
+  critical_above: number | null;
+
   capabilities: Capability[];
 }
 

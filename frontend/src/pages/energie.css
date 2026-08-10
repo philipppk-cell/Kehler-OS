@@ -174,3 +174,76 @@
 
   .flow__bar { display: none; }
 }
+
+/* ── Restlaufzeit ────────────────────────────────────────────────────────── */
+
+.energie__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.energie__runtime {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-h2);
+  color: var(--text-primary);
+}
+
+/* Der Zusatz gehört zur Zahl, nicht daneben: Ohne ihn liest sich die
+   Hochrechnung wie eine Zusicherung. */
+.energie__runtime-hint {
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* ── Sollwertverstellung ─────────────────────────────────────────────────── */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stepper__btn {
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: var(--text-h2);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.stepper__btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+.stepper__btn:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+.stepper__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  min-width: 4.5ch;
+  justify-content: center;
+  font-size: var(--text-h2);
+  color: var(--text-primary);
+}
+
+/* Solange der Befehl läuft, ist der Wert noch nicht bestätigt. */
+.stepper__value--pending {
+  color: var(--text-secondary);
+}

@@ -202,3 +202,60 @@ class TestNachvollziehbarkeit:
         await bus.submit(command)
 
         assert gesammelt[0].correlation_id == command.correlation_id
+
+
+class TestWertebereich:
+    """Grenzen einstellbarer Werte.
+
+    Das ist die eigentliche Schutzfunktion — nicht ein Bestätigungsdialog in
+    der Oberfläche. Ein Client, der die Oberfläche umgeht, muss hier
+    scheitern (Kapitel 15 §42).
+    """
+
+    async def test_wert_ueber_der_grenze_wird_abgewiesen(self, bus, registry):
+        command = await bus.submit(
+            Command(
+                entity_id="energy.shore.limit", verb="set_value", params={"value": 63}
+            )
+        )
+
+        assert command.phase is CommandPhase.REJECTED
+        assert command.rejection is RejectionReason.INVALID_PARAMS
+
+    async def test_wert_unter_der_grenze_wird_abgewiesen(self, bus, registry):
+        command = await bus.submit(
+            Command(
+                entity_id="energy.shore.limit", verb="set_value", params={"value": 1}
+            )
+        )
+
+        assert command.phase is CommandPhase.REJECTED
+        assert command.rejection is RejectionReason.INVALID_PARAMS
+
+    async def test_wert_an_der_grenze_ist_zulaessig(self, bus, simulation):
+        command = await bus.submit(
+            Command(
+                entity_id="energy.shore.limit", verb="set_value", params={"value": 16}
+            )
+        )
+
+        assert command.phase is CommandPhase.COMPLETED
+
+    async def test_fehlender_zielwert_wird_abgewiesen(self, bus, registry):
+        """Ein Befehl ohne Zielwert liefe sonst in einen Timeout."""
+        command = await bus.submit(
+            Command(entity_id="energy.shore.limit", verb="set_value", params={})
+        )
+
+        assert command.phase is CommandPhase.REJECTED
+        assert command.rejection is RejectionReason.INVALID_PARAMS
+
+    async def test_text_statt_zahl_wird_abgewiesen(self, bus, registry):
+        command = await bus.submit(
+            Command(
+                entity_id="energy.shore.limit", verb="set_value", params={"value": "viel"}
+            )
+        )
+
+        assert command.phase is CommandPhase.REJECTED
+        assert command.rejection is RejectionReason.INVALID_PARAMS

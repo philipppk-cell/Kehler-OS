@@ -29,9 +29,16 @@ def state(entity_id: str, value, quality=Quality.VALID, unit="W") -> EntityState
     )
 
 
+SOC = "energy.battery.soc"
+
+
 @pytest.fixture
 def registry() -> list[Entity]:
-    return [entity(POWER), entity(SHORE, unit=None)]
+    return [
+        entity(POWER),
+        entity(SHORE, unit=None),
+        entity(SOC, unit="percent", capacity_ah=900, nominal_voltage=24),
+    ]
 
 
 class TestLaderichtung:
@@ -98,3 +105,56 @@ def test_nicht_konfigurierte_entity_liefert_nichts():
 
     assert s.battery_power.value is None
     assert s.direction is None
+
+
+class TestRestlaufzeit:
+    """Die Hochrechnung — und vor allem, wann es sie nicht gibt."""
+
+    def _states(self, soc=None, power=None):
+        out = {}
+        if soc is not None:
+            out[SOC] = state(SOC, soc, unit="percent")
+        if power is not None:
+            out[POWER] = state(POWER, power)
+        return out
+
+    def test_energieinhalt_aus_kapazitaet_und_nennspannung(self, registry):
+        s = summarise(self._states(soc=100.0), registry)
+        assert s.capacity_wh == pytest.approx(21600.0)
+        assert s.remaining_wh == pytest.approx(21600.0)
+
+    def test_hochrechnung_beim_entladen(self, registry):
+        # 50 % von 21,6 kWh sind 10,8 kWh; bei 900 W Entnahme also 12 Stunden.
+        s = summarise(self._states(soc=50.0, power=-900.0), registry)
+        assert s.runtime_h == pytest.approx(12.0)
+        assert s.runtime_capped is False
+
+    def test_keine_hochrechnung_beim_laden(self, registry):
+        """Beim Laden läuft nichts ab."""
+        s = summarise(self._states(soc=50.0, power=900.0), registry)
+        assert s.runtime_h is None
+
+    def test_keine_hochrechnung_bei_ruhender_batterie(self, registry):
+        """Ohne nennenswerte Entnahme ergäbe die Rechnung eine Scheinzahl."""
+        s = summarise(self._states(soc=50.0, power=-5.0), registry)
+        assert s.runtime_h is None
+
+    def test_keine_hochrechnung_ohne_ladezustand(self, registry):
+        s = summarise(self._states(power=-900.0), registry)
+        assert s.remaining_wh is None
+        assert s.runtime_h is None
+
+    def test_sehr_lange_laufzeit_wird_gedeckelt(self, registry):
+        """„212 Stunden" spiegelt eine Genauigkeit vor, die es nicht gibt."""
+        s = summarise(self._states(soc=100.0, power=-100.0), registry)
+        assert s.runtime_capped is True
+        assert s.runtime_h == pytest.approx(48.0)
+
+    def test_ohne_kapazitaet_kein_energieinhalt(self):
+        registry = [entity(SOC, unit="percent"), entity(POWER)]
+        s = summarise(
+            {SOC: state(SOC, 50.0, unit="percent"), POWER: state(POWER, -900.0)},
+            registry,
+        )
+        assert s.capacity_wh is None
+        assert s.runtime_h is None

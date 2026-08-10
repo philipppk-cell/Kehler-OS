@@ -20,6 +20,9 @@ def make_entity(
     configured: bool = True,
     expected_interval_s: float | None = None,
     deadband: float = 0.0,
+    min_value: float | None = None,
+    max_value: float | None = None,
+    step: float | None = None,
 ) -> Entity:
     return Entity(
         id=entity_id,
@@ -29,12 +32,21 @@ def make_entity(
         configured=configured,
         expected_interval_s=expected_interval_s,
         deadband=deadband,
+        min_value=min_value,
+        max_value=max_value,
+        step=step,
     )
 
 
 SWITCH = (
     CommandSpec(
         verb="set_state", expects_param="state", params=("state",), timeout_ms=500
+    ),
+)
+
+SETPOINT = (
+    CommandSpec(
+        verb="set_value", expects_param="value", params=("value",), timeout_ms=500
     ),
 )
 
@@ -56,6 +68,14 @@ def registry() -> Registry:
                 "water.tank.fresh", unit="percent", expected_interval_s=1.0, deadband=0.5
             ),
             make_entity("vehicle.awning.main", commands=MOVABLE, configured=False),
+            make_entity(
+                "energy.shore.limit",
+                commands=SETPOINT,
+                unit="A",
+                min_value=3,
+                max_value=16,
+                step=1,
+            ),
         ]
     )
     return reg

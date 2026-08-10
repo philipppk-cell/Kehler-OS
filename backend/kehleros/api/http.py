@@ -256,6 +256,10 @@ def create_app(application: Application) -> FastAPI:
             "shore_power": _reading_json(summary.shore_power),
             "shore_connected": summary.shore_connected,
             "direction": summary.direction,
+            "capacity_wh": summary.capacity_wh,
+            "remaining_wh": summary.remaining_wh,
+            "runtime_h": summary.runtime_h,
+            "runtime_capped": summary.runtime_capped,
         }
 
     # ── Entities ────────────────────────────────────────────────────────────

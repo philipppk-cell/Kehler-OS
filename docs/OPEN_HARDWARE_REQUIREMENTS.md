@@ -138,25 +138,33 @@ Register, die über MQTT nicht sauber verfügbar sind.
 - Ist der lokale MQTT-Broker aktiviert? Mit oder ohne TLS/Authentifizierung?
 - VRM-Portal-ID (Bestandteil aller MQTT-Topics)
 
-### B2 · Reale Gerätekonfiguration — `OFFEN` · `NICHT BLOCKIEREND`
+### B2 · Reale Gerätekonfiguration — `TEILWEISE` · `NICHT BLOCKIEREND`
+
+**Beantwortet (2026-08-10):**
+
+| Angabe | Wert | Wirkung |
+| --- | --- | --- |
+| Batteriekapazität | **900 Ah** | Energieinhalt 21,6 kWh (bei 24 V nominal) und daraus die Restlaufzeit |
+| Landstromabsicherung | **16 A** | Die Eingangsstrombegrenzung ist einstellbar — 3 bis 16 A, höhere Werte weist der Command Bus ab |
+
+**Weiterhin offen:**
 
 - exakte MultiPlus-Variante und Nennleistung
-- Batterietyp, nutzbare Kapazität in Ah/kWh, BMS-Typ
+- Batterietyp und BMS-Typ; ob die 900 Ah die *nutzbare* oder die
+  *Nennkapazität* sind
 - Anzahl und Typ der MPPT-Solarregler, installierte Modulleistung
-- Landstromabsicherung (A)
 
 **Was ohne diese Angaben fehlt — konkret:**
 
 | Fehlt | Folge in der Oberfläche |
 | --- | --- |
-| nutzbare Batteriekapazität (Ah/kWh) | keine Restlaufzeit, kein „reicht noch bis …" |
-| Absicherung des Landstroms (A) | **kein Bedienelement für die Eingangsstrombegrenzung** — der Wert wird nur angezeigt |
 | installierte Modulleistung | keine Einordnung des Solarertrags („viel" oder „wenig") |
 | MultiPlus-Variante | keine Lastgrenze für den Wechselrichter |
 
-Die Strombegrenzung ist der wichtigste Punkt: Eine geratene Obergrenze könnte
-die Zuleitung überlasten (Kapitel 18 §136). Deshalb entsteht ohne
-konfigurierte Obergrenze gar kein Befehl — und damit auch kein Regler.
+> **ASSUMPTION zur Kapazität:** Die 900 Ah werden als **Nennkapazität**
+> geführt und mit 24 V Nennspannung zu 21,6 kWh gerechnet. Sollten davon nur
+> ein Teil nutzbar sein, fällt die Restlaufzeit entsprechend zu günstig aus.
+> Beides steht in `config/vehicle/vehicle.yaml` und ist eine Zahl, kein Code.
 
 ### B3 · Schreibzugriffe — `GEKLÄRT` (2026-08-09)
 
@@ -169,8 +177,9 @@ Alles andere bleibt read-only. Umsetzung als Whitelist mit Wertebereichsprüfung
 Bestätigungspflicht beim Abschalten des Wechselrichters und vollständiger
 Protokollierung — siehe [ADR 0003](architektur/adr/0003-victron-transport.md).
 
-> Für den Maximalwert der Strombegrenzung wird die reale Absicherung des
-> Landstromanschlusses benötigt (Punkt B2).
+> Der Maximalwert der Strombegrenzung liegt vor: **16 A** (Punkt B2). Er ist
+> als `max_value` konfiguriert, und der Command Bus weist jeden höheren Wert
+> ab — auch wenn ein Client die Oberfläche umgeht.
 
 ---
 

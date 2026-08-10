@@ -107,13 +107,20 @@ const de: Record<string, string> = {
 
   "energy.shoreConnected": "Verbunden",
   "energy.shoreDisconnected": "Nicht verbunden",
+  "energy.content": "Energieinhalt",
+  "energy.of": "von",
+  "energy.atCurrentLoad": "bei aktuellem Verbrauch",
+  "energy.decrease": "Strombegrenzung verringern",
+  "energy.increase": "Strombegrenzung erhöhen",
+  "energy.limitBounded":
+    "Begrenzt auf {min} bis {max} A — die Absicherung des Anschlusses. Höhere Werte weist das System ab.",
   "energy.limitNotAdjustable":
     "Einstellbar erst, wenn die Absicherung des Landstromanschlusses bekannt ist. Eine geratene Obergrenze könnte die Zuleitung überlasten.",
   "energy.inverterConfirm":
     "Wechselrichter wirklich abschalten? Damit entfällt die 230-V-Versorgung im gesamten Fahrzeug.",
   "energy.notesTitle": "Hinweise",
   "energy.noRuntime":
-    "Eine Restlaufzeit wird nicht angezeigt — dafür fehlt die nutzbare Batteriekapazität.",
+    "Die Restlaufzeit ist eine Hochrechnung des augenblicklichen Verbrauchs, keine Vorhersage. Beim Laden entfällt sie.",
   "energy.readOnly":
     "Kehler OS liest die Anlage nur. Geregelt wird sie von Victron; schreibend gibt es ausschließlich Strombegrenzung und Wechselrichter.",
 

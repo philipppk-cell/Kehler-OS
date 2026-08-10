@@ -243,6 +243,11 @@ class Entity:
     (Kapitel 18 §98).
     """
 
+    capacity_ah: float | None = None
+    nominal_voltage: float | None = None
+    """Nur für die Batterie. Fehlt eines von beiden, gibt es keine Angabe in
+    Kilowattstunden und keine Restlaufzeit — beide wären sonst geraten."""
+
     min_value: float | None = None
     max_value: float | None = None
     step: float | None = None

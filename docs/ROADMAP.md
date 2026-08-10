@@ -120,13 +120,15 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 
    Schreibend gibt es genau die zwei erlaubten Funktionen (Punkt B3):
    Wechselrichter ein/aus mit Bestätigungspflicht und die
-   Eingangsstrombegrenzung. **Letztere hat bewusst kein Bedienelement**,
-   solange die Absicherung des Landstromanschlusses unbekannt ist (Punkt B2)
-   — eine geratene Obergrenze könnte die Zuleitung überlasten.
+   Eingangsstrombegrenzung, einstellbar zwischen 3 und 16 A. Die Obergrenze
+   ist die reale Absicherung des Anschlusses; höhere Werte weist der Command
+   Bus ab, auch wenn ein Client die Oberfläche umgeht.
 
-   Ebenfalls nicht gebaut: die Restlaufzeit. Dafür fehlt die nutzbare
-   Batteriekapazität (Punkt B2). Historie folgt mit der
-   Zeitreihen-Datenhaltung.
+   Restlaufzeit und Energieinhalt gibt es seit der Angabe der Batterie-
+   kapazität (900 Ah). Die Restlaufzeit ist als Hochrechnung des
+   augenblicklichen Verbrauchs gekennzeichnet und entfällt beim Laden.
+
+   Offen bleibt die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
 3. **Licht** — Kreise, Gruppen
 4. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung
 5. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen

@@ -120,10 +120,14 @@ entities:
   #
   # Vorzeichenkonvention Batterie: **positiv = laden**, negativ = entladen.
 
+  # BESTÄTIGT: 900 Ah. Zusammen mit der Nennspannung ergibt das den
+  # Energieinhalt (900 Ah × 24 V = 21,6 kWh) und daraus die Restlaufzeit.
   - id: energy.battery.soc
     name_key: energy.battery_soc
     type: measurement
     unit: percent
+    capacity_ah: 900
+    nominal_voltage: 24
     deadband: 0.5
     expected_interval_s: 10
 
@@ -177,18 +181,23 @@ entities:
 
   # Eingangsstrombegrenzung — einer der beiden erlaubten Schreibzugriffe.
   #
-  # `max_value` fehlt ABSICHTLICH: Die reale Absicherung des Landstrom-
-  # anschlusses ist nicht bekannt (Punkt B2). Ohne Obergrenze entsteht kein
-  # Befehl und damit kein Bedienelement — der Wert bleibt sichtbar. Eine
-  # geratene Obergrenze könnte eine Zuleitung überlasten (Kapitel 18 §136).
+  # BESTÄTIGT: Der Landstromanschluss ist mit 16 A abgesichert. `max_value`
+  # bildet genau das ab — der Command Bus weist jeden höheren Wert ab, auch
+  # wenn ein Client die Oberfläche umgeht (Kapitel 15 §42).
+  #
+  # Risiko MEDIUM und nicht HIGH: Innerhalb von 3–16 A kann kein Wert die
+  # Zuleitung überlasten, weil die Obergrenze die Absicherung ist. Eine
+  # Bestätigung bei jedem Schritt wäre Reibung ohne Schutzwirkung
+  # (Kapitel 15 §21).
   - id: energy.shore.limit
     name_key: energy.shore_limit
     type: setpoint
     area: tech
     unit: A
     min_value: 3
+    max_value: 16
     step: 1
-    risk: HIGH
+    risk: MEDIUM
     timeout_ms: 5000
 
   # Wechselrichter — der zweite erlaubte Schreibzugriff. HIGH bedeutet:

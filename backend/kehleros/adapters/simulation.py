@@ -367,7 +367,12 @@ class SimulationAdapter(Adapter):
         elif device.kind == "switch":
             device.value = command.params.get("state", spec.expects)
         elif device.kind == "setpoint":
-            device.value = float(command.params.get("celsius", spec.expects or 20.0))
+            # Der Parametername steht in der Capability — `celsius` bei einer
+            # Klimazone, `value` bei einer Strombegrenzung. Ihn hier fest zu
+            # verdrahten hieße, den Simulator bei jedem neuen Sollwert
+            # nachzuziehen.
+            key = spec.expects_param or "value"
+            device.value = float(command.params.get(key, spec.expects or 0.0))
         else:
             raise RuntimeError(f"'{command.verb}' ist hier nicht ausführbar")
 
