@@ -18,7 +18,7 @@ import { IconPump } from "../design/icons";
 import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
-import { useWater, type FreshGroup, type TankView } from "../water/useWater";
+import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
 import { t } from "../i18n/de";
 import "./wasser.css";
 
@@ -78,8 +78,8 @@ function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
       <div className="wasser__totalbar">
         <RawBar
           percent={usable ? fresh!.percent : null}
-          breached={usable && fresh!.breached}
-          threshold={fresh?.warn_below ?? null}
+          level={usable ? fresh!.level : "ok"}
+          marks={[fresh?.warn_below ?? null, fresh?.critical_below ?? null]}
         />
       </div>
 
@@ -139,8 +139,11 @@ function TankRow({
 
       <RawBar
         percent={usable ? tank.percent : null}
-        breached={usable && tank.breached}
-        threshold={tank.warn_below ?? tank.warn_above ?? null}
+        level={usable ? tank.level : "ok"}
+        marks={[
+          tank.warn_below ?? tank.warn_above ?? null,
+          tank.critical_below ?? tank.critical_above ?? null,
+        ]}
       />
 
       <div className="tankrow__foot">
@@ -176,28 +179,42 @@ function TankRow({
  */
 function RawBar({
   percent,
-  breached = false,
-  threshold = null,
+  level = "ok",
+  marks = [],
 }: {
   percent: number | null;
-  breached?: boolean;
-  threshold?: number | null;
+  level?: Level;
+  /** Die konfigurierten Schwellen. `null`-Einträge werden übersprungen. */
+  marks?: (number | null)[];
 }) {
   const width = percent === null ? 0 : Math.max(0, Math.min(100, percent));
-  const mark = threshold === null ? null : Math.max(0, Math.min(100, threshold));
 
   return (
     <div className={`bar${percent === null ? " bar--unknown" : ""}`}>
       <div
-        className={`bar__fill bar__fill--${breached ? "warn" : "accent"}`}
+        className={`bar__fill bar__fill--${FILL[level]}`}
         style={{ width: `${width}%` }}
       />
-      {mark !== null && (
-        <span className="bar__mark" style={{ left: `${mark}%` }} aria-hidden="true" />
+      {marks.map((mark, index) =>
+        mark === null ? null : (
+          <span
+            key={index}
+            className="bar__mark"
+            style={{ left: `${Math.max(0, Math.min(100, mark))}%` }}
+            aria-hidden="true"
+          />
+        ),
       )}
     </div>
   );
 }
+
+/** Stufe → Balkenfarbe. Ohne überschrittene Schwelle bleibt es neutral. */
+const FILL: Record<Level, string> = {
+  ok: "accent",
+  warn: "warn",
+  critical: "error",
+};
 
 /* ── Versorgung ──────────────────────────────────────────────────────────── */
 
@@ -241,6 +258,7 @@ function NoteCard() {
     <Card title={t("water.notesTitle")}>
       <ul className="wasser__notes">
         <li>{t("water.thresholdsSet")}</li>
+        <li>{t("water.thresholdMarks")}</li>
       </ul>
       <Button variant="quiet" full disabled>
         {t("water.historyLater")}

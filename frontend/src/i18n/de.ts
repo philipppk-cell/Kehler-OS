@@ -56,8 +56,8 @@ const de: Record<string, string> = {
   "alert.sensorLost": "Liefert keine Werte mehr",
   "alert.levelLow": "Nur noch {value} % — Warnschwelle {threshold} %",
   "alert.levelHigh": "Bei {value} % — Warnschwelle {threshold} %",
-  "alert.levelCriticalLow": "Kritisch niedrig: {value} %",
-  "alert.levelCriticalHigh": "Kritisch hoch: {value} %",
+  "alert.levelCriticalLow": "Kritisch: nur noch {value} % — Grenze {threshold} %",
+  "alert.levelCriticalHigh": "Kritisch: bei {value} % — Grenze {threshold} %",
 
   // Fahrzeugansicht
   "vehicle3d.label": "Fahrzeugansicht mit dem Zustand der Aufbaufunktionen",
@@ -104,7 +104,9 @@ const de: Record<string, string> = {
     "Solange ein Tank keinen belastbaren Wert liefert, wäre jede Gesamtangabe eine Schätzung.",
   "water.notesTitle": "Hinweise",
   "water.thresholdsSet":
-    "Gewarnt wird bei Frischwasser unter 20 % und bei Abwasser über 80 %. Die Markierung im Balken zeigt die Schwelle.",
+    "Frischwasser: Warnung unter 20 %, kritisch unter 10 %. Abwasser: Warnung über 80 %, kritisch über 90 %.",
+  "water.thresholdMarks":
+    "Die beiden Markierungen im Balken zeigen, wo die Stufen liegen.",
   "water.historyLater": "Verlauf entsteht in einem späteren Schritt",
 
   // Klima

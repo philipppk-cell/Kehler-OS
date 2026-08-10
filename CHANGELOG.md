@@ -115,16 +115,28 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   gekennzeichnet. Hardwareadressen liegen weiterhin ungetrackt in
   `config/hardware/`.
 
-### Hinzugefügt — Warnschwellen
+### Hinzugefügt — Warnschwellen in zwei Stufen
 
-- **Schwellen sind konfiguriert und wirken** (Punkt C3 geklärt): Frischwasser
-  warnt unter 20 %, Grau- und Schwarzwasser über 80 %. Die Schwelle wird im
-  Balken als Markierung eingezeichnet — man sieht damit nicht nur, *dass* es
-  eng wird, sondern auch, wie weit es noch hin ist.
+- **Schwellen sind konfiguriert und wirken** (Punkt C3 geklärt):
+
+  | Tank | Warnung (orange) | Kritisch (rot) |
+  | --- | --- | --- |
+  | Frischwasser | unter 20 % | unter 10 % |
+  | Grau-/Schwarzwasser | über 80 % | über 90 % |
+
+- **Beide Stufen werden im Balken als Markierung eingezeichnet** — man sieht
+  damit nicht nur, *dass* es eng wird, sondern auch, wie weit es bis zur
+  nächsten Stufe ist.
+- **Eine Stufe erzeugt eine Meldung, nicht zwei.** Unterhalb beider Schwellen
+  erscheint ausschließlich die kritische. Zwei Meldungen für denselben
+  Sachverhalt wären Rauschen.
+- Eine überschrittene kritische Schwelle hebt den Systemzustand auf
+  „Kritisch". Durch die eng gefassten Grenzen bleibt das selten — und behält
+  damit seine Bedeutung (Kapitel 13 §55).
 - **Es gibt weiterhin keine eingebauten Schwellen.** Steht in der
   Konfiguration keine, wird für diesen Wert nicht gewarnt und der Balken
-  bleibt neutral. Kritische Schwellen bleiben leer, weil sie nicht genannt
-  wurden.
+  bleibt neutral. Ein Test hält fest, dass außer den Wassertanks keine Entity
+  eine Schwelle trägt.
 - **Die Tanks sind gleichmäßig geformt** (Punkt C2 vollständig geklärt). Die
   Umrechnung Prozent → Liter ist damit exakt; eine Kalibrierkurve entfällt.
 - Warnungstexte nennen jetzt Wert und Schwelle („Nur noch 13 % —

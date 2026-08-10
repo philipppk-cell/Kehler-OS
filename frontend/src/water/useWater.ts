@@ -15,6 +15,9 @@ import { useEffect, useState } from "react";
 import { useAppState } from "../realtime/hooks";
 import type { Quality } from "../realtime/types";
 
+/** Wie ein Füllstand zu bewerten ist. Bewertet im Backend, nicht hier. */
+export type Level = "ok" | "warn" | "critical";
+
 export interface TankView {
   entity_id: string;
   name_key: string;
@@ -29,8 +32,9 @@ export interface TankView {
    *  gewarnt — es gibt keine eingebauten Schwellen. */
   warn_below: number | null;
   warn_above: number | null;
-  /** Ob eine Schwelle überschritten ist. Vom Backend bewertet, nicht hier. */
-  breached: boolean;
+  critical_below: number | null;
+  critical_above: number | null;
+  level: Level;
 }
 
 export interface FreshGroup {
@@ -40,7 +44,8 @@ export interface FreshGroup {
   free_l: number | null;
   percent: number | null;
   warn_below: number | null;
-  breached: boolean;
+  critical_below: number | null;
+  level: Level;
   tanks: TankView[];
 }
 

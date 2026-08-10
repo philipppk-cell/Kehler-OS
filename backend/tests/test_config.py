@@ -176,15 +176,42 @@ class TestMitgelieferteKonfiguration:
             "water.tank.black": (None, 80),
         }
 
-    def test_keine_erfundenen_kritischen_schwellen(self):
-        """Kritische Schwellen wurden nicht genannt — also gibt es keine.
+    def test_kritische_schwellen_entsprechen_der_angabe(self):
+        """Zweite Stufe, ebenfalls vom Fahrzeughalter genannt."""
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        kritisch = {
+            e.id: (e.critical_below, e.critical_above)
+            for e in vehicle.entities
+            if e.id.startswith("water.tank.")
+        }
+        assert kritisch == {
+            "water.tank.fresh.large": (10, None),
+            "water.tank.fresh.small": (10, None),
+            "water.tank.grey": (None, 90),
+            "water.tank.black": (None, 90),
+        }
 
-        Kapitel 13 §55: Zu viele kritische Meldungen entwerten die Priorität.
+    def test_kritische_stufe_liegt_hinter_der_warnstufe(self):
+        """Die schärfere Schwelle muss auch die spätere sein.
+
+        Wären sie vertauscht, würde die kritische Meldung vor der Warnung
+        erscheinen — und die Warnstufe damit nie sichtbar.
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        for entity in vehicle.entities:
-            assert entity.critical_below is None
-            assert entity.critical_above is None
+        for e in vehicle.entities:
+            if e.warn_below is not None and e.critical_below is not None:
+                assert e.critical_below < e.warn_below, e.id
+            if e.warn_above is not None and e.critical_above is not None:
+                assert e.critical_above > e.warn_above, e.id
+
+    def test_nur_wasser_hat_schwellen(self):
+        """Für alles andere ist keine Schwelle genannt — also gibt es keine."""
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        for e in vehicle.entities:
+            if e.id.startswith("water.tank."):
+                continue
+            assert e.warn_below is None and e.warn_above is None, e.id
+            assert e.critical_below is None and e.critical_above is None, e.id
 
     def test_beispiel_fuer_nicht_konfigurierte_hardware(self):
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")

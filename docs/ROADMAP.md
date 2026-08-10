@@ -104,9 +104,10 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    liefert — geprüft gegen einen laufenden Server mit gezielt verstummtem
    Sensor.
 
-   Warnschwellen sind gesetzt (Frischwasser unter 20 %, Abwasser über 80 %)
-   und im Balken als Markierung sichtbar. Die Tanks sind gleichmäßig geformt,
-   die Literangabe damit exakt — die Punkte C2 und C3 sind geschlossen.
+   Zwei Warnstufen je Tank sind gesetzt — Frischwasser unter 20 % bzw. 10 %,
+   Abwasser über 80 % bzw. 90 % — und beide im Balken als Markierung
+   sichtbar. Die Tanks sind gleichmäßig geformt, die Literangabe damit exakt.
+   Die Punkte C2 und C3 sind geschlossen.
 
    Offen bleibt nur die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
 2. **Energie** — Batterie, Solar, Landstrom, Energiefluss, Historie

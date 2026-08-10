@@ -26,7 +26,7 @@ import type { Part } from "../vehicle/VehicleView";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
 import { Quality, type EntityView } from "../realtime/types";
-import { useWater, type TankView as WaterTank } from "../water/useWater";
+import { useWater, type Level, type TankView as WaterTank } from "../water/useWater";
 import { sendCommand } from "../api/client";
 import { t } from "../i18n/de";
 import "./dashboard.css";
@@ -395,6 +395,9 @@ function WaterCard({ emphasis }: { emphasis: boolean }) {
   );
 }
 
+/** Stufe → Balkenfarbe, gleich wie auf der Wasserseite. */
+const FILL: Record<Level, string> = { ok: "accent", warn: "warn", critical: "error" };
+
 function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
   const usable =
     online && tank.percent !== null &&
@@ -420,7 +423,7 @@ function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
         {/* Farbe nur bei überschrittener Schwelle — bewertet vom Backend,
             damit Dashboard und Wasserseite nicht auseinanderlaufen. */}
         <div
-          className={`bar__fill bar__fill--${usable && tank.breached ? "warn" : "accent"}`}
+          className={`bar__fill bar__fill--${usable ? FILL[tank.level] : "accent"}`}
           style={{ width: `${percent}%` }}
         />
       </div>

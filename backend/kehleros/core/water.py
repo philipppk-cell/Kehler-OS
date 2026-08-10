@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from typing import Literal
 
 from ..domain.enums import Quality
 from ..domain.models import Entity, EntityState
@@ -45,6 +46,41 @@ _RANK = {
 
 _USABLE = (Quality.VALID, Quality.STALE)
 
+Level = Literal["ok", "warn", "critical"]
+"""Wie ein Füllstand zu bewerten ist.
+
+Drei Stufen statt eines Ja/Nein-Flags: Sobald es zwei Schwellen gibt, muss
+die Oberfläche unterscheiden können, welche davon überschritten ist.
+"""
+
+
+def _classify(
+    percent: float | None,
+    *,
+    warn_below: float | None,
+    warn_above: float | None,
+    critical_below: float | None,
+    critical_above: float | None,
+) -> Level:
+    """Ordnet einen Füllstand einer Stufe zu.
+
+    Die kritische Schwelle wird zuerst geprüft: Sind beide überschritten,
+    zählt die schwerere. Fehlt eine Schwelle, wird sie übersprungen — es gibt
+    keine eingebauten Grenzwerte (Kapitel 18 §98).
+    """
+    if percent is None:
+        return "ok"
+
+    if critical_below is not None and percent < critical_below:
+        return "critical"
+    if critical_above is not None and percent > critical_above:
+        return "critical"
+    if warn_below is not None and percent < warn_below:
+        return "warn"
+    if warn_above is not None and percent > warn_above:
+        return "warn"
+    return "ok"
+
 
 @dataclass(frozen=True, slots=True)
 class TankView:
@@ -60,6 +96,8 @@ class TankView:
 
     warn_below: float | None = None
     warn_above: float | None = None
+    critical_below: float | None = None
+    critical_above: float | None = None
 
     @property
     def free_l(self) -> float | None:
@@ -68,17 +106,19 @@ class TankView:
         return max(0.0, self.capacity_l - self.litres)
 
     @property
-    def breached(self) -> bool:
-        """Ob eine konfigurierte Schwelle überschritten ist.
+    def level(self) -> Level:
+        """Die Bewertung des Füllstands anhand der konfigurierten Schwellen.
 
-        Die Oberfläche färbt danach den Balken. Ohne Schwelle bleibt er
-        neutral — eine Farbe ohne Bedeutung wäre Dekoration.
+        Die Oberfläche färbt danach den Balken. Ohne Schwelle bleibt es bei
+        ``"ok"`` — eine Farbe ohne Bedeutung wäre Dekoration (Kapitel 7 §5).
         """
-        if self.percent is None:
-            return False
-        if self.warn_below is not None and self.percent < self.warn_below:
-            return True
-        return self.warn_above is not None and self.percent > self.warn_above
+        return _classify(
+            self.percent,
+            warn_below=self.warn_below,
+            warn_above=self.warn_above,
+            critical_below=self.critical_below,
+            critical_above=self.critical_above,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,12 +132,14 @@ class TankGroup:
     percent: float | None
 
     warn_below: float | None = None
-    """Schwelle für die Gesamtmenge.
+    critical_below: float | None = None
+    """Schwellen für die Gesamtmenge.
 
-    Sie wird **nur** übernommen, wenn alle Tanks der Gruppe dieselbe Schwelle
-    tragen. Bei unterschiedlichen Schwellen gibt es für die Summe keine —
-    welche davon für das Ganze gälte, ist eine Frage, die die Konfiguration
-    nicht beantwortet, und die Software beantwortet sie nicht an ihrer Stelle.
+    Sie werden **nur** übernommen, wenn alle Tanks der Gruppe dieselbe
+    Schwelle tragen. Bei unterschiedlichen Schwellen gibt es für die Summe
+    keine — welche davon für das Ganze gälte, ist eine Frage, die die
+    Konfiguration nicht beantwortet, und die Software beantwortet sie nicht an
+    ihrer Stelle.
     """
 
     @property
@@ -107,10 +149,14 @@ class TankGroup:
         return max(0.0, self.capacity_l - self.litres)
 
     @property
-    def breached(self) -> bool:
-        if self.percent is None or self.warn_below is None:
-            return False
-        return self.percent < self.warn_below
+    def level(self) -> Level:
+        return _classify(
+            self.percent,
+            warn_below=self.warn_below,
+            warn_above=None,
+            critical_below=self.critical_below,
+            critical_above=None,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,15 +211,14 @@ def _tank(entity: Entity, state: EntityState | None) -> TankView:
         litres=litres,
         warn_below=entity.warn_below,
         warn_above=entity.warn_above,
+        critical_below=entity.critical_below,
+        critical_above=entity.critical_above,
     )
 
 
-def _shared_warn_below(tanks: tuple[TankView, ...]) -> float | None:
-    """Die gemeinsame Schwelle — oder keine."""
-    thresholds = {tank.warn_below for tank in tanks}
-    if len(thresholds) == 1:
-        return next(iter(thresholds))
-    return None
+def _shared(values: set[float | None]) -> float | None:
+    """Der gemeinsame Wert — oder keiner, wenn sie sich unterscheiden."""
+    return next(iter(values)) if len(values) == 1 else None
 
 
 def _group(tanks: list[TankView]) -> TankGroup:
@@ -181,7 +226,8 @@ def _group(tanks: list[TankView]) -> TankGroup:
     if not ordered:
         return TankGroup((), Quality.UNKNOWN, None, None, None)
 
-    warn_below = _shared_warn_below(ordered)
+    warn_below = _shared({tank.warn_below for tank in ordered})
+    critical_below = _shared({tank.critical_below for tank in ordered})
 
     # Schlechteste Qualität aller Summanden bestimmt die der Summe.
     quality = max((tank.quality for tank in ordered), key=lambda q: _RANK[q])
@@ -194,10 +240,14 @@ def _group(tanks: list[TankView]) -> TankGroup:
         # Kein Teilergebnis. Eine Summe über die „guten" Tanks wäre keine
         # Gesamtmenge, sondern eine Zahl ohne Bezug.
         capacity = sum(t.capacity_l for t in ordered if t.capacity_l) or None
-        return TankGroup(ordered, quality, capacity, None, None, warn_below)
+        return TankGroup(
+            ordered, quality, capacity, None, None, warn_below, critical_below
+        )
 
     capacity = sum(tank.capacity_l or 0.0 for tank in ordered)
     litres = sum(tank.litres or 0.0 for tank in ordered)
     percent = litres / capacity * 100.0 if capacity else None
 
-    return TankGroup(ordered, quality, capacity, litres, percent, warn_below)
+    return TankGroup(
+        ordered, quality, capacity, litres, percent, warn_below, critical_below
+    )

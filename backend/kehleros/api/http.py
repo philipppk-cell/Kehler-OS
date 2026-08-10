@@ -225,7 +225,8 @@ def create_app(application: Application) -> FastAPI:
                 "free_l": summary.fresh.free_l,
                 "percent": summary.fresh.percent,
                 "warn_below": summary.fresh.warn_below,
-                "breached": summary.fresh.breached,
+                "critical_below": summary.fresh.critical_below,
+                "level": summary.fresh.level,
                 "tanks": [_tank_json(tank) for tank in summary.fresh.tanks],
             },
             "waste": [_tank_json(tank) for tank in summary.waste],
@@ -368,5 +369,7 @@ def _tank_json(tank: TankView) -> dict[str, Any]:
         "free_l": tank.free_l,
         "warn_below": tank.warn_below,
         "warn_above": tank.warn_above,
-        "breached": tank.breached,
+        "critical_below": tank.critical_below,
+        "critical_above": tank.critical_above,
+        "level": tank.level,
     }

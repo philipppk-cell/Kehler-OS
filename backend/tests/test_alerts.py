@@ -188,3 +188,34 @@ class TestSchwellen:
         typen = types_of(alerts)
         assert "level.threshold" in typen
         assert "sensor.stale" in typen
+
+    def test_kritische_stufe_ersetzt_die_warnung(self):
+        """Unter beiden Schwellen gibt es **eine** Meldung, nicht zwei.
+
+        Zwei Meldungen für denselben Sachverhalt wären Rauschen — und die
+        schwerere würde in der Liste neben der leichteren stehen.
+        """
+        reg = self.tank(warn_below=20, critical_below=10)
+        alerts = derive_alerts(self.store(reg, 7.0), reg)
+
+        level = [a for a in alerts if a.type == "level.threshold"]
+        assert len(level) == 1
+        assert level[0].severity is Severity.CRITICAL
+        assert level[0].message_key == "alert.levelCriticalLow"
+
+    def test_zwischen_den_stufen_bleibt_es_bei_der_warnung(self):
+        reg = self.tank(warn_below=20, critical_below=10)
+        alerts = derive_alerts(self.store(reg, 15.0), reg)
+
+        level = [a for a in alerts if a.type == "level.threshold"]
+        assert len(level) == 1
+        assert level[0].severity is Severity.WARNING
+
+    def test_abwasser_kritisch(self):
+        reg = self.tank(warn_above=80, critical_above=90)
+        alerts = derive_alerts(self.store(reg, 94.0), reg)
+
+        level = [a for a in alerts if a.type == "level.threshold"]
+        assert len(level) == 1
+        assert level[0].severity is Severity.CRITICAL
+        assert level[0].message_key == "alert.levelCriticalHigh"

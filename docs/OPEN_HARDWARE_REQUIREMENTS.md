@@ -197,17 +197,27 @@ wird nicht benötigt (Kapitel 12 §37).
 
 ### C3 · Warnschwellen — `GEKLÄRT` (2026-08-09)
 
-**Antwort:** Frischwasser warnt **unter 20 %**, Grau- und Schwarzwasser
-**über 80 %**.
+**Antwort — zwei Stufen je Tank:**
+
+| Tank | Warnung | Kritisch |
+| --- | --- | --- |
+| Frischwasser (beide) | unter 20 % | unter 10 % |
+| Grauwasser | über 80 % | über 90 % |
+| Schwarzwasser | über 80 % | über 90 % |
 
 Die Schwellen stehen in `config/vehicle/vehicle.yaml` und sind durch einen
 Test festgehalten — insbesondere ihre **Richtung**, denn eine vertauschte
 Schwelle schweigt genau dann, wenn sie gebraucht wird.
 
-> **Kritische Schwellen sind bewusst NICHT gesetzt.** Sie wurden nicht
-> genannt, und eine kritische Meldung ohne Grundlage entwertet die Priorität
-> (Kapitel 13 §55). Das Datenmodell führt sie mit; sie bleiben leer, bis
-> jemand sie festlegt.
+Ein Test stellt zusätzlich sicher, dass die kritische Stufe **hinter** der
+Warnstufe liegt. Wären sie vertauscht, erschiene die kritische Meldung zuerst
+und die Warnstufe würde nie sichtbar.
+
+> **Folge für den Systemstatus:** Eine überschrittene kritische Schwelle hebt
+> den Gesamtzustand auf `CRITICAL` („Kritisch"). Das ist beabsichtigt — bei
+> 10 % Frischwasser ist das die dringendste Aussage, die das Fahrzeug treffen
+> kann. Durch die eng gefassten Grenzen bleibt der Fall selten, und damit
+> behält die Stufe ihre Bedeutung (Kapitel 13 §55).
 
 ---
 
