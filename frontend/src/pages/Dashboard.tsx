@@ -15,7 +15,6 @@ import {
   IconAwning,
   IconDoor,
   IconGarage,
-  IconLight,
   IconPlug,
   IconPump,
   IconSolar,
@@ -249,8 +248,6 @@ function QuickAccessCard() {
   return (
     <Card title={t("dash.quickAccess")}>
       <div className="quickgrid">
-        <SwitchTile entityId="light.exterior.entry" icon={<IconLight />} label={t("light.entry")} />
-        <SwitchTile entityId="light.interior.living" icon={<IconLight />} label={t("light.living")} />
         <SwitchTile entityId="water.pump.main" icon={<IconPump />} label={t("water.pump")} />
         <MoveTile entityId="vehicle.garage.door" icon={<IconGarage />} label={t("vehicle.garage_door")} />
         <MoveTile entityId="vehicle.step.entry" icon={<IconStep />} label={t("vehicle.step")} />

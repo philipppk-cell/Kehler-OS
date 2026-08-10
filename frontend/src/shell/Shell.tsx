@@ -19,7 +19,6 @@ import {
   IconEnergy,
   IconGarage,
   IconLeveling,
-  IconLight,
   IconSettings,
   IconUser,
   IconVehicle,
@@ -29,12 +28,11 @@ import {
 import "./shell.css";
 
 export type PageId =
-  | "dashboard" | "light" | "energy" | "water" | "climate"
+  | "dashboard" | "energy" | "water" | "climate"
   | "leveling" | "vehicle" | "cameras" | "garage" | "settings" | "diagnostics";
 
 const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "dashboard", icon: <IconDashboard /> },
-  { id: "light", icon: <IconLight /> },
   { id: "energy", icon: <IconEnergy /> },
   { id: "water", icon: <IconWater /> },
   { id: "climate", icon: <IconClimate /> },

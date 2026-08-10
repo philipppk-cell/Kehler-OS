@@ -29,7 +29,6 @@ const de: Record<string, string> = {
 
   // Navigation
   "nav.dashboard": "Dashboard",
-  "nav.light": "Licht",
   "nav.energy": "Energie",
   "nav.water": "Wasser",
   "nav.climate": "Klima",
@@ -156,12 +155,6 @@ const de: Record<string, string> = {
   "climate.target": "Soll",
   "climate.living_actual": "Innentemperatur",
   "climate.living_target": "Solltemperatur",
-
-  // Licht
-  "light.living": "Wohnbereich",
-  "light.kitchen": "Küche",
-  "light.entry": "Außenlicht",
-  "light.interior": "Innenbeleuchtung",
 
   // Fahrzeug
   "vehicle.garage_door": "Garage",

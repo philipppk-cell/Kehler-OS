@@ -80,7 +80,7 @@ class TestBefehle:
         antwort = client.post(
             f"{API_PREFIX}/commands",
             json={
-                "entity_id": "light.interior.living",
+                "entity_id": "water.pump.main",
                 "verb": "set_state",
                 "params": {"state": "ON"},
             },
@@ -137,11 +137,11 @@ class TestRealtime:
         with client.websocket_connect(f"{API_PREFIX}/realtime") as ws:
             ws.receive_json()  # Snapshot
 
-            app.adapters[0].set_value("light.exterior.entry", "ON")
+            app.adapters[0].set_value("water.pump.main", "ON")
 
             nachricht = ws.receive_json()
             assert nachricht["type"] == "delta"
-            assert nachricht["entity"]["entity_id"] == "light.exterior.entry"
+            assert nachricht["entity"]["entity_id"] == "water.pump.main"
             assert nachricht["entity"]["state"]["value"] == "ON"
 
     def test_unbekannter_wert_kommt_ohne_zahl_an(

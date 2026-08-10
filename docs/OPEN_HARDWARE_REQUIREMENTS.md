@@ -297,14 +297,20 @@ belastbar darstellen und beschränkt sich auf `UNKNOWN` (Kapitel 18 §32, §106)
 
 ## F – Licht
 
-### F1 · Lichtkreise — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+### F1 · Lichtkreise — `ENTFÄLLT` (2026-08-10)
 
-- Liste aller Lichtkreise mit gewünschter Bezeichnung und Raumzuordnung
-- je Kreis: nur schaltbar oder dimmbar?
-- bei dimmbar: Ansteuerung (0–10 V, PWM, DALI) und Wertebereich
+**Antwort:** Die Beleuchtung wird **nicht** über die SPS gesteuert. Es sind
+gewöhnliche Lichtschalter verbaut.
 
-> Kapitel 18 §25: RGB wird **nicht** angenommen und erscheint nicht in der
-> Oberfläche, solange kein Lichtkreis als RGB-fähig konfiguriert ist.
+Damit gibt es keine Lichtentities, keinen Lichtbereich in der Oberfläche und
+keinen Reiter. Das ist keine Lücke, die später gefüllt wird — was nicht
+angebunden ist, erscheint nicht (Kapitel 12 §55, Kapitel 13 §60).
+
+> Sollte später doch ein Lichtkreis auf die SPS geführt werden, ist der Weg
+> derselbe wie bei jeder anderen Funktion: Entity in
+> `config/vehicle/vehicle.yaml` eintragen, Adresse in `config/hardware/`
+> ergänzen. Ein eigener Bereich in der Oberfläche lohnt sich erst, wenn es
+> mehr als eine Handvoll Kreise gibt.
 
 ---
 
@@ -434,7 +440,7 @@ A5 vorhandene Sicherheitsverriegelungen · I3 Netztrennung
 *(A1 und I1 sind geklärt.)*
 
 **Danach, für den sinnvollen Alltagsbetrieb:**
-B1 Cerbo-Schnittstelle · C1/C2 Tanksensorik und Kapazitäten · F1 Lichtkreise ·
+B1 Cerbo-Schnittstelle · C1 Tanksensorik ·
 E1/E3 Garagen- und Verriegelungsrückmeldungen · I4 Display
 
 **Zuletzt und bewusst nicht zuerst:**

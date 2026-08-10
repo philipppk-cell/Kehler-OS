@@ -146,9 +146,13 @@
 
 /* ── Schnellzugriff ──────────────────────────────────────────────────── */
 
+/* Zwei Spalten statt drei: Seit die Beleuchtung entfallen ist, bleiben vier
+   Schnellzugriffe. In drei Spalten stünde einer allein in der zweiten Reihe;
+   in zwei Spalten entsteht ein geschlossenes Feld — und die Flächen werden
+   größer, was im fahrenden Fahrzeug hilft (Kapitel 7 §13). */
 .quickgrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-2);
 }
 

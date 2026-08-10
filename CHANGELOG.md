@@ -195,6 +195,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Entfernt — Lichtsteuerung
+
+- **Die Beleuchtung wird nicht über die SPS gesteuert**, sondern über
+  gewöhnliche Lichtschalter (Angabe vom 2026-08-10). Entfernt wurden deshalb
+  der Reiter „Licht", die Lichtentities aus der Fahrzeugkonfiguration, die
+  Lichtkacheln im Schnellzugriff und die zugehörigen Texte und Symbole.
+- Das ist keine Lücke, die später gefüllt wird: Was nicht angebunden ist,
+  erscheint nicht (Kapitel 12 §55). Offener Punkt F1 ist damit erledigt statt
+  offen.
+- Der Schnellzugriff hat dadurch vier statt sechs Kacheln und steht jetzt in
+  zwei Spalten. In drei Spalten stünde eine Kachel allein in der zweiten
+  Reihe; in zwei entsteht ein geschlossenes Feld mit größeren Flächen.
+
 ### Geändert — dunkleres Rot
 
 - Das Rot ist deutlich tiefer und ernster. Dabei ist es in **zwei

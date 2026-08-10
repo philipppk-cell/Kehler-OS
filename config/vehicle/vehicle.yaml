@@ -240,30 +240,13 @@ entities:
     deadband: 0.2
     expected_interval_s: 60
 
-  # ── Licht ─────────────────────────────────────────────────────────────────
-  # VORLÄUFIG: Die Liste der Lichtkreise ist angenommen, nicht bestätigt
-  # (offener Punkt F1). Sie wird ersetzt, sobald die echten Kreise vorliegen.
+  # ── Licht ────────────────────────────────────────────────────────────────
+  # BESTÄTIGT (2026-08-10): Die Beleuchtung wird **nicht** über die SPS
+  # gesteuert, sondern über gewöhnliche Lichtschalter. Es gibt hier deshalb
+  # keine Lichtentities — und in der Oberfläche keinen Lichtbereich.
   #
-  # Nur schaltbar. Kein Kreis ist als dimmbar konfiguriert, deshalb zeigt die
-  # Oberfläche keinen Regler (Kapitel 12 §55).
-
-  - id: light.interior.living
-    name_key: light.living
-    type: switch
-    area: living
-    timeout_ms: 1500
-
-  - id: light.interior.kitchen
-    name_key: light.kitchen
-    type: switch
-    area: kitchen
-    timeout_ms: 1500
-
-  - id: light.exterior.entry
-    name_key: light.entry
-    type: switch
-    area: exterior
-    timeout_ms: 1500
+  # Das ist keine Lücke, die später gefüllt wird: Was nicht angebunden ist,
+  # erscheint nicht (Kapitel 12 §55, Kapitel 13 §60).
 
   # ── Aufbau ────────────────────────────────────────────────────────────────
   # BESTÄTIGT durch die Fotos: Heckklappe (oben angeschlagen, hebt nach oben),

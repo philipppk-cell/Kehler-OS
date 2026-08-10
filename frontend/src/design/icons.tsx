@@ -40,14 +40,6 @@ export const IconDashboard = (p: IconProps) => (
   </Icon>
 );
 
-export const IconLight = (p: IconProps) => (
-  <Icon {...p}>
-    <path d="M9 18h6" />
-    <path d="M10 21h4" />
-    <path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1 1 1.7V16h5v-.4c0-.7.4-1.3 1-1.7A6 6 0 0 0 12 3Z" />
-  </Icon>
-);
-
 export const IconEnergy = (p: IconProps) => (
   <Icon {...p}>
     <path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2Z" />

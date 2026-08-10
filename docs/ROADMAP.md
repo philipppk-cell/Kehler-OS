@@ -129,23 +129,29 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    augenblicklichen Verbrauchs gekennzeichnet und entfällt beim Laden.
 
    Offen bleibt die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
-3. **Licht** — Kreise, Gruppen
-4. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung
-5. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen
-6. **Garage**
-7. **Einstellungen**
-8. **Diagnose**
-9. **Nivellierung** — bewusst spät, siehe unten
-10. **Kameras** — abhängig von realer Hardware
+3. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung
+4. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen
+5. **Garage**
+6. **Einstellungen**
+7. **Diagnose**
+8. **Nivellierung** — bewusst spät, siehe unten
+9. **Kameras** — abhängig von realer Hardware
+
+> **Licht entfällt vollständig** (2026-08-10). Die Beleuchtung läuft über
+> gewöhnliche Lichtschalter und nicht über die SPS. Es gibt weder Entities
+> noch einen Reiter — was nicht angebunden ist, erscheint nicht. Punkt F1 ist
+> damit erledigt statt offen.
 
 > **Begründung der Abweichung** (Kapitel 18 §138): Kapitel 18 §90 beginnt mit
-> Licht. Wasser steht hier zuerst, weil es rein lesend ist und damit die
-> gesamte Kette von Sensorskalierung über Qualitätszustände und
+> Licht — das entfällt hier ersatzlos, weil die Beleuchtung nicht auf der SPS
+> liegt. Wasser steht stattdessen zuerst, weil es rein lesend ist und damit
+> die gesamte Kette von Sensorskalierung über Qualitätszustände und
 > Schwellenwarnungen bis zur Historie durchspielt, **ohne** einen einzigen
-> Aktor zu bewegen. Licht ist die erste schreibende Funktion und folgt
-> unmittelbar. Nivellierung steht zuletzt, weil Kapitel 18 §91 Hydraulik
-> ausdrücklich nicht am Anfang sehen will — was für die reale Integration gilt
-> und sinnvollerweise auch für die Modulreihenfolge.
+> Aktor zu bewegen. Die ersten schreibenden Funktionen sind stattdessen die
+> Wasserpumpe und der Wechselrichter. Nivellierung steht zuletzt, weil
+> Kapitel 18 §91 Hydraulik ausdrücklich nicht am Anfang sehen will — was für
+> die reale Integration gilt und sinnvollerweise auch für die
+> Modulreihenfolge.
 
 ### M6 – Automatisierungen · `PLANNED`
 
