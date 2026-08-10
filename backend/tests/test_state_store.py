@@ -103,6 +103,38 @@ class TestAlterung:
         state.apply("water.pump.main", StateValue.valid("ON", measured_at=alt))
         assert state.sweep_stale() == []
 
+    def test_ein_ruhiger_fuehler_altert_nicht(self, state: StateStore):
+        """Ein Wert, der sich nicht bewegt, ist nicht dasselbe wie ein Fühler,
+        der schweigt.
+
+        Das Deadband unterdrückt die Meldung, nicht den Empfang. Vorher blieb
+        mit der Meldung auch der Zeitstempel stehen, und ein völlig gesunder
+        Fühler wurde nach dem erwarteten Intervall als ``STALE`` geführt —
+        ein voller Frischwassertank am stehenden Fahrzeug hätte nach dem
+        doppelten Intervall ``UNKNOWN`` gemeldet.
+        """
+        alt = utcnow() - timedelta(seconds=5)
+        state.apply("water.tank.fresh", StateValue.valid(64.0, measured_at=alt))
+
+        # Der Fühler meldet weiter — nur eben fast denselben Wert. Das liegt
+        # innerhalb des Deadbands von 0,5 und erzeugt deshalb kein Delta.
+        assert state.apply("water.tank.fresh", StateValue.valid(64.1)) is None
+
+        assert state.sweep_stale() == [], "Ein meldender Fühler darf nicht altern"
+        assert state.require("water.tank.fresh").state.value == 64.0, (
+            "Der unterdrückte Wert darf den angezeigten nicht ersetzen — "
+            "sonst wäre das Deadband wirkungslos"
+        )
+
+    def test_verstummter_fuehler_altert_weiterhin(self, state: StateStore):
+        """Die Gegenprobe: Wer nichts mehr meldet, altert wie zuvor."""
+        alt = utcnow() - timedelta(seconds=5)
+        state.apply("water.tank.fresh", StateValue.valid(64.0, measured_at=alt))
+
+        deltas = state.sweep_stale()
+        assert len(deltas) == 1
+        assert deltas[0].entity_state.state.quality is Quality.STALE
+
 
 class TestQuellenausfall:
     def test_ausfall_setzt_auf_unbekannt_nicht_auf_null(self, state: StateStore):

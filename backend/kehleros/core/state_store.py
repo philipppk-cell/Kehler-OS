@@ -147,6 +147,10 @@ class StateStore:
 
         Gibt ``None`` zurück, wenn sich nichts Nennenswertes geändert hat —
         dann entsteht auch kein Ereignis und keine Netzlast (Kapitel 13 §65).
+
+        **„Nichts Nennenswertes geändert" heißt nicht „nichts gehört".** Der
+        Zeitbezug wird auch dann nachgeführt, wenn der Wert unterdrückt wird
+        — siehe :meth:`_touch`.
         """
         current = self._states.get(entity_id)
         if current is None:
@@ -158,6 +162,7 @@ class StateStore:
 
         previous = current.attributes.get(attribute) if attribute else current.state
         if not force and not value.differs_from(previous, deadband=deadband):
+            self._touch(current, value, attribute)
             return None
 
         if attribute:
@@ -168,6 +173,48 @@ class StateStore:
             updated = replace(current, state=value)
 
         return self._commit(updated)
+
+    def _touch(
+        self, current: EntityState, value: StateValue, attribute: str | None
+    ) -> None:
+        """Führt den Zeitbezug nach, ohne eine Änderung zu melden.
+
+        Das Deadband unterdrückt die **Meldung**, nicht den **Empfang**. Diese
+        Unterscheidung ist nicht spitzfindig, sie war ein Fehler:
+
+        Ein Wert, der sich nicht bewegt, wurde nicht übernommen — und damit
+        blieb sein Zeitstempel stehen. Die Alterung (:meth:`sweep_stale`)
+        rechnet aber gegen genau diesen Zeitstempel. Ein völlig gesunder
+        Fühler, der schlicht nichts Neues zu melden hat, wurde deshalb nach
+        dem erwarteten Intervall als ``STALE`` und nach dem doppelten als
+        ``UNKNOWN`` geführt. Beim Ladezustand mit Deadband 0,5 % und
+        erwartetem Intervall 10 s trat das im laufenden Betrieb regelmäßig
+        auf; ein stehendes Fahrzeug mit vollem Frischwassertank hätte nach
+        20 Sekunden „Unbekannt" angezeigt, obwohl der Tank meldet.
+
+        Das ist der gefährlichere der beiden möglichen Fehler. Einen alten
+        Wert als aktuell auszugeben wäre falsch — aber einen aktuellen Wert
+        für unbekannt zu erklären, entwertet die Kennzeichnung selbst: Wer
+        „Veraltet" oft genug an gesunden Werten sieht, glaubt ihm nicht mehr,
+        wenn es zählt.
+
+        Es entsteht bewusst kein Delta, keine neue Sequenznummer und keine
+        Netzlast — die Oberfläche hat schon den richtigen Wert. Nur die Uhr
+        geht weiter.
+        """
+        stored = current.attributes.get(attribute) if attribute else current.state
+        if stored is None:
+            return
+
+        refreshed = replace(
+            stored, measured_at=value.measured_at, received_at=value.received_at
+        )
+        if attribute:
+            attributes = dict(current.attributes)
+            attributes[attribute] = refreshed
+            self._states[current.entity_id] = replace(current, attributes=attributes)
+        else:
+            self._states[current.entity_id] = replace(current, state=refreshed)
 
     def set_link(self, entity_id: str, link: LinkState) -> StateDelta | None:
         """Setzt den Verbindungszustand einer Entity.

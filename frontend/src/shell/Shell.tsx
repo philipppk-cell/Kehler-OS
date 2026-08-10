@@ -17,7 +17,6 @@ import {
   IconDashboard,
   IconDiagnostics,
   IconEnergy,
-  IconGarage,
   IconHeating,
   IconLeveling,
   IconSettings,
@@ -30,11 +29,16 @@ import "./shell.css";
 
 export type PageId =
   | "dashboard" | "energy" | "water" | "climate" | "heating"
-  | "leveling" | "vehicle" | "cameras" | "garage" | "settings" | "diagnostics";
+  | "leveling" | "vehicle" | "cameras" | "settings" | "diagnostics";
 
 /* Klima und Heizung stehen als zwei Einträge nebeneinander, weil es zwei
    Systeme sind (BESTÄTIGT 2026-08-10). Ein Eintrag mit zwei Unterseiten
-   würde sie als ein System darstellen. */
+   würde sie als ein System darstellen.
+
+   „Garage" stand hier ebenfalls und ist entfallen. Der Bereich enthielt genau
+   eine Entity — das Garagentor —, und die steht mit allen Fahrbefehlen auf
+   der Fahrzeugseite. Ein eigener Reiter dafür hätte einen Bereich behauptet,
+   wo eine Zeile ist. */
 const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "dashboard", icon: <IconDashboard /> },
   { id: "energy", icon: <IconEnergy /> },
@@ -44,7 +48,6 @@ const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "leveling", icon: <IconLeveling /> },
   { id: "vehicle", icon: <IconVehicle /> },
   { id: "cameras", icon: <IconCamera /> },
-  { id: "garage", icon: <IconGarage /> },
   { id: "settings", icon: <IconSettings /> },
   { id: "diagnostics", icon: <IconDiagnostics /> },
 ];

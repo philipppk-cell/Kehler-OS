@@ -102,6 +102,26 @@ _RANGES: dict[str, tuple[float, float, float, float]] = {
 }
 
 
+SETTABLE_KINDS = frozenset({"measure", "setpoint"})
+"""Gerätearten, deren Wert sich gezielt setzen lässt.
+
+Steht hier und nicht zweimal im Code: ``set_level`` prüft danach, und die
+Diagnose meldet danach, welche Entities das anbieten dürfen. Zwei Listen
+derselben Sache laufen unweigerlich auseinander — und dann bietet die
+Oberfläche eine Schaltfläche an, die nur eine Fehlermeldung erzeugt.
+"""
+
+MOTION_ONLY_FAULTS = frozenset({Fault.BLOCKED})
+"""Fehlerbilder, die nur an beweglichen Teilen etwas bewirken.
+
+``BLOCKED`` wird ausschließlich im Bewegungsablauf ausgewertet. An einem
+Ladezustand ließe es sich zwar setzen, aber nichts würde geschehen — die
+Oberfläche böte eine Schaltfläche ohne Wirkung an, und das ist schlimmer als
+gar keine: Wer sie drückt und nichts sieht, sucht den Fehler anschließend an
+der falschen Stelle.
+"""
+
+
 @dataclass
 class _Device:
     """Ein simuliertes Gerät."""
@@ -454,7 +474,7 @@ class SimulationAdapter(Adapter):
         device = self._devices.get(entity_id)
         if device is None:
             raise KeyError(f"Kein simuliertes Gerät für '{entity_id}'")
-        if device.kind not in ("measure", "setpoint"):
+        if device.kind not in SETTABLE_KINDS:
             raise ValueError(f"'{entity_id}' ist kein Messwert")
 
         low, high = device.bounds
@@ -478,6 +498,36 @@ class SimulationAdapter(Adapter):
             entity_id: device.fault.value
             for entity_id, device in self._devices.items()
             if device.fault is not Fault.NONE
+        }
+
+    def diagnostics(self) -> dict[str, object]:
+        """Was sich an dieser Simulation überhaupt auslösen lässt — je Entity.
+
+        Die Diagnoseoberfläche fragt das ab, statt es zu wissen. Der
+        Unterschied ist praktisch: Nicht jede Entity ist simuliert — ein
+        ``status`` ohne bekannte Zustandsnamen wird bewusst ausgelassen, weil
+        der Simulator sonst raten müsste —, nur Messwerte und Sollwerte lassen
+        sich auf einen Stand setzen, und ``BLOCKED`` bewirkt nur an
+        beweglichen Teilen etwas. Würde die Oberfläche das nachbilden, hätte
+        sie eine zweite Wahrheit über den Simulator, und eine der beiden wäre
+        irgendwann falsch.
+
+        Deshalb wird je Entity gemeldet, was geht, und nicht eine
+        Gesamtliste, aus der die Oberfläche selbst herleiten müsste, was davon
+        wo gilt.
+        """
+        return {
+            "entities": {
+                entity_id: {
+                    "faults": [
+                        fault.value
+                        for fault in Fault
+                        if device.kind == "motion" or fault not in MOTION_ONLY_FAULTS
+                    ],
+                    "settable": device.kind in SETTABLE_KINDS,
+                }
+                for entity_id, device in sorted(self._devices.items())
+            }
         }
 
     def set_value(self, entity_id: str, value: object) -> None:

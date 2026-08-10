@@ -178,12 +178,43 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
 
    Bewusst **nicht** enthalten: Fenster und Verriegelungen (keine Entities,
    also keine Bedienelemente) und eine Gesamtbewertung „abfahrbereit" (W11).
-5. **Garage** — voraussichtlich entfallend: Das Garagentor ist ein
-   bewegliches Aufbauteil und steht vollständig auf der Fahrzeugseite. Ein
-   eigener Reiter mit einem einzigen Bedienelement wäre eine Verdopplung.
-   Bleibt vorerst als Platzhalter stehen, bis der Fahrzeughalter entscheidet.
-6. **Einstellungen**
-7. **Diagnose**
+5. **Garage** — **entfallen.** Das Garagentor ist ein bewegliches Aufbauteil
+   und steht mit allen Fahrbefehlen auf der Fahrzeugseite; der Bereich
+   enthielt genau diese eine Entity. Ein eigener Reiter hätte einen Bereich
+   behauptet, wo eine Zeile ist. Navigationseintrag und Platzhalterseite sind
+   entfernt.
+6. **Diagnose** · `ERREICHT` — vorgezogen vor Einstellungen, weil die
+   Hardware-Inbetriebnahme näher liegt als die Einstellungen: Sobald der
+   Modbus-Draht liegt und die SPS angebunden wird, ist dies das Werkzeug, mit
+   dem sich beantworten lässt, ob ein Wert ankommt.
+
+   Kern der Seite ist die **Entity-Tabelle**: jede Entity mit Kennung,
+   Verbindung, Qualität, Rohwert, Quelle und Rückstand, durchsuchbar über
+   Name *und* Kennung. Sie unterscheidet die drei Arten von Abwesenheit, die
+   das ganze System unterscheidet — „nicht konfiguriert" (offene Zuordnung),
+   „noch zu verifizieren" (offene Frage) und „auffällig" (tatsächliche
+   Störung). Der Filter „Auffällig" schließt die ersten beiden aus; sonst
+   bestünde er dauerhaft aus bekannten offenen Punkten.
+
+   Der **Rückstand** rechnet bewusst nicht gegen die Uhr des Tablets, sondern
+   gegen den jüngsten Zeitstempel des Systems: Ein Fahrzeug ohne dauerhafte
+   Internetverbindung hat regelmäßig abweichende Uhren, und „vor drei
+   Stunden" an einem eben eingetroffenen Wert wäre ausgerechnet hier die
+   schädlichste Falschauskunft. Gelesen wird er gegen `expected_interval_s`:
+   Wo keine regelmäßige Meldung erwartet wird — ein Garagentor —, ist ein
+   stehender Zeitstempel der Normalzustand und wird gedämpft dargestellt.
+
+   Die **Simulationswerkzeuge** (Kapitel 18 §65) sind damit erstmals bedienbar
+   statt nur als Endpunkt vorhanden. Welche Fehlerbilder eine Entity annimmt
+   und ob sich ihr Wert setzen lässt, meldet der Adapter je Entity; die
+   Oberfläche führt darüber keine eigene Liste. Im Produktivbetrieb sind die
+   Werkzeuge nicht vorhanden — die Absicherung liegt im Backend, das
+   Ausblenden ist nur die Folge.
+
+   Zwei Fehler kamen dabei heraus, siehe CHANGELOG: ein gesunder, ruhiger
+   Fühler alterte fälschlich zu `STALE` und `UNKNOWN`, und zwei getrennt
+   gerechnete Zähler ergaben mehr offene Punkte als es Entities gibt.
+7. **Einstellungen**
 8. **Nivellierung** — bewusst spät, siehe unten
 9. **Kameras** — abhängig von realer Hardware
 
@@ -257,9 +288,13 @@ Kiosk-Betrieb, Autostart, Update- und Rollback-Weg, vollständige Dokumentation.
 
 **Bestätigt am 2026-08-09.**
 
-**Enthalten:** Dashboard, Wasser, Energie, Klima, Heizung, Fahrzeug, Garage,
+**Enthalten:** Dashboard, Wasser, Energie, Klima, Heizung, Fahrzeug,
 Einstellungen, Diagnose, Automatisierungen, Benutzer und Berechtigungen,
 reale SPS- und Victron-Anbindung, Backup/Restore, Kiosk-Betrieb.
+
+*Garage ist seit dem 2026-08-10 kein eigener Bereich mehr — das Garagentor
+steht vollständig auf der Fahrzeugseite. Der Funktionsumfang ändert sich
+dadurch nicht, nur die Navigation.*
 
 *Licht ist seit dem 2026-08-10 nicht mehr enthalten — die Beleuchtung liegt
 nicht auf der SPS. Klima und Heizung stehen dafür einzeln, weil es zwei

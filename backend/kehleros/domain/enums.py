@@ -112,6 +112,11 @@ _FINAL_PHASES = frozenset(
         CommandPhase.FAILED,
         CommandPhase.TIMEOUT,
         CommandPhase.REJECTED,
+        # Abgelöst ist endgültig: Der Befehl wurde von einem Stopp beendet
+        # und läuft nicht weiter. Ihn hier auszulassen hieße, dass
+        # `is_final` bei genau der Phase falsch antwortet, die zuletzt
+        # dazugekommen ist.
+        CommandPhase.SUPERSEDED,
     }
 )
 

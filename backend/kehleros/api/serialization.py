@@ -39,6 +39,11 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
         "unit": entity.unit,
         "configured": entity.configured,
         "unverified": entity.unverified,
+        # Ob überhaupt regelmäßige Aktualisierungen erwartet werden. Ohne
+        # diese Angabe ließe sich ein stehender Zeitstempel nicht deuten:
+        # Bei einem Fühler wäre er ein Befund, bei einem Garagentor, das
+        # sich seit gestern nicht bewegt hat, der Normalzustand.
+        "expected_interval_s": entity.expected_interval_s,
         "capacity_l": entity.capacity_l,
         "capacity_ah": entity.capacity_ah,
         "nominal_voltage": entity.nominal_voltage,

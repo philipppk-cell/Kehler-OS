@@ -63,6 +63,16 @@ export interface EntityDefinition {
    */
   unverified: boolean;
 
+  /**
+   * Erwartetes Aktualisierungsintervall in Sekunden.
+   *
+   * `null` heißt: Es werden keine regelmäßigen Meldungen erwartet. Erst damit
+   * lässt sich ein stehender Zeitstempel deuten — bei einem Fühler ist er ein
+   * Befund, bei einem Garagentor, das sich seit gestern nicht bewegt hat, der
+   * Normalzustand.
+   */
+  expected_interval_s: number | null;
+
   /** Tankkapazität in Litern. `null` heißt: keine Literangabe. */
   capacity_l: number | null;
   /** Batteriekapazität und Nennspannung. Beide nötig für den Energieinhalt. */

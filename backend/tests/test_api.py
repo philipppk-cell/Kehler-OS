@@ -18,6 +18,7 @@ from kehleros.api.http import API_PREFIX, create_app
 from kehleros.application import Application
 from kehleros.config.loader import load_vehicle
 from kehleros.config.models import Settings
+from kehleros.domain.enums import Environment
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -50,6 +51,96 @@ class TestSystem:
         payload = client.get(f"{API_PREFIX}/diagnostics/services").json()
         assert "simulation" in payload
         assert "stale-sweep" in payload
+
+
+class TestSimulationswerkzeuge:
+    """Die Diagnoseoberfläche fragt ab, was sich auslösen lässt.
+
+    Sie darf es nicht selbst wissen: Sonst gäbe es zwei Listen derselben
+    Sache, und die Oberfläche böte irgendwann Schaltflächen an, die der
+    Server abweist.
+    """
+
+    def test_blockiert_gibt_es_nur_an_beweglichen_teilen(self, client: TestClient):
+        """``BLOCKED`` wird ausschließlich im Bewegungsablauf ausgewertet.
+
+        An einem Ladezustand ließe es sich setzen, ohne dass etwas geschieht —
+        eine Schaltfläche ohne Wirkung schickt den Suchenden an die falsche
+        Stelle.
+        """
+        entities = client.get(f"{API_PREFIX}/diagnostics/simulation").json()["entities"]
+
+        assert "BLOCKED" in entities["vehicle.garage.door"]["faults"]
+        assert "BLOCKED" not in entities["energy.battery.soc"]["faults"]
+
+        # Alles außer BLOCKED wirkt überall: Ein Fühler kann unplausibel
+        # werden, einen Defekt melden oder verstummen — ein Garagentor auch.
+        ueberall = {f.value for f in Fault} - {"BLOCKED"}
+        for entity_id, tools in entities.items():
+            assert ueberall <= set(tools["faults"]), entity_id
+
+    def test_setzbar_ist_eine_echte_teilmenge_der_simulierten(self, client: TestClient):
+        """Ein Messwert lässt sich setzen, ein Garagentor nicht.
+
+        Wäre das nicht unterschieden, böte die Oberfläche am Garagentor ein
+        Eingabefeld an, das nur eine Fehlermeldung erzeugt.
+        """
+        entities = client.get(f"{API_PREFIX}/diagnostics/simulation").json()["entities"]
+
+        assert entities["water.tank.fresh.large"]["settable"] is True
+        assert entities["vehicle.garage.door"]["settable"] is False
+        assert any(not tools["settable"] for tools in entities.values())
+
+    def test_gemeldete_werte_lassen_sich_auch_wirklich_setzen(self, client: TestClient):
+        """Die Zusage wird eingelöst — für jede genannte Entity.
+
+        Das ist der eigentliche Punkt dieses Endpunkts: Nicht dass er eine
+        Auskunft liefert, sondern dass die Auskunft stimmt.
+        """
+        entities = client.get(f"{API_PREFIX}/diagnostics/simulation").json()["entities"]
+
+        for entity_id, tools in entities.items():
+            if not tools["settable"]:
+                continue
+            antwort = client.post(
+                f"{API_PREFIX}/diagnostics/simulation/level",
+                json={"entity_id": entity_id, "value": 42},
+            )
+            assert antwort.status_code == 200, f"{entity_id} ließ sich nicht setzen"
+
+    def test_nicht_gemeldete_entity_wird_abgewiesen(self, client: TestClient):
+        """Und umgekehrt: Was nicht genannt ist, geht auch nicht."""
+        antwort = client.post(
+            f"{API_PREFIX}/diagnostics/simulation/level",
+            json={"entity_id": "vehicle.garage.door", "value": 42},
+        )
+        assert antwort.status_code == 422
+
+    def test_im_produktivbetrieb_gibt_es_keine_werkzeuge(self):
+        """Kein Fehlerbild darf je an realer Hardware vorgetäuscht werden
+        (Kapitel 15 §96).
+
+        Die Oberfläche blendet die Werkzeuge daraufhin aus. Die Absicherung
+        ist aber nicht das Ausblenden, sondern dass es hier nichts zu holen
+        gibt.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        produktiv = Application(Settings(environment=Environment.PRODUCTION), vehicle)
+
+        with TestClient(create_app(produktiv)) as client:
+            payload = client.get(f"{API_PREFIX}/diagnostics/simulation").json()
+            assert payload == {"available": False, "entities": {}}
+
+            for pfad in ("fault", "level"):
+                antwort = client.post(
+                    f"{API_PREFIX}/diagnostics/simulation/{pfad}",
+                    json={
+                        "entity_id": "water.tank.fresh.large",
+                        "fault": "SENSOR_ERROR",
+                        "value": 42,
+                    },
+                )
+                assert antwort.status_code == 404
 
 
 class TestEntities:

@@ -36,7 +36,9 @@ const de: Record<string, string> = {
   "nav.leveling": "Nivellierung",
   "nav.vehicle": "Fahrzeug",
   "nav.cameras": "Kameras",
-  "nav.garage": "Garage",
+  // „Garage" hatte einen eigenen Reiter. Er ist entfallen: Dahinter lag genau
+  // ein Tor, und das steht vollständig auf der Fahrzeugseite. Ein Reiter, der
+  // eine Zeile zeigt, verspricht einen Bereich, den es nicht gibt.
   "nav.settings": "Einstellungen",
   "nav.diagnostics": "Diagnose",
 
@@ -324,6 +326,103 @@ const de: Record<string, string> = {
   // Die Bewegung hat geantwortet — nur nicht mit dem Ziel.
   "cmd.ended.BLOCKED": "Die Bewegung wurde blockiert und angehalten",
   "cmd.ended.STOPPED": "Die Bewegung wurde gestoppt",
+
+  // ── Diagnose ─────────────────────────────────────────────────────────
+  // Die einzige Seite, auf der technische Begriffe stehen dürfen
+  // (Kapitel 7 §43). Sie werden trotzdem übersetzt: „Nicht erreichbar" ist
+  // auch für den, der die Anlage baut, verständlicher als „OFFLINE" — und
+  // die Kennung steht ohnehin daneben.
+  "diag.system": "System",
+  "diag.version": "Version",
+  "diag.environment": "Betriebsart",
+  "diag.health": "Zustand",
+  "diag.entities": "Entities",
+  "diag.unconfigured": "Nicht konfiguriert",
+  "diag.unverified": "Zu verifizieren",
+  "diag.stateVersion": "Zustandsversion",
+
+  "diag.services": "Dienste",
+  "diag.restarts": "{count} Neustarts",
+  "diag.adapters": "Adapter",
+  "diag.adapterEntities": "{count} Entities",
+  "diag.noAdapters": "Kein Adapter aktiv — es fließen keine Werte",
+  "diag.alerts": "Meldungen",
+  "diag.alertCountHint": "Störungen von Meldungen insgesamt — der Rest sind Hinweise",
+
+  "diag.entityList": "Entities",
+  "diag.searchHint": "Nach Name oder Kennung suchen",
+  "diag.scope": "Auswahl",
+  "diag.scopeAll": "Alle",
+  "diag.scopeIssues": "Auffällig",
+  "diag.scopeOpen": "Offen",
+  "diag.noMatch": "Keine Entity passt zu dieser Auswahl",
+
+  "diag.colName": "Name",
+  "diag.colId": "Kennung",
+  "diag.colLink": "Verbindung",
+  "diag.colQuality": "Qualität",
+  "diag.colValue": "Wert",
+  "diag.colSource": "Quelle",
+  "diag.colLag": "Rückstand",
+  "diag.lagNote":
+    "Der Rückstand vergleicht den Zeitstempel eines Wertes mit dem jüngsten Zeitstempel des Systems — nicht mit der Uhr dieses Geräts. Beide Uhren gehen im Fahrzeug regelmäßig auseinander. Gedämpft heißt: Für diese Entity werden gar keine regelmäßigen Meldungen erwartet, ein stehender Zeitstempel ist dort normal. Hervorgehoben heißt: Das erwartete Intervall ist überschritten.",
+  "diag.lagNoInterval": "Für diese Entity wird keine regelmäßige Meldung erwartet",
+  "diag.lagExpected": "Erwartet alle {seconds} s",
+
+  // Verbindungszustände
+  "link.INITIALIZING": "Startet",
+  "link.ONLINE": "Verbunden",
+  "link.DEGRADED": "Eingeschränkt",
+  "link.RECONNECTING": "Verbindet neu",
+  "link.OFFLINE": "Nicht erreichbar",
+  "link.ERROR": "Fehler",
+  "link.UNKNOWN": "Unbekannt",
+  "link.NOT_CONFIGURED": "Nicht konfiguriert",
+
+  // Wertqualität
+  "quality.VALID": "Gültig",
+  "quality.STALE": "Veraltet",
+  "quality.UNKNOWN": "Unbekannt",
+  "quality.INVALID": "Unplausibel",
+  "quality.ERROR": "Fehler",
+
+  // Dienstzustände
+  "service.STOPPED": "Gestoppt",
+  "service.STARTING": "Startet",
+  "service.RUNNING": "Läuft",
+  "service.RESTARTING": "Startet neu",
+  "service.FAILED": "Dauerhaft gestört",
+
+  // Dringlichkeit
+  "severity.INFO": "Hinweis",
+  "severity.NOTICE": "Beachten",
+  "severity.WARNING": "Warnung",
+  "severity.CRITICAL": "Kritisch",
+
+  // Betriebsarten
+  "env.development": "Entwicklung",
+  "env.production": "Produktivbetrieb",
+
+  // Simulationswerkzeuge
+  "diag.simTitle": "Simulation — Fehlerbilder auslösen",
+  "diag.simHint":
+    "Diese Werkzeuge gibt es ausschließlich in der Simulation. Sie erreichen keine reale Fahrzeughardware; im Produktivbetrieb sind sie nicht vorhanden.",
+  "diag.simSelected": "Ausgewählt",
+  "diag.simNoSelection": "Zeile in der Tabelle antippen",
+  "diag.simFault": "Fehlerbild",
+  "diag.simLevel": "Wert setzen",
+  "diag.simApply": "Übernehmen",
+  "diag.simDone": "Übernommen",
+  "diag.simNotSimulated":
+    "Diese Entity wird nicht simuliert — dafür lässt sich kein Fehlerbild auslösen.",
+  "diag.simNotSettable":
+    "Nur Mess- und Sollwerte lassen sich auf einen Stand setzen.",
+
+  "sim.fault.NONE": "Zurücknehmen",
+  "sim.fault.SENSOR_INVALID": "Unplausibel",
+  "sim.fault.SENSOR_ERROR": "Sensorfehler",
+  "sim.fault.SILENT": "Verstummt",
+  "sim.fault.BLOCKED": "Blockiert",
 
   // Platzhalter für noch nicht gebaute Seiten
   "page.comingSoon": "Dieser Bereich entsteht in einem späteren Schritt.",

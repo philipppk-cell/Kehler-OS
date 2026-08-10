@@ -1,0 +1,404 @@
+/* Diagnoseseite. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42).
+
+   Die einzige Seite mit dichter Tabellendarstellung. Das ist kein Bruch mit
+   Kapitel 7 §11 („nicht aus unzähligen kleinen Kästen"), sondern dessen
+   Gegenteil: Hundert Entities gehören in eine Liste und nicht in hundert
+   Karten. Die Zeilenhöhe bleibt trotzdem fingergerecht — auch eine Diagnose
+   wird auf dem iPad im Fahrzeug gelesen, nicht mit der Maus am Schreibtisch. */
+
+.diag {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.diag__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .diag__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.diag__count {
+  font-family: var(--font-numeric);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+.diag__note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-caption);
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.diag__feedback {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.diag__empty {
+  margin: 0;
+  padding: var(--space-6) 0;
+  text-align: center;
+  font-size: var(--text-body);
+  color: var(--text-tertiary);
+}
+
+/* ── Kennzahlen ──────────────────────────────────────────────────────────
+   Nebeneinander statt untereinander: Es sind sieben Zahlen, keine
+   Aufzählung, und man liest sie in einem Blick. */
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.fact__label {
+  font-size: var(--text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.fact__value {
+  margin: 0;
+  font-family: var(--font-numeric);
+  font-size: var(--text-h2);
+  color: var(--text-primary);
+}
+
+.fact__value--warn {
+  color: var(--warn);
+}
+
+/* ── Zeilenlisten (Dienste, Adapter, Meldungen) ──────────────────────── */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Die Meldungsliste enthält im Auslieferungszustand über zwanzig Hinweise —
+   für jede Funktion, der noch Hardware fehlt, einen. Ungebremst schiebt sie
+   die Entity-Tabelle, also die eigentliche Arbeitsfläche dieser Seite, weit
+   unter den sichtbaren Bereich. Sie bekommt deshalb ihre eigene Bildlaufhöhe.
+   Die Meldungen sind nach Dringlichkeit sortiert; oben steht damit immer das,
+   was zählt. */
+.rows--scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.srow,
+.arow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.srow:last-child,
+.arow:last-child {
+  border-bottom: none;
+}
+
+.srow__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.srow__meta {
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.srow__meta--warn {
+  color: var(--warn);
+}
+
+/* Der Rohtext des letzten Fehlers bekommt eine eigene Zeile: Er ist lang,
+   er wird selten gebraucht, und wenn er gebraucht wird, zählt jedes Zeichen
+   (Kapitel 7 §43). */
+.srow__error {
+  flex: 1 0 100%;
+  font-size: var(--text-caption);
+  color: var(--error);
+  overflow-wrap: anywhere;
+}
+
+.arow__entity {
+  flex: 0 0 auto;
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.arow__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+/* ── Filter ──────────────────────────────────────────────────────────── */
+
+.diag__filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+
+.input {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: var(--touch-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.input:disabled {
+  color: var(--text-disabled);
+  border-color: var(--border-subtle);
+}
+
+.input--narrow {
+  flex: 0 0 140px;
+  text-align: right;
+}
+
+.diag__scopes {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+}
+
+.scope {
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-caption);
+  cursor: pointer;
+}
+
+.scope--active {
+  background: var(--accent-wash-strong);
+  color: var(--accent-bright);
+}
+
+.scope:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Entity-Tabelle ──────────────────────────────────────────────────── */
+
+.dtable {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dtable__head,
+.dtable__row {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1.4fr) minmax(140px, 1.3fr) 120px 116px
+    minmax(90px, 0.8fr) 92px 72px;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dtable__head {
+  padding: 0 var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* Die Liste bekommt eine eigene Bildlaufhöhe, damit Kopfzeile und Filter
+   stehen bleiben. Ohne das scrollt man bei hundert Entities an den
+   Spaltenüberschriften vorbei und weiß nicht mehr, was in welcher Spalte
+   steht. */
+.dtable__body {
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.dtable__row {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: var(--space-2);
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.dtable__row:hover {
+  background: var(--surface-1);
+}
+
+.dtable__row--selected {
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.dtable__row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.dtable__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.dtable__id,
+.dtable__source {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+}
+
+.dtable__num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Ein stehender Zeitstempel ohne erwartete Meldung ist kein Befund — er wird
+   gezeigt, aber nicht betont. */
+.dtable__lag--idle {
+  color: var(--text-disabled);
+}
+
+.dtable__lag--overdue {
+  color: var(--warn);
+}
+
+.mono {
+  font-family: var(--font-numeric);
+  font-size: var(--text-caption);
+}
+
+/* Ein offener Punkt wird ruhig gekennzeichnet, nicht als Warnung — er ist
+   eine Aufgabe, keine Störung (Kapitel 18 §101). */
+.tag {
+  flex: 0 0 auto;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--text-label);
+  white-space: nowrap;
+}
+
+.tag--open {
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+}
+
+/* Auf schmalen Ansichten fallen Kennung und Quelle weg. Beide sind
+   Zusatzinformation; Name, Verbindung, Qualität und Wert sind es nicht. */
+@media (max-width: 1100px) {
+  .dtable__head,
+  .dtable__row {
+    grid-template-columns: minmax(140px, 1.6fr) 116px 116px minmax(80px, 0.8fr) 72px;
+  }
+
+  .dtable__id,
+  .dtable__source {
+    display: none;
+  }
+}
+
+/* ── Simulationswerkzeuge ────────────────────────────────────────────── */
+
+.sim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sim:last-of-type {
+  border-bottom: none;
+}
+
+.sim__label {
+  flex: 0 0 140px;
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.sim__target {
+  color: var(--text-primary);
+}
+
+.sim__controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

@@ -195,6 +195,88 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — M5: Diagnose
+
+- **Seite „Diagnose"** — die einzige Seite, auf der Kehler OS technische
+  Rohdaten zeigt (Kapitel 7 §43): Systemkennzahlen, Dienste mit
+  Neustartzähler, Adapter, Meldungen einschließlich der Stufe `INFO`, und als
+  Arbeitsfläche eine **Entity-Tabelle** mit Kennung, Verbindung, Qualität,
+  Rohwert, Quelle und Rückstand.
+- Die Tabelle hält die **drei Arten von Abwesenheit** auseinander, die das
+  System überall unterscheidet: „nicht konfiguriert" ist eine offene
+  Zuordnung, „noch zu verifizieren" eine offene Frage, „auffällig" eine
+  tatsächliche Störung. Der Filter „Auffällig" schließt die ersten beiden
+  ausdrücklich aus — sonst bestünde er dauerhaft aus den 25 bekannten offenen
+  Punkten und wäre für den einen Fall unbrauchbar, für den es ihn gibt.
+- Gesucht wird über **Kennung und übersetzten Namen**. Wer „Garage" tippt,
+  denkt nicht an `vehicle.garage.door`; wer die Kennung kennt, tippt sie.
+- Der **Rückstand** vergleicht Backend-Zeit mit Backend-Zeit: den Zeitstempel
+  eines Wertes gegen den jüngsten Zeitstempel des Systems, nicht gegen die Uhr
+  des Tablets. Ein Fahrzeug ohne dauerhafte Internetverbindung hat regelmäßig
+  abweichende Uhren, und „vor drei Stunden" an einem eben eingetroffenen Wert
+  wäre ausgerechnet auf dieser Seite die schädlichste Falschauskunft.
+  Gelesen wird er gegen `expected_interval_s`, das die API dafür neu
+  mitliefert: Wo keine regelmäßige Meldung erwartet wird — ein Garagentor —,
+  ist ein stehender Zeitstempel der Normalzustand und wird gedämpft
+  dargestellt statt als Befund.
+- Die **Simulationswerkzeuge** aus Kapitel 18 §65 sind damit erstmals
+  bedienbar und nicht nur als Endpunkt vorhanden: Fehlerbilder auslösen und
+  Messwerte auf einen Stand setzen, beides an der in der Tabelle ausgewählten
+  Entity.
+- Was dabei möglich ist, meldet der Adapter **je Entity** über
+  `GET /api/v1/diagnostics/simulation`; die Oberfläche führt darüber keine
+  eigene Liste. Das ist nicht dieselbe Auskunft für alle: Nur Mess- und
+  Sollwerte lassen sich setzen, `BLOCKED` bewirkt ausschließlich an
+  beweglichen Teilen etwas, und eine Entity ohne simuliertes Gerät — ein
+  `status` ohne bekannte Zustandsnamen — bietet gar nichts an. Zwei Listen
+  derselben Sache wären auseinandergelaufen, und dann stünde am Ladezustand
+  eine Schaltfläche „Blockiert", die nichts tut.
+- **Im Produktivbetrieb gibt es die Werkzeuge nicht.** Die Absicherung liegt
+  im Backend (`available: false`, leere Auskunft, 404 auf die Endpunkte); das
+  Ausblenden in der Oberfläche ist nur die Folge.
+
+### Behoben — Ein ruhiger Fühler alterte fälschlich zu „veraltet" und „unbekannt"
+
+- Das Deadband unterdrückt die **Meldung** einer Änderung. Es unterdrückte
+  bisher auch den **Empfang**: Ein Wert innerhalb des Deadbands wurde
+  verworfen, und damit blieb sein Zeitstempel stehen.
+- Die Alterung rechnet gegen genau diesen Zeitstempel. Ein völlig gesunder
+  Fühler, der schlicht nichts Neues zu melden hatte, wurde deshalb nach dem
+  erwarteten Intervall als `STALE` und nach dem doppelten als `UNKNOWN`
+  geführt. Beim Ladezustand — Deadband 0,5 %, erwartetes Intervall 10 s, Drift
+  0,04 %/s — trat das im laufenden Betrieb regelmäßig auf und war auf der
+  neuen Diagnoseseite sofort zu sehen. Ein stehendes Fahrzeug mit vollem
+  Frischwassertank hätte nach 20 Sekunden „Unbekannt" angezeigt, obwohl der
+  Tank meldet.
+- Das ist der gefährlichere der beiden möglichen Fehler. Einen alten Wert als
+  aktuell auszugeben wäre falsch — aber einen aktuellen Wert für unbekannt zu
+  erklären, entwertet die Kennzeichnung selbst: Wer „Veraltet" oft genug an
+  gesunden Werten sieht, glaubt ihr nicht mehr, wenn sie zählt.
+- Der Zeitbezug wird jetzt auch bei unterdrückten Werten nachgeführt. Es
+  entsteht dabei bewusst kein Delta, keine neue Sequenznummer und keine
+  Netzlast — die Oberfläche hat schon den richtigen Wert, nur die Uhr geht
+  weiter. Ein wirklich verstummter Fühler altert unverändert.
+
+### Behoben — Zwei getrennt gerechnete Zähler ergaben mehr offene Punkte als Entities
+
+- Die Diagnoseseite wies „Offen (49)" bei 45 Entities aus. „Nicht
+  konfiguriert" und „noch zu verifizieren" wurden addiert — bei der Heizung
+  gilt aber **beides gleichzeitig**, weil das, was noch zu verifizieren ist,
+  erst recht nicht zugeordnet ist.
+- Zähler und Filter benutzen jetzt dasselbe Prädikat. Getrennt gerechnet
+  laufen zwei Antworten auf dieselbe Frage unweigerlich auseinander — dieselbe
+  Lehre wie beim Systemzustand gegenüber den Warnungen.
+
+### Geändert — Der Bereich „Garage" ist entfallen
+
+- Hinter dem Navigationseintrag lag genau eine Entity: das Garagentor. Es
+  steht mit allen Fahrbefehlen auf der Fahrzeugseite. Ein eigener Reiter hätte
+  einen Bereich behauptet, wo eine Zeile ist.
+- `CommandPhase.SUPERSEDED` zählt außerdem jetzt als abgeschlossene Phase.
+  Sie fehlte in der Liste der Endzustände — eine Eigenschaft, die bei der
+  zuletzt hinzugekommenen Phase falsch antwortet, ist eine Falle für den
+  nächsten Leser.
+
 ### Hinzugefügt — M5: Fahrzeug
 
 - **Seite „Fahrzeug"** mit der drehbaren Ansicht, den beweglichen Teilen

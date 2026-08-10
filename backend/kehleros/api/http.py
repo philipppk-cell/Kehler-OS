@@ -128,6 +128,28 @@ def create_app(application: Application) -> FastAPI:
             for adapter in application.adapters
         ]
 
+    @router.get("/diagnostics/simulation")
+    async def simulation() -> dict[str, Any]:
+        """Was sich in dieser Betriebsart auslösen lässt — je Entity.
+
+        Die Oberfläche baut ihr Werkzeug daraus, statt die Möglichkeiten
+        selbst zu kennen. Im Produktivbetrieb ist ``available`` ``false`` und
+        ``entities`` leer — die Werkzeuge verschwinden dann, statt
+        Schaltflächen anzubieten, die der Server ohnehin abweist
+        (Kapitel 15 §96).
+        """
+        empty: dict[str, Any] = {"available": False, "entities": {}}
+        if not application.settings.is_simulated:
+            return empty
+
+        for adapter in application.adapters:
+            report = getattr(adapter, "diagnostics", None)
+            if report is None:
+                continue
+            return {"available": True, **report()}
+
+        return empty
+
     @router.post("/diagnostics/simulation/fault")
     async def inject_fault(request: FaultRequest) -> dict[str, Any]:
         """Löst ein Fehlerbild in der Simulation aus.
