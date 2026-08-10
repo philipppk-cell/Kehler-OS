@@ -25,7 +25,14 @@ BASE = "http://127.0.0.1:8000/api/v1"
 STATIC = ["/vehicle", "/diagnostics/adapters", "/diagnostics/simulation"]
 
 # Je Einzelbild: der bewegliche Teil.
-PER_FRAME = ["/system", "/water", "/energy", "/heating", "/alerts", "/diagnostics/services"]
+PER_FRAME = [
+    "/system",
+    "/water",
+    "/energy",
+    "/heating",
+    "/alerts",
+    "/diagnostics/services",
+]
 
 # Verläufe für die Messgrößen, die die Oberfläche anbietet.
 HISTORY = [
@@ -69,7 +76,10 @@ def stage(index: int, total: int) -> None:
     ersten Versuch prompt verschwunden, bevor die Aufnahme begann.
     """
     if index == 0:
-        post("/diagnostics/simulation/level", {"entity_id": "water.tank.grey", "value": 87})
+        post(
+            "/diagnostics/simulation/level",
+            {"entity_id": "water.tank.grey", "value": 87},
+        )
     elif index == total // 3:
         post(
             "/diagnostics/simulation/fault",

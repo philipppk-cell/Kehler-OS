@@ -1,0 +1,24 @@
+# Ein Projekt, ein Standard.
+#
+# Die Einstellungen standen bisher nur in `backend/pyproject.toml` und galten
+# damit auch nur dort. Python außerhalb von `backend/` — etwa die
+# Demo-Werkzeuge unter `tools/` — wurde stillschweigend nach den Voreinstellungen
+# von ruff geprüft, also mit einer anderen Zeilenlänge und einem kleineren
+# Regelsatz. Zwei Standards in einem Projekt fallen erst auf, wenn eine Datei
+# den Ordner wechselt.
+#
+# Diese Datei gilt für das gesamte Verzeichnis. Die Werte sind dieselben wie
+# im Backend; `backend/pyproject.toml` behält seine Angaben, damit das Paket
+# auch für sich allein gebaut und geprüft werden kann.
+
+line-length = 90
+target-version = "py311"
+
+# Dokumentation ist kein Quellcode. In den Beispielen unter `docs/` sind
+# untereinander ausgerichtete Kommentare Absicht — sie erklären vier Zeilen
+# nebeneinander. Ein Formatierer, der sie zusammenschiebt, macht die Erklärung
+# schlechter lesbar, ohne dass irgendetwas davon je ausgeführt wird.
+exclude = ["docs"]
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
