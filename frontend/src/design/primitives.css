@@ -75,7 +75,7 @@
 .status--warn .status__dot { background: var(--warn); box-shadow: var(--glow-warn); }
 .status--warn .status__label { color: var(--warn); }
 
-.status--error .status__dot { background: var(--error); box-shadow: var(--glow-error); }
+.status--error .status__dot { background: var(--error-solid); box-shadow: var(--glow-error); }
 .status--error .status__label { color: var(--error); }
 
 .status--accent .status__dot { background: var(--accent); box-shadow: var(--glow-accent); }
@@ -164,7 +164,7 @@
 .bar__fill--accent { background: var(--accent); box-shadow: var(--glow-accent); }
 .bar__fill--ok { background: var(--ok); }
 .bar__fill--warn { background: var(--warn); }
-.bar__fill--error { background: var(--error); }
+.bar__fill--error { background: var(--error-solid); }
 .bar__fill--unknown,
 .bar__fill--neutral { background: var(--text-tertiary); }
 

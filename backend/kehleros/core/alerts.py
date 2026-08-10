@@ -40,6 +40,12 @@ def _threshold_alerts(entity: Entity, value: object) -> list[Alert]:
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return []
 
+    # Gerundet wird vor dem Vergleich, damit die Meldung zu der Zahl passt,
+    # die die Oberfläche anzeigt. Andernfalls kann bei 19,6 % eine Warnung
+    # „nur noch 20 % — Warnschwelle 20 %" entstehen, die sich selbst
+    # widerspricht. Dieselbe Regel gilt in ``core/water.py``.
+    value = round(value)
+
     checks = (
         (entity.critical_below, value < (entity.critical_below or 0), Severity.CRITICAL,
          "alert.levelCriticalLow"),

@@ -146,6 +146,27 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Geändert — dunkleres Rot
+
+- Das Rot ist deutlich tiefer und ernster. Dabei ist es in **zwei
+  Abstufungen** getrennt, weil ein einziger Wert nicht beides kann:
+  - `--error` (#e5484d) für **Text** — Statuszeilen, Banner, Meldungen. Es
+    hält 5,1:1 Kontrast und bleibt damit auch bei Sonneneinstrahlung lesbar
+    (Kapitel 7 §26). Ein dunkleres Rot fällt unter 4,5:1.
+  - `--error-solid` (#c81e1e) für **Flächen** — Balken und Statuspunkte. Dort
+    gilt die Anforderung von 3:1, und das Rot kann deshalb spürbar dunkler
+    sein.
+- Die Kontrastwerte sind im Token gemessen und dokumentiert, damit ein
+  späterer Farbwechsel nicht versehentlich unter die Grenze rutscht.
+
+### Behoben — Anzeige und Bewertung stimmten bei gerundeten Werten nicht überein
+
+- Ein Tank mit 19,6 % erschien als „20 %" — mit orangem Balken, obwohl die
+  Warnschwelle „unter 20 %" lautet. Zahl und Farbe widersprachen sich.
+- Schwellen werden jetzt am **gerundeten** Wert geprüft, also an genau der
+  Zahl, die auf dem Bildschirm steht. Ein Tanksensor löst ohnehin kein halbes
+  Prozent auf; Übereinstimmung ist mehr wert als diese Scheingenauigkeit.
+
 ### Behoben — Zustände, die sich widersprachen
 
 - **`STALE` verwarf seinen Wert.** Damit war „veraltet" inhaltlich nicht von

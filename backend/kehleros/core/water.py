@@ -67,9 +67,18 @@ def _classify(
     Die kritische Schwelle wird zuerst geprüft: Sind beide überschritten,
     zählt die schwerere. Fehlt eine Schwelle, wird sie übersprungen — es gibt
     keine eingebauten Grenzwerte (Kapitel 18 §98).
+
+    **Bewertet wird der gerundete Wert** — also genau die Zahl, die auf dem
+    Bildschirm steht. Sonst entsteht der Fall „20 % in Orange, Schwelle bei
+    unter 20 %": Der wahre Wert ist 19,6, die Anzeige rundet auf 20, und der
+    Balken widerspricht der Zahl daneben. Ein Tanksensor löst ohnehin kein
+    halbes Prozent auf; Übereinstimmung zwischen Zahl und Farbe ist mehr wert
+    als diese Scheingenauigkeit.
     """
     if percent is None:
         return "ok"
+
+    percent = round(percent)
 
     if critical_below is not None and percent < critical_below:
         return "critical"

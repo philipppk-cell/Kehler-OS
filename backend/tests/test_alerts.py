@@ -219,3 +219,18 @@ class TestSchwellen:
         assert len(level) == 1
         assert level[0].severity is Severity.CRITICAL
         assert level[0].message_key == "alert.levelCriticalHigh"
+
+    def test_gerundeter_wert_entscheidet(self):
+        """Anzeige und Bewertung dürfen sich nicht widersprechen.
+
+        19,6 % erscheint als „20 %". Würde der Rohwert entscheiden, stünde
+        dort eine Warnung mit dem Text „nur noch 20 % — Warnschwelle 20 %".
+        """
+        reg = self.tank(warn_below=20)
+        alerts = derive_alerts(self.store(reg, 19.6), reg)
+        assert not [a for a in alerts if a.type == "level.threshold"]
+
+        alerts = derive_alerts(self.store(reg, 19.4), reg)
+        level = [a for a in alerts if a.type == "level.threshold"]
+        assert len(level) == 1
+        assert level[0].params["value"] == "19"
