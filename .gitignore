@@ -47,3 +47,10 @@ backend/kehleros/api/static/
 
 # System
 .DS_Store
+
+# Erzeugte Demo-Dateien. Sie entstehen aus einer Aufzeichnung des laufenden
+# Backends (siehe tools/demo/README.md) und sind zusammen rund 4 MB — der
+# Bauweg gehört ins Repository, das Ergebnis nicht.
+frontend/dist-demo/
+tools/demo/recording.json
+tools/demo/kehler-os-demo*.html

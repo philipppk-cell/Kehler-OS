@@ -319,6 +319,10 @@ const de: Record<string, string> = {
   "cmd.failed": "Befehl konnte nicht ausgeführt werden",
   "cmd.timeout": "Keine Rückmeldung von der Steuerung",
   "cmd.rejected.NOT_CONFIGURED": "Für diese Funktion ist keine Hardware zugeordnet",
+  // Nur in der Demo-Datei. Dort gibt es kein Fahrzeug, keine Steuerung und
+  // keinen Adapter — jeder Befehl wird abgewiesen, und zwar über denselben
+  // Weg wie eine echte Ablehnung, statt stumm zu verschwinden.
+  "cmd.rejected.DEMO": "Demo-Ansicht — hier wird nichts geschaltet",
   "cmd.rejected.MISSING_CAPABILITY": "Diese Funktion ist hier nicht verfügbar",
   "cmd.rejected.DEVICE_UNAVAILABLE": "Das Gerät ist nicht erreichbar",
   "cmd.rejected.BUSY": "Es läuft bereits ein Vorgang",
