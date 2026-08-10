@@ -14,7 +14,8 @@
  * die reale Absicherung des Anschlusses bekannt ist.
  */
 
-import { Card, Row, Status, Toggle, type Tone } from "../design/primitives";
+import { Card, Row, StaleMark, Status, Toggle, type Tone } from "../design/primitives";
+import { Stepper } from "../design/stepper";
 import { IconPlug, IconSolar } from "../design/icons";
 import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
@@ -70,6 +71,9 @@ function BatteryCard({ energy, online }: { energy: EnergySummary | null; online:
 
         <div className="energie__aside">
           <Status tone={directionTone(direction)} label={directionLabel(direction)} />
+          {/* Der Ladezustand steht groß und ist damit die auffälligste Zahl
+              der Seite. Sie darf nicht die einzige ohne Hinweis sein. */}
+          {soc.usable && soc.marked && <StaleMark />}
           <Runtime energy={energy} online={online} />
         </div>
       </div>
@@ -119,7 +123,7 @@ function Runtime({ energy, online }: { energy: EnergySummary | null; online: boo
 
 /** Energieinhalt in Kilowattstunden — nur bei bekannter Kapazität. */
 function Energy({ energy, online }: { energy: EnergySummary | null; online: boolean }) {
-  const remaining = online ? energy?.remaining_wh ?? null : null;
+  const remaining = energy?.remaining_wh ?? null;
   const capacity = energy?.capacity_wh ?? null;
 
   if (remaining === null || capacity === null) {
@@ -127,7 +131,7 @@ function Energy({ energy, online }: { energy: EnergySummary | null; online: bool
   }
 
   return (
-    <span className="energie__number">
+    <span className={`energie__number${online ? "" : " energie__number--stale"}`}>
       <span className="numeric">{(remaining / 1000).toFixed(1)}</span>
       <span className="energie__unit-inline">
         {`kWh ${t("energy.of")} ${(capacity / 1000).toFixed(1)}`}
@@ -232,6 +236,7 @@ function FlowRow({
           <>
             <span className="numeric">{format(v.value!, 0, signed)}</span>
             <span className="flow__unit">W</span>
+            {v.marked && <StaleMark />}
           </>
         ) : (
           <span className="flow__unknown">{t("state.unknown")}</span>
@@ -279,6 +284,8 @@ function ShoreCard({ energy, online }: { energy: EnergySummary | null; online: b
             max={limit?.definition?.max_value ?? null}
             step={limit?.definition?.step ?? 1}
             unit="A"
+            label={t("energy.limit")}
+            stale={limit?.state.quality === Quality.Stale || !online}
             disabled={!online}
           />
         ) : (
@@ -300,81 +307,6 @@ function ShoreCard({ energy, online }: { energy: EnergySummary | null; online: b
         <p className="energie__note">{t("energy.limitNotAdjustable")}</p>
       )}
     </Card>
-  );
-}
-
-/**
- * Schrittweise Verstellung eines Sollwerts.
- *
- * Bewusst ein Stepper und kein Schieberegler: Im fahrenden Fahrzeug trifft
- * man eine Fläche, aber keinen Punkt (Kapitel 7 §13). Ein Regler verstellt
- * sich außerdem beim versehentlichen Wischen.
- *
- * Die Grenzen kommen aus der Entity und begrenzen hier nur die Anzeige — die
- * eigentliche Prüfung macht der Command Bus, damit ein Client, der die
- * Oberfläche umgeht, ebenfalls scheitert (Kapitel 15 §42).
- */
-function Stepper({
-  entityId,
-  value,
-  min,
-  max,
-  step,
-  unit,
-  disabled,
-}: {
-  entityId: string;
-  value: number | null;
-  min: number | null;
-  max: number | null;
-  step: number;
-  unit: string;
-  disabled?: boolean;
-}) {
-  const { pending } = useAppState();
-  const busy = pending.has(entityId);
-  const known = value !== null;
-
-  function change(delta: number) {
-    if (!known) return;
-    let next = value + delta;
-    if (min !== null) next = Math.max(min, next);
-    if (max !== null) next = Math.min(max, next);
-    if (next === value) return;
-    sendCommand(entityId, "set_value", { value: next });
-  }
-
-  return (
-    <span className="stepper">
-      <button
-        type="button"
-        className="stepper__btn"
-        onClick={() => change(-step)}
-        disabled={disabled || busy || !known || (min !== null && value <= min)}
-        aria-label={t("energy.decrease")}
-      >
-        −
-      </button>
-      <span className={`stepper__value${busy ? " stepper__value--pending" : ""}`}>
-        {known ? (
-          <>
-            <span className="numeric">{value}</span>
-            <span className="energie__unit-inline">{unit}</span>
-          </>
-        ) : (
-          <span className="energie__number--unknown">{t("state.unknown")}</span>
-        )}
-      </span>
-      <button
-        type="button"
-        className="stepper__btn"
-        onClick={() => change(step)}
-        disabled={disabled || busy || !known || (max !== null && value >= max)}
-        aria-label={t("energy.increase")}
-      >
-        +
-      </button>
-    </span>
   );
 }
 
@@ -458,18 +390,29 @@ function Number({
     <span className={`energie__number${v.stale ? " energie__number--stale" : ""}`}>
       <span className="numeric">{format(v.value!, decimals, signed)}</span>
       <span className="energie__unit-inline">{unit}</span>
+      {v.marked && <StaleMark />}
     </span>
   );
 }
 
-/** Prüft einen Messwert einmal für alle Darstellungen. */
+/**
+ * Prüft einen Messwert einmal für alle Darstellungen.
+ *
+ * Ohne Verbindung bleibt der zuletzt bekannte Wert stehen und wird als
+ * veraltet gekennzeichnet — wie in der Komponente `Value`. Ihn zu leeren
+ * ließe „Verbindung weg" genauso aussehen wie „nie einen Wert gehabt"; dass
+ * die Werte nicht mehr aktuell sind, sagt das Banner über der Seite.
+ */
 function pick(reading: Reading | undefined, online: boolean) {
   const usable =
-    Boolean(reading) && online && reading!.value !== null && USABLE.includes(reading!.quality);
+    Boolean(reading) && reading!.value !== null && USABLE.includes(reading!.quality);
   return {
     usable,
     value: reading?.value ?? null,
+    /** Gedämpft darstellen. */
     stale: reading?.quality === Quality.Stale || !online,
+    /** Zusätzlich beschriften — nur beim einzelnen verstummten Fühler. */
+    marked: reading?.quality === Quality.Stale,
   };
 }
 

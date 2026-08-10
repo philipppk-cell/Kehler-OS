@@ -407,3 +407,18 @@
   opacity: 0.55;
   pointer-events: none;
 }
+
+/* Kennzeichnung eines veralteten Werts — siehe `StaleMark`.
+
+   Sie steht neben dem Wert und nicht anstelle davon: Der Wert gilt weiter,
+   er ist nur nicht mehr bestätigt. */
+.stalemark {
+  /* Sie steht immer hinter etwas — der Abstand gehört deshalb an sie und
+     nicht an jeden der Orte, an denen sie auftaucht. */
+  margin-left: var(--space-2);
+  color: var(--warn);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: var(--text-label);
+  white-space: nowrap;
+}

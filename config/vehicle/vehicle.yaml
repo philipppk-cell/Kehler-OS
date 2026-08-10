@@ -211,11 +211,17 @@ entities:
     timeout_ms: 8000
 
   # ── Klima ─────────────────────────────────────────────────────────────────
-  # VORLÄUFIG: Weder die Geräte noch die Sensoren sind bekannt (Punkt G1/G2).
-  # Die Einträge halten die Struktur offen.
+  # BESTÄTIGT (2026-08-10): Klima und Heizung sind **getrennte Systeme** und
+  # werden beide über die Steuerung geführt. Sie haben deshalb je einen
+  # eigenen Bereich in der Oberfläche.
+  #
+  # VORLÄUFIG: Welche Geräte verbaut sind, ist noch nicht bekannt (Punkt G1).
+  # Die Einträge halten die Struktur offen; sie werden ersetzt, sobald die
+  # Geräteinformationen vorliegen.
   #
   # IST und SOLL sind getrennte Entities (Kapitel 13 §35): Die Messung ist
-  # ein Messwert, der Sollwert ist eine Einstellung.
+  # ein Messwert, der Sollwert eine Einstellung. Zwei Systeme mit einem
+  # gemeinsamen Sollwert wären nicht getrennt.
 
   - id: climate.living.temperature
     name_key: climate.living_actual
@@ -225,20 +231,52 @@ entities:
     deadband: 0.2
     expected_interval_s: 30
 
-  - id: climate.living.target
-    name_key: climate.living_target
-    type: climate_zone
-    area: living
-    unit: celsius
-    timeout_ms: 3000
-
   - id: climate.outside.temperature
-    name_key: climate.outside
+    name_key: climate.outside_actual
     type: measurement
     area: exterior
     unit: celsius
     deadband: 0.2
     expected_interval_s: 60
+
+  - id: climate.cooling.state
+    name_key: climate.cooling
+    type: switch
+    area: living
+    timeout_ms: 5000
+
+  # VORLÄUFIG: Der Stellbereich ist angenommen. Anders als bei der
+  # Strombegrenzung ist ein falscher Bereich hier ungefährlich — eine
+  # Solltemperatur kann keine Leitung überlasten. Er wird trotzdem
+  # korrigiert, sobald das Gerät bekannt ist.
+  - id: climate.cooling.target
+    name_key: climate.cooling_target
+    type: setpoint
+    area: living
+    unit: celsius
+    min_value: 16
+    max_value: 30
+    step: 0.5
+    timeout_ms: 5000
+
+  # ── Heizung ───────────────────────────────────────────────────────────────
+  # Eigenes System, eigener Bereich. VORLÄUFIG wie oben: Gerät unbekannt.
+
+  - id: heating.state
+    name_key: heating.state
+    type: switch
+    area: living
+    timeout_ms: 8000
+
+  - id: heating.target
+    name_key: heating.target
+    type: setpoint
+    area: living
+    unit: celsius
+    min_value: 5
+    max_value: 30
+    step: 0.5
+    timeout_ms: 8000
 
   # ── Licht ────────────────────────────────────────────────────────────────
   # BESTÄTIGT (2026-08-10): Die Beleuchtung wird **nicht** über die SPS

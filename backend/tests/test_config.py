@@ -24,7 +24,7 @@ class TestNamenskonvention:
             "water.tank.fresh",
             "vehicle.garage.door",
             "energy.battery.main",
-            "light.interior.living_room",
+            "climate.cooling.living_room",
         ],
     )
     def test_gueltige_ids(self, entity_id: str):
@@ -85,9 +85,7 @@ class TestCapabilitiesAusTyp:
         entity = build_entities(
             VehicleConfig(
                 entities=[
-                    EntityConfig(
-                        id="water.tank.fresh", name_key="t", type="measurement"
-                    )
+                    EntityConfig(id="water.tank.fresh", name_key="t", type="measurement")
                 ]
             )
         )[0]
@@ -96,9 +94,7 @@ class TestCapabilitiesAusTyp:
     def test_schalter_kennt_nur_set_state(self):
         entity = build_entities(
             VehicleConfig(
-                entities=[
-                    EntityConfig(id="light.interior.living", name_key="l", type="switch")
-                ]
+                entities=[EntityConfig(id="water.pump.main", name_key="l", type="switch")]
             )
         )[0]
         assert entity.capabilities == ("set_state",)
@@ -107,9 +103,7 @@ class TestCapabilitiesAusTyp:
         entity = build_entities(
             VehicleConfig(
                 entities=[
-                    EntityConfig(
-                        id="vehicle.garage.door", name_key="g", type="movable"
-                    )
+                    EntityConfig(id="vehicle.garage.door", name_key="g", type="movable")
                 ]
             )
         )[0]
@@ -119,9 +113,7 @@ class TestCapabilitiesAusTyp:
         """RGB und Dimmen werden nicht angenommen (Kapitel 18 §25/§34)."""
         entity = build_entities(
             VehicleConfig(
-                entities=[
-                    EntityConfig(id="light.interior.living", name_key="l", type="switch")
-                ]
+                entities=[EntityConfig(id="water.pump.main", name_key="l", type="switch")]
             )
         )[0]
         assert "set_brightness" not in entity.capabilities
@@ -145,9 +137,7 @@ class TestMitgelieferteKonfiguration:
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         kapazitaeten = {
-            e.id: e.capacity_l
-            for e in vehicle.entities
-            if e.id.startswith("water.tank.")
+            e.id: e.capacity_l for e in vehicle.entities if e.id.startswith("water.tank.")
         }
         assert kapazitaeten == {
             "water.tank.fresh.large": 550,
@@ -212,6 +202,49 @@ class TestMitgelieferteKonfiguration:
                 continue
             assert e.warn_below is None and e.warn_above is None, e.id
             assert e.critical_below is None and e.critical_above is None, e.id
+
+    def test_klima_und_heizung_sind_getrennt(self):
+        """Zwei Systeme, zwei Sollwerte (BESTÄTIGT 2026-08-10).
+
+        Der naheliegende Fehler wäre, beiden Bereichen denselben Sollwert zu
+        geben — die Oberfläche sähe dann aufgeräumter aus, und das Verstellen
+        der Heizung würde stillschweigend die Klimaanlage mitverstellen.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        entities = {e.id: e for e in build_entities(vehicle)}
+
+        for entity_id in ("climate.cooling.target", "heating.target"):
+            assert entity_id in entities, entity_id
+            assert "set_value" in entities[entity_id].capabilities, entity_id
+
+        for entity_id in ("climate.cooling.state", "heating.state"):
+            assert entity_id in entities, entity_id
+            assert "set_state" in entities[entity_id].capabilities, entity_id
+
+    def test_sollwert_ohne_grenzen_ist_nicht_verstellbar(self):
+        """Ohne Obergrenze kein Befehl — und damit kein Bedienelement.
+
+        Das ist die Stelle, an der Kapitel 18 §136 wirksam wird: Eine
+        geratene Obergrenze wäre bei der Strombegrenzung gefährlich, also
+        entsteht sie gar nicht erst.
+        """
+        entity = build_entities(
+            VehicleConfig(
+                entities=[
+                    EntityConfig(id="energy.shore.limit", name_key="s", type="setpoint")
+                ]
+            )
+        )[0]
+        assert entity.capabilities == ()
+
+    def test_kein_lichtbereich(self):
+        """Die Beleuchtung läuft über Lichtschalter, nicht über die SPS.
+
+        BESTÄTIGT (2026-08-10). Eine übrig gebliebene Lichtentity würde in
+        der Oberfläche einen Bereich erzeugen, den es am Fahrzeug nicht gibt.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        assert not [e for e in vehicle.entities if e.id.startswith("light.")]
 
     def test_beispiel_fuer_nicht_konfigurierte_hardware(self):
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")

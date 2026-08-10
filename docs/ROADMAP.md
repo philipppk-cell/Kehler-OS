@@ -129,7 +129,27 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    augenblicklichen Verbrauchs gekennzeichnet und entfällt beim Laden.
 
    Offen bleibt die Historie; sie folgt mit der Zeitreihen-Datenhaltung.
-3. **Klima** — Zonen, IST/SOLL, Heizung, Lüftung
+3. **Klima** und **Heizung** · `SIMULATED` — zwei Bereiche, weil es zwei
+   Systeme sind.
+
+   **Erreicht.** Klima und Heizung laufen beide über die Steuerung, sind aber
+   getrennte Systeme (bestätigt 2026-08-10) — und die Trennung liegt im
+   Datenmodell, nicht nur in der Navigation: eigene Domäne `heating.`,
+   eigener Schalter, eigener Sollwert. Ein gemeinsamer Sollwert wäre die
+   aufgeräumtere Oberfläche und die falsche Anlage.
+
+   Gemeinsam bleibt allein der **gemessene** Wert: Es gibt einen Wohnraum und
+   einen Fühler. Beide Seiten teilen sich denselben Baustein für die
+   Darstellung — zwei Kopien würden über kurz oder lang auseinanderlaufen.
+
+   Bewusst nicht gebaut: Betriebsarten, ein „heizt gerade"-Zustand, Warmwasser
+   und Lüftung. Alles davon setzt voraus, dass ein Gerät es meldet; welche
+   Geräte verbaut sind, ist noch offen (Punkt G1). Eine vorhandene Regelung
+   wird nicht nachgebaut (Kapitel 12 §67).
+
+   Die Stellbereiche (Klima 16–30 °C, Heizung 5–30 °C) sind als `VORLÄUFIG`
+   markiert. Anders als bei der Strombegrenzung ist ein falscher Bereich hier
+   ungefährlich — er wird trotzdem korrigiert, sobald die Geräte bekannt sind.
 4. **Fahrzeug** — Türen, Fenster, Stufen, Markise, Verriegelungen
 5. **Garage**
 6. **Einstellungen**
@@ -207,9 +227,13 @@ Kiosk-Betrieb, Autostart, Update- und Rollback-Weg, vollständige Dokumentation.
 
 **Bestätigt am 2026-08-09.**
 
-**Enthalten:** Dashboard, Wasser, Energie, Licht, Klima, Fahrzeug, Garage,
+**Enthalten:** Dashboard, Wasser, Energie, Klima, Heizung, Fahrzeug, Garage,
 Einstellungen, Diagnose, Automatisierungen, Benutzer und Berechtigungen,
 reale SPS- und Victron-Anbindung, Backup/Restore, Kiosk-Betrieb.
+
+*Licht ist seit dem 2026-08-10 nicht mehr enthalten — die Beleuchtung liegt
+nicht auf der SPS. Klima und Heizung stehen dafür einzeln, weil es zwei
+getrennte Systeme sind.*
 
 **Nach 1.0:** Nivellierung mit realer Hydraulik, Kameras, KI-Assistent,
 Fernzugriff, Predictive Maintenance, Wetterstation.

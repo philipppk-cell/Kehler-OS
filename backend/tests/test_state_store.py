@@ -98,9 +98,9 @@ class TestAlterung:
         assert state.sweep_stale() == []
 
     def test_ohne_erwartetes_intervall_keine_alterung(self, state: StateStore):
-        # light.interior.living hat kein expected_interval_s
+        # water.pump.main hat kein expected_interval_s
         alt = utcnow() - timedelta(hours=1)
-        state.apply("light.interior.living", StateValue.valid("ON", measured_at=alt))
+        state.apply("water.pump.main", StateValue.valid("ON", measured_at=alt))
         assert state.sweep_stale() == []
 
 

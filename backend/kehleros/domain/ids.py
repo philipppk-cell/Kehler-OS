@@ -20,7 +20,21 @@ class Domain(StrEnum):
     ENERGY = "energy"
     WATER = "water"
     CLIMATE = "climate"
-    LIGHT = "light"
+    """Kühlung und Lüftung.
+
+    Es gibt bewusst **keine** Domäne ``light``: Die Beleuchtung läuft über
+    gewöhnliche Lichtschalter und ist nicht angebunden (Punkt F1). Ein
+    Namensraum ohne Gegenstand lädt nur dazu ein, ihn zu füllen.
+    """
+
+    HEATING = "heating"
+    """Heizung — ein **eigenes** System, nicht Teil von ``climate``.
+
+    Die Trennung steht hier und nicht nur in der Oberfläche: Wären beide
+    unter derselben Domäne, ließe sich später nicht mehr sauber trennen,
+    welcher Sollwert zu welchem Gerät gehört.
+    """
+
     VEHICLE = "vehicle"
     LEVELING = "leveling"
     CAMERA = "camera"

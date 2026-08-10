@@ -25,17 +25,18 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-EntityType = Literal[
-    "measurement", "contact", "switch", "movable", "climate_zone", "setpoint"
-]
+EntityType = Literal["measurement", "contact", "switch", "movable", "setpoint"]
 """Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.
 
 Er ist bewusst von ``measurement`` getrennt: Ein Türkontakt liefert OPEN oder
 CLOSED, keinen Zahlenwert. Diese Unterscheidung ist real und nicht nur eine
 Eigenheit der Simulation.
 
-Ein ``setpoint`` ist ein einstellbarer Zahlenwert mit Grenzen — etwa die
-Eingangsstrombegrenzung des Landstroms. **Ohne konfigurierte Grenzen bietet
+Ein ``setpoint`` ist ein einstellbarer Zahlenwert mit Grenzen — die
+Eingangsstrombegrenzung des Landstroms ebenso wie eine Solltemperatur. Es gab
+dafür zeitweise einen eigenen Typ ``climate_zone``; er ist entfallen, weil
+zwei Mechanismen für dieselbe Sache unweigerlich auseinanderlaufen — und
+weil nur einer von beiden die Grenzen geprüft hat. **Ohne konfigurierte Grenzen bietet
 die Oberfläche keine Bedienung an.** Das ist kein Sonderfall, sondern
 dieselbe Regel wie überall: Was nicht bekannt ist, wird nicht erfunden
 (Kapitel 18 §98). Eine Strombegrenzung ohne die reale Absicherung des

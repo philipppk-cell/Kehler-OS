@@ -62,7 +62,7 @@ def registry() -> Registry:
     reg = Registry()
     reg.register_all(
         [
-            make_entity("light.interior.living", commands=SWITCH),
+            make_entity("water.pump.main", commands=SWITCH),
             make_entity("vehicle.garage.door", commands=MOVABLE),
             make_entity(
                 "water.tank.fresh", unit="percent", expected_interval_s=1.0, deadband=0.5

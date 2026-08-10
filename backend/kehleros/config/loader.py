@@ -137,14 +137,4 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
             ),
         )
 
-    if config.type == "climate_zone":
-        return (
-            CommandSpec(
-                verb="set_target",
-                expects_param="celsius",
-                params=("celsius",),
-                **common,
-            ),
-        )
-
     raise ConfigError(f"Unbekannter Entity-Typ '{config.type}' bei '{config.id}'")

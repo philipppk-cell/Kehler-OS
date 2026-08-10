@@ -314,19 +314,52 @@ angebunden ist, erscheint nicht (Kapitel 12 §55, Kapitel 13 §60).
 
 ---
 
-## G – Klima
+## G – Klima und Heizung
+
+### G0 · Systemtrennung — `GEKLÄRT` (2026-08-10)
+
+**Antwort:** Klima und Heizung laufen **beide** über die Steuerung, sind aber
+**getrennte Systeme**. Die Heizung bekommt deshalb einen eigenen Bereich.
+
+Umgesetzt ist die Trennung nicht nur in der Navigation, sondern im Datenmodell:
+eigene Domäne `heating.`, eigener Schalter, eigener Sollwert
+(`heating.target` neben `climate.cooling.target`). Ein gemeinsamer Sollwert
+wäre die aufgeräumtere Oberfläche und die falsche Anlage — das Verstellen der
+Heizung würde stillschweigend die Klimaanlage mitverstellen.
+
+Gemeinsam bleibt allein die **gemessene** Innentemperatur: Es gibt einen
+Wohnraum und einen Fühler (`climate.living.temperature`). Beide Bereiche
+zeigen denselben Messwert, weil es derselbe ist.
 
 ### G1 · Heiz-/Klimageräte — `OFFEN` · `BLOCKIEREND` für reale Steuerung
+
+*Der Fahrzeughalter hat die Geräteinformationen angekündigt (2026-08-10).*
 
 - Hersteller und Modell von Heizung, Klimaanlage, Lüftung
 - Schnittstelle (potentialfreier Kontakt, Bus, proprietär)
 - **Besitzt das Gerät eine eigene Regelung?** (Kapitel 12 §67 / Kapitel 18 §29 —
   vorhandene Regelintelligenz soll nicht nachgebaut werden)
 - ist ein Sollwert vorgebbar oder nur Ein/Aus?
+- **Stellbereich und Schrittweite** je Gerät
 
-### G2 · Temperatursensoren — `OFFEN` · `NICHT BLOCKIEREND`
+**Vorläufig hinterlegt** (`config/vehicle/vehicle.yaml`, als `VORLÄUFIG`
+markiert): Klima 16–30 °C, Heizung 5–30 °C, Schrittweite 0,5 K. Anders als bei
+der Strombegrenzung (Punkt B1) ist ein falscher Bereich hier ungefährlich —
+eine Solltemperatur kann keine Zuleitung überlasten. Er wird trotzdem
+korrigiert, sobald die Geräte bekannt sind.
 
-Liste der Sensoren mit Einbauort, Typ und Anschluss.
+**Was bis dahin bewusst fehlt:** Betriebsarten, ein „heizt gerade"-Zustand und
+Warmwasser. Alles drei setzt voraus, dass das Gerät es meldet — nachgebaut
+wird keine Regelung.
+
+### G2 · Temperatursensoren — `TEILWEISE` (2026-08-10)
+
+Angenommen und in der Oberfläche verwendet werden zwei Fühler: Wohnraum
+(`climate.living.temperature`) und außen (`climate.outside.temperature`).
+Solange nicht bekannt ist, welche Fühler tatsächlich verbaut sind, bleiben
+es genau diese zwei — weitere Zonen werden nicht erfunden.
+
+Offen: Liste der Sensoren mit Einbauort, Typ und Anschluss.
 
 ---
 

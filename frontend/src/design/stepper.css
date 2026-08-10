@@ -1,0 +1,65 @@
+/* Sollwertverstellung — siehe stepper.tsx. */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stepper__btn {
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: var(--text-h2);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.stepper__btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+.stepper__btn:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* Die Breite ist fest, damit die Zahl beim Verstellen nicht springt und die
+   Tasten unter dem Finger stehen bleiben. */
+.stepper__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  min-width: 5ch;
+  justify-content: center;
+  font-size: var(--text-h2);
+  color: var(--text-primary);
+}
+
+/* Solange der Befehl läuft, ist der Wert noch nicht bestätigt. */
+.stepper__value--pending {
+  color: var(--text-secondary);
+}
+
+/* Bekannt, aber nicht mehr aktuell — gezeigt und gekennzeichnet. */
+.stepper__value--stale {
+  color: var(--text-secondary);
+}
+
+.stepper__unit {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
+.stepper__unknown {
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--text-tertiary);
+}

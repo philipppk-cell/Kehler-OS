@@ -61,7 +61,7 @@ export function Dashboard() {
       <div className="dash__cards">
         <EnergyCard emphasis={critical.some((a) => a.entity_id?.startsWith("energy."))} />
         <WaterCard emphasis={critical.some((a) => a.entity_id?.startsWith("water."))} />
-        <ClimateCard />
+        <TemperatureCard />
       </div>
     </div>
   );
@@ -428,13 +428,25 @@ function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
   );
 }
 
-function ClimateCard() {
+/**
+ * Temperatur auf dem Dashboard.
+ *
+ * Die Karte heißt nicht mehr „Klima": Klima und Heizung sind getrennte
+ * Systeme (BESTÄTIGT 2026-08-10) und haben je einen eigenen Sollwert. Ein
+ * gemeinsames „Soll" gibt es damit nicht mehr — es würde einen der beiden
+ * Werte verschweigen.
+ *
+ * Bedient wird hier nichts. Wer verstellen will, geht auf die Fachseite
+ * (Kapitel 8 §13).
+ */
+function TemperatureCard() {
   const inside = useEntity("climate.living.temperature");
   const outside = useEntity("climate.outside.temperature");
-  const target = useEntity("climate.living.target");
+  const cooling = useEntity("climate.cooling.target");
+  const heating = useEntity("heating.target");
 
   return (
-    <Card title={t("dash.climate")}>
+    <Card title={t("dash.temperature")}>
       <div className="metric">
         <Value entity={inside} size="metric" decimals={1} />
         <span className="metric__caption">{t("climate.inside")}</span>
@@ -444,8 +456,11 @@ function ClimateCard() {
         <Row label={t("climate.outside")}>
           <Value entity={outside} size="inline" decimals={1} />
         </Row>
-        <Row label={t("climate.target")}>
-          <Value entity={target} size="inline" decimals={1} />
+        <Row label={t("dash.coolingTarget")}>
+          <Value entity={cooling} size="inline" decimals={1} />
+        </Row>
+        <Row label={t("dash.heatingTarget")}>
+          <Value entity={heating} size="inline" decimals={1} />
         </Row>
       </div>
     </Card>

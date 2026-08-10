@@ -135,9 +135,13 @@ export function Value({
       {(suffix ?? formatUnit(unit)) && (
         <span className="value__unit">{suffix ?? formatUnit(unit)}</span>
       )}
-      {stale && (
+      {quality === Quality.Stale && (
         /* Ein veralteter Wert wird gezeigt, aber gekennzeichnet — er ist
-           weder aktuell noch wertlos (Kapitel 13 §9). */
+           weder aktuell noch wertlos (Kapitel 13 §9).
+
+           Ohne Verbindung ist ohnehin jeder Wert veraltet; dort bleibt es
+           beim gedämpften Ton, und der Hinweis steht einmal im Banner statt
+           hinter jeder Zahl. */
         <span className="value__hint">{t("state.stale")}</span>
       )}
     </span>
@@ -302,6 +306,23 @@ export function Button({
       {children}
     </button>
   );
+}
+
+/* ── Veraltet ────────────────────────────────────────────────────────────
+   Ein einzelner Wert, der noch gilt, aber nicht mehr bestätigt ist.
+
+   Bewusst Text und nicht nur eine blassere Farbe: Der Zustand muss ohne
+   Farbe erkennbar bleiben (Kapitel 7 §23) — bei Sonnenlicht, im Nachtmodus
+   und bei Farbfehlsichtigkeit.
+
+   Sie gehört an Werte mit der Qualität `STALE` — also an den einen Fühler,
+   der verstummt ist, während der Rest weiterläuft. **Nicht** an jeden Wert
+   einer getrennten Verbindung: Dort ist ohnehin alles veraltet, das Banner
+   sagt es einmal für die ganze Seite, und ein Schriftzug hinter jeder Zahl
+   wäre Lärm statt Information.                                            */
+
+export function StaleMark() {
+  return <span className="stalemark">{t("state.stale")}</span>;
 }
 
 /** Kennzeichnet fehlende Hardware ruhig und hochwertig — nie als „TODO“. */

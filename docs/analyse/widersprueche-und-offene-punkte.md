@@ -19,8 +19,12 @@ reale Hardwaredaten stehen getrennt in
 **Auflösung:** Maßgeblich ist die Liste aus Kapitel 18 §17, weil sie die
 jüngste und im Entwicklungsauftrag verbindliche ist.
 
-- **Heizung** ist keine eigene Seite, sondern Teil von *Klima* — so zeigt es
-  auch die Designreferenz (Heizung/Lüfter als Schaltflächen der Klima-Karte).
+- ~~**Heizung** ist keine eigene Seite, sondern Teil von *Klima* — so zeigt es
+  auch die Designreferenz (Heizung/Lüfter als Schaltflächen der Klima-Karte).~~
+  **Überholt am 2026-08-10:** Der Fahrzeughalter hat mitgeteilt, dass Klima und
+  Heizung **getrennte Systeme** sind und die Heizung einen eigenen Bereich
+  bekommt. Damit hatte Kapitel 2 §4 recht, das Heizung als eigenes Modul
+  führt. Siehe W12.
 - **Sicherheit** und **Wartung** werden nicht als Hauptnavigationspunkte
   geführt. Ihre Inhalte erscheinen dort, wo sie gebraucht werden: Sicherheit als
   aggregierter Status auf dem Dashboard und in Fahrzeug/Diagnose, Wartung in
@@ -282,6 +286,57 @@ Die Einzelzustände sind ohnehin unmittelbar erkennbar.
   entgegen.
 
 **Status:** `GEKLÄRT` (2026-08-09).
+
+---
+
+## W12 – Die Navigation weicht von Kapitel 18 §17 ab
+
+Dokumentiert im Format nach Kapitel 18 §138.
+
+**Requirement**
+Kapitel 8 §21 und Kapitel 18 §17 nennen zehn Navigationspunkte, darunter
+**Licht** und ein gemeinsames **Klima**. Kapitel 18 §29 verlangt zusätzlich,
+dass Heizungssteuerung dort erscheint, wo die Klimatisierung erscheint.
+
+**Problem**
+Beide Festlegungen treffen auf das reale Fahrzeug nicht zu — bestätigt vom
+Fahrzeughalter am 2026-08-10:
+
+1. Die **Beleuchtung liegt nicht auf der SPS**. Sie wird über gewöhnliche
+   Lichtschalter bedient. Ein Reiter „Licht" hätte nichts anzuzeigen und
+   nichts zu schalten.
+2. **Klima und Heizung sind getrennte Systeme** mit eigenen Geräten. Ein
+   gemeinsamer Bereich müsste einen gemeinsamen Sollwert zeigen — und der
+   existiert nicht.
+
+**Alternative**
+Die Navigation führt weiterhin zehn Punkte: „Licht" entfällt, „Heizung" kommt
+hinzu. Die Trennung liegt im Datenmodell (eigene Domäne `heating.`, eigener
+Schalter, eigener Sollwert) und nicht nur in der Oberfläche; die gemeinsame
+Innentemperatur bleibt eine einzige Entity, weil es ein Wohnraum und ein
+Fühler ist.
+
+**Reason**
+Beides ist keine Gestaltungsfrage, sondern eine Tatsache über die Anlage.
+Kapitel 12 §55 und Kapitel 13 §60 verlangen, dass nur erscheint, was
+angebunden ist — und Kapitel 18 §98, dass nichts behauptet wird, was nicht
+bekannt ist. Ein gemeinsamer Sollwert für zwei Geräte wäre genau eine solche
+Behauptung: Das Verstellen der Heizung würde stillschweigend die Klimaanlage
+mitverstellen.
+
+**Impact**
+- Die Domäne `light` entfällt aus dem Datenmodell, die Domäne `heating` kommt
+  hinzu.
+- Die Designreferenz zeigt Heizung/Lüfter als Schaltflächen der Klima-Karte.
+  Dieser Teil der Referenz wird nicht übernommen; das übrige Layout bleibt
+  maßgeblich.
+- **Lüftung** ist damit weder in Klima noch in Heizung enthalten. Ob überhaupt
+  eine anzubindende Lüftung existiert, ist offen (Punkt G1).
+- Sollte später doch ein Lichtkreis auf die SPS geführt werden, ist der Weg
+  derselbe wie bei jeder anderen Funktion — ein eigener Bereich lohnt erst ab
+  einer Handvoll Kreise.
+
+**Status:** `GEKLÄRT` (2026-08-10).
 
 ## Bewusst von der Spezifikation offen gelassen
 

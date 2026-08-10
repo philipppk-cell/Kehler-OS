@@ -195,6 +195,97 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (`/diagnostics/simulation/level`). Ohne das ließen sich Schwellenwarnungen
   nur prüfen, indem man wartet, bis der Simulator zufällig dorthin driftet.
 
+### Hinzugefügt — M5: Klima und Heizung als zwei Bereiche
+
+- **Klima und Heizung sind getrennte Systeme** (Angabe vom 2026-08-10) und
+  bekommen deshalb je einen eigenen Reiter. Die Trennung liegt nicht nur in
+  der Navigation, sondern im Datenmodell: eigene Domäne `heating.`, eigener
+  Schalter, eigener Sollwert. Ein gemeinsamer Sollwert wäre die aufgeräumtere
+  Oberfläche und die falsche Anlage — das Verstellen der Heizung würde
+  stillschweigend die Klimaanlage mitverstellen.
+- **Gemeinsam bleibt allein der gemessene Wert.** Es gibt einen Wohnraum und
+  einen Fühler; beide Seiten zeigen dieselbe Innentemperatur, weil es dieselbe
+  ist. Die Beschriftung eines Werts kommt dabei aus der Entity und nicht aus
+  der Seite — derselbe Fühler heißt damit überall gleich.
+- **Ein gemeinsamer Baustein für beide Seiten** (`pages/Zone.tsx`). Zwei
+  Kopien derselben Darstellung würden über kurz oder lang auseinanderlaufen,
+  und dann sähe ein Sollwert auf der einen Seite anders aus als auf der
+  anderen. Getrennt bleiben die Daten, nicht die Bausteine.
+- **Bewusst nicht gebaut:** Betriebsarten, ein „heizt gerade"-Zustand,
+  Warmwasser und Lüftung. Alles davon setzt voraus, dass ein Gerät es meldet;
+  welche Geräte verbaut sind, ist offen (Punkt G1). Eine vorhandene Regelung
+  wird nicht nachgebaut (Kapitel 12 §67, Kapitel 18 §29).
+- Die Stellbereiche (Klima 16–30 °C, Heizung 5–30 °C, Schritt 0,5 K) sind in
+  der Konfiguration als `VORLÄUFIG` markiert. Anders als bei der
+  Strombegrenzung ist ein falscher Bereich hier ungefährlich — eine
+  Solltemperatur kann keine Zuleitung überlasten.
+- **Entity-Typ `climate_zone` entfernt.** Er erzeugte einen Sollwertbefehl
+  *ohne* Bereichsprüfung — anders als `setpoint`, der ohne Obergrenze gar
+  keinen Befehl erzeugt. Zwei Wege zum selben Ziel, von denen einer die
+  Prüfung übersprang; geblieben ist der prüfende.
+- Geprüft gegen einen laufenden Server: Der Stepper hält die Schrittweite ein,
+  sperrt an der konfigurierten Untergrenze, und der Command Bus weist 95 °C
+  und 4,5 °C auch dann ab, wenn ein Client die Oberfläche umgeht.
+
+### Geändert — Sollwertverstellung ist jetzt ein Baustein des Designsystems
+
+- Der Stepper lag auf der Energieseite und wird nun von Klima und Heizung
+  mitbenutzt (`design/stepper.tsx`). Strombegrenzung und Solltemperatur sind
+  fachlich weit auseinander, aber es ist derselbe Handgriff — und der muss
+  überall gleich aussehen (Kapitel 7 §39).
+- Dabei zwei Dinge ergänzt, die vorher fehlten:
+  - **Nachkommastellen.** Ein 0,5-K-Schritt braucht eine; die
+    Strombegrenzung in ganzen Ampere keine.
+  - **Rundung auf das Schrittraster.** 20,5 + 0,5 ergibt in Gleitkomma nicht
+    immer genau 21. Ohne Rundung wanderten winzige Reste in den Befehl und
+    von dort in die Steuerung.
+- Die Tasten heißen für die Sprachausgabe nach der Größe, die sie verstellen
+  („Heizung Solltemperatur erhöhen"). Vorher hieß jeder Stepper im Fahrzeug
+  „Strombegrenzung erhöhen".
+
+### Behoben — ohne Verbindung verschwanden die Werte, statt zu altern
+
+- Aufgefallen auf der neuen Klimaseite: Bei getrennter Verbindung zeigte die
+  gemessene Temperatur „Unbekannt", während der Sollwert daneben seine Zahl
+  behielt — dieselbe Karte, zwei Antworten auf dieselbe Frage.
+- Ursache war eine Regel, die an drei Stellen anders umgesetzt war als im
+  Designsystem. Die Komponente `Value` zeigt einen Wert ohne Verbindung
+  weiter und kennzeichnet ihn; die Fachseiten leerten ihn. Auch der Hook
+  `useWater` beschrieb bereits das Gegenteil dessen, was die Seite tat.
+- Jetzt gilt überall dieselbe Regel: **Der zuletzt bekannte Wert bleibt
+  stehen und wird gedämpft dargestellt.** Ihn zu leeren war kein Gewinn an
+  Ehrlichkeit, sondern ein Verlust — „Verbindung weg" sah damit genauso aus
+  wie „Fühler hat nie etwas gemeldet". Das ist derselbe Denkfehler, der im
+  Backend schon einmal behoben wurde, als `STALE` seinen Wert verwarf.
+- **Bedient wird weiterhin nichts.** Schalter, Stepper und Kacheln bleiben
+  ohne Verbindung gesperrt; ein gesperrter Regler neben einer alten Zahl ist
+  etwas anderes als ein bedienbarer.
+
+### Geändert — „Veraltet" markiert den einzelnen Fühler, nicht die Funkstille
+
+- Neuer Baustein `StaleMark` im Designsystem. Er kennzeichnet einen
+  veralteten Wert als **Text** und nicht nur über eine blassere Farbe — der
+  Zustand muss ohne Farbe erkennbar bleiben (Kapitel 7 §23).
+- Er erscheint nur bei der Qualität `STALE`, also am einen Fühler, der
+  verstummt ist, während der Rest weiterläuft. Bei getrennter Verbindung
+  entfällt er: Dort ist ohnehin alles veraltet, das Banner sagt es einmal für
+  die ganze Seite, und ein Schriftzug hinter jeder Zahl wäre Lärm statt
+  Information. Auf der Energieseite waren es in einem Zwischenstand neun
+  Stück — einer davon schob eine Stepper-Taste aus der Karte.
+- Geprüft gegen einen laufenden Server: online null Markierungen, ein gezielt
+  verstummter Tank genau eine, getrennte Verbindung wieder null — bei
+  gedämpften, aber vorhandenen Werten.
+
+### Geändert — Dashboard: aus „Klima" wird „Temperatur"
+
+- Die Karte zeigte einen Sollwert, den es so nicht mehr gibt. Sie heißt jetzt
+  nach der Größe statt nach einem der beiden Systeme und führt beide
+  Sollwerte einzeln auf. Ein gemeinsames „Soll" würde einen der beiden
+  verschweigen.
+- Sie verwies außerdem auf `climate.living.target` — eine Entity, die es nach
+  der Trennung nicht mehr gibt. Sichtbar war das als dauerhaftes „Nicht
+  verfügbar".
+
 ### Entfernt — Lichtsteuerung
 
 - **Die Beleuchtung wird nicht über die SPS gesteuert**, sondern über

@@ -13,11 +13,12 @@ import { t } from "../i18n/de";
 import { Status } from "../design/primitives";
 import {
   IconCamera,
-  IconClimate,
+  IconCooling,
   IconDashboard,
   IconDiagnostics,
   IconEnergy,
   IconGarage,
+  IconHeating,
   IconLeveling,
   IconSettings,
   IconUser,
@@ -28,14 +29,18 @@ import {
 import "./shell.css";
 
 export type PageId =
-  | "dashboard" | "energy" | "water" | "climate"
+  | "dashboard" | "energy" | "water" | "climate" | "heating"
   | "leveling" | "vehicle" | "cameras" | "garage" | "settings" | "diagnostics";
 
+/* Klima und Heizung stehen als zwei Einträge nebeneinander, weil es zwei
+   Systeme sind (BESTÄTIGT 2026-08-10). Ein Eintrag mit zwei Unterseiten
+   würde sie als ein System darstellen. */
 const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "dashboard", icon: <IconDashboard /> },
   { id: "energy", icon: <IconEnergy /> },
   { id: "water", icon: <IconWater /> },
-  { id: "climate", icon: <IconClimate /> },
+  { id: "climate", icon: <IconCooling /> },
+  { id: "heating", icon: <IconHeating /> },
   { id: "leveling", icon: <IconLeveling /> },
   { id: "vehicle", icon: <IconVehicle /> },
   { id: "cameras", icon: <IconCamera /> },

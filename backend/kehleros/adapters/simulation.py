@@ -166,11 +166,6 @@ class SimulationAdapter(Adapter):
         if "set_state" in caps:
             return _Device(entity=entity, kind="switch", value="OFF")
 
-        if "set_target" in caps:
-            return _Device(
-                entity=entity, kind="setpoint", value=20.0, bounds=(5.0, 30.0)
-            )
-
         # Ein Kontakt ist binär, kein Zahlenwert.
         if entity.unit is None and not caps:
             return _Device(entity=entity, kind="contact", value="CLOSED")
@@ -180,19 +175,21 @@ class SimulationAdapter(Adapter):
         # Obergrenze (noch) keinen Befehl hat und deshalb wie ein Messwert
         # aussieht.
         if entity.min_value is not None or entity.step is not None:
-            # Der Startwert ist eine Zahl für die Simulation, keine Antwort
-            # auf eine offene Hardwarefrage. Dass die Strombegrenzung hier
-            # einen plausiblen Wert zeigt, heißt nicht, dass die reale
-            # Absicherung bekannt wäre — sie ist weiterhin Punkt B2.
-            start = entity.min_value if entity.min_value is not None else 0.0
+            # Startwert in der Mitte des Bereichs, auf die Schrittweite
+            # gerundet. Am Maximum zu starten ergäbe bei einer Strombegrenzung
+            # noch Sinn, bei einer Kühlung aber 30 °C Solltemperatur.
+            #
+            # Der Wert ist eine Zahl für die Simulation, keine Antwort auf
+            # eine offene Hardwarefrage.
+            low = float(entity.min_value if entity.min_value is not None else 0.0)
+            high = float(entity.max_value) if entity.max_value is not None else low + 60
+            step = float(entity.step or 1.0)
+            middle = round((low + high) / 2 / step) * step
             return _Device(
                 entity=entity,
                 kind="setpoint",
-                value=float(entity.max_value or start + 13),
-                bounds=(
-                    float(entity.min_value if entity.min_value is not None else 0),
-                    float(entity.max_value or 63),
-                ),
+                value=middle,
+                bounds=(low, high),
             )
 
         # Messwerte richten sich nach ihrer Einheit. Ein Simulator, der für

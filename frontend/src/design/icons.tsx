@@ -52,12 +52,36 @@ export const IconWater = (p: IconProps) => (
   </Icon>
 );
 
+/** Thermometer — steht für Temperatur allgemein, nicht für ein System. */
 export const IconClimate = (p: IconProps) => (
   <Icon {...p}>
     <path d="M12 3v11" />
     <circle cx="12" cy="17" r="3.5" />
     <path d="M12 3a2 2 0 0 1 2 2v9" />
     <path d="M10 5a2 2 0 0 1 2-2" />
+  </Icon>
+);
+
+/* Klima und Heizung sind getrennte Systeme und bekommen deshalb auch
+   getrennte Zeichen. Zweimal dasselbe Thermometer in der Navigation wäre
+   genau die Verwechslung, die die Trennung vermeiden soll. */
+
+/** Schneeflocke — Klima (Kühlung). */
+export const IconCooling = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 2v20" />
+    <path d="M3.5 7 20.5 17" />
+    <path d="M20.5 7 3.5 17" />
+    <path d="m9.5 4.5 2.5 2.5 2.5-2.5" />
+    <path d="m9.5 19.5 2.5-2.5 2.5 2.5" />
+  </Icon>
+);
+
+/** Flamme — Heizung. */
+export const IconHeating = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 2.5c3.5 3.6 5.5 6.3 5.5 9.4a5.5 5.5 0 0 1-11 0c0-1.6.6-3 1.7-4.5.5 1.1 1.2 1.8 2 2 -.2-2.3.4-4.5 1.8-6.9Z" />
+    <path d="M12 20.5a2.6 2.6 0 0 1-2.6-2.6c0-1.3.9-2.3 2.6-4 1.7 1.7 2.6 2.7 2.6 4a2.6 2.6 0 0 1-2.6 2.6Z" />
   </Icon>
 );
 

@@ -1,0 +1,114 @@
+/* Klima und Heizung. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+
+.zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-4);
+  align-items: start;
+
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.zone__main,
+.zone__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ── IST und SOLL ────────────────────────────────────────────────────────
+   Die gemessene Temperatur steht groß, der Sollwert daneben. Die Größe
+   trägt die Aussage: Wie warm es ist, sieht man im Vorbeigehen; was
+   eingestellt ist, sucht man bewusst (Kapitel 8 §1). */
+
+.zone__hero {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-bottom: var(--space-5);
+}
+
+/* Wert oben, Beschriftung darunter — wie auf allen anderen Seiten. */
+.zone__block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Der Sollwert steht auf derselben Grundlinie wie die gemessene Temperatur,
+   ist aber kleiner: Gemessen wird gelesen, eingestellt wird gesucht. */
+.zone__block--target {
+  padding-bottom: var(--space-2);
+}
+
+.zone__reading {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.12em;
+  font-size: var(--text-display);
+  font-weight: 300;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.zone__reading--stale { color: var(--text-secondary); }
+.zone__reading--unknown { color: var(--text-tertiary); }
+
+.zone__unit {
+  font-size: var(--text-h3);
+  color: var(--text-tertiary);
+}
+
+.zone__label {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.zone__split {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Nebenwerte in Zeilen — dieselbe Schriftgröße wie überall sonst in einer
+   Zeile, damit die Seite nicht aus lauter Sondergrößen besteht. */
+.zone__inline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.14em;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.zone__inline--stale { color: var(--text-secondary); }
+.zone__inline--unknown { color: var(--text-tertiary); font-weight: var(--weight-regular); }
+
+.zone__inline .zone__unit {
+  font-size: var(--text-caption);
+}
+
+.zone__notes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .zone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -32,6 +32,7 @@ const de: Record<string, string> = {
   "nav.energy": "Energie",
   "nav.water": "Wasser",
   "nav.climate": "Klima",
+  "nav.heating": "Heizung",
   "nav.leveling": "Nivellierung",
   "nav.vehicle": "Fahrzeug",
   "nav.cameras": "Kameras",
@@ -66,7 +67,11 @@ const de: Record<string, string> = {
   "dash.quickAccess": "Schnellzugriff",
   "dash.energy": "Energie",
   "dash.water": "Wasser",
-  "dash.climate": "Klima",
+  // Die Karte fasst zwei getrennte Systeme zusammen und heißt deshalb nach
+  // der Größe, nicht nach einem der beiden.
+  "dash.temperature": "Temperatur",
+  "dash.coolingTarget": "Soll Klima",
+  "dash.heatingTarget": "Soll Heizung",
   "dash.systemStatus": "Systemstatus",
 
   // Systemzustand
@@ -109,8 +114,6 @@ const de: Record<string, string> = {
   "energy.content": "Energieinhalt",
   "energy.of": "von",
   "energy.atCurrentLoad": "bei aktuellem Verbrauch",
-  "energy.decrease": "Strombegrenzung verringern",
-  "energy.increase": "Strombegrenzung erhöhen",
   "energy.limitBounded":
     "Begrenzt auf {min} bis {max} A — die Absicherung des Anschlusses. Höhere Werte weist das System ab.",
   "energy.limitNotAdjustable":
@@ -149,12 +152,40 @@ const de: Record<string, string> = {
     "Die beiden Markierungen im Balken zeigen, wo die Stufen liegen.",
   "water.historyLater": "Verlauf entsteht in einem späteren Schritt",
 
+  // Sollwertverstellung. Der Name der Größe wird eingesetzt, damit die
+  // Sprachausgabe nicht bei jedem Stepper im Fahrzeug „Plus" sagt.
+  "stepper.decrease": "{name} verringern",
+  "stepper.increase": "{name} erhöhen",
+
+  // Klima und Heizung — getrennte Systeme, gemeinsame Darstellung
+  "zone.system": "System",
+  "zone.power": "Ein/Aus",
+  "zone.target": "Solltemperatur",
+  "zone.notesTitle": "Hinweise",
+
   // Klima
+  "climate.title": "Klima",
   "climate.inside": "Innen",
   "climate.outside": "Außen",
-  "climate.target": "Soll",
+  // Der Name der Entity steht für sich allein — ohne das „Innen" daneben
+  // wäre „Außen" kein Name, sondern eine Richtung.
+  "climate.outside_actual": "Außentemperatur",
   "climate.living_actual": "Innentemperatur",
-  "climate.living_target": "Solltemperatur",
+  "climate.cooling": "Klimaanlage",
+  "climate.cooling_target": "Solltemperatur Klima",
+  "climate.noteSeparate":
+    "Klima und Heizung sind getrennte Systeme mit eigenen Geräten und eigenen Sollwerten. Was hier eingestellt wird, gilt nicht für die Heizung.",
+  "climate.noteDevice":
+    "Der einstellbare Bereich ist vorläufig, solange das verbaute Gerät nicht bekannt ist. Betriebsarten zeigt Kehler OS erst, wenn das Gerät sie meldet — nachgebaut wird keine.",
+
+  // Heizung
+  "heating.title": "Heizung",
+  "heating.state": "Heizung",
+  "heating.target": "Solltemperatur Heizung",
+  "heating.noteSeparate":
+    "Eigenes System, eigener Sollwert. Die gemessene Innentemperatur ist dieselbe wie im Klimabereich — es gibt einen Wohnraum und einen Fühler.",
+  "heating.noteDevice":
+    "Ob gerade geheizt wird, meldet erst das Gerät. Bis dahin zeigt Kehler OS nur, was es weiß: Sollwert und Ein/Aus.",
 
   // Fahrzeug
   "vehicle.garage_door": "Garage",

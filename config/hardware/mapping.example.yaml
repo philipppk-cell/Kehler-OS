@@ -73,7 +73,7 @@ datapoints:
   # ── Schreibend: ungefährliche Ausgänge ───────────────────────────────────
   # Erst nach erfolgreichem Lesetest aktivieren.
 
-  - id: light.exterior.entry
+  - id: water.pump.main
     device: plc
     direction: write
     type: bool
@@ -114,7 +114,7 @@ failsafe:
     on_plc_comm_loss: unknown      # hold | stop | close | open | unknown
     on_pi_failure:    unknown
     on_power_loss:    unknown
-  light.exterior.entry:
+  water.pump.main:
     on_plc_comm_loss: unknown
     on_pi_failure:    unknown
     on_power_loss:    unknown

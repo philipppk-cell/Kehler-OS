@@ -13,7 +13,7 @@
  * dass es keine Summe gibt, wenn ein Tank keinen belastbaren Wert liefert.
  */
 
-import { Button, Card, Row, Status, Toggle } from "../design/primitives";
+import { Button, Card, Row, StaleMark, Status, Toggle } from "../design/primitives";
 import { IconPump } from "../design/icons";
 import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
@@ -47,7 +47,11 @@ export function Wasser() {
 /* ── Frischwasser ────────────────────────────────────────────────────────── */
 
 function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
-  const usable = Boolean(fresh) && online && fresh!.litres !== null;
+  // Ohne Verbindung bleibt der zuletzt bekannte Stand stehen und wird als
+  // veraltet gekennzeichnet — wie in der Komponente `Value`. Ihn zu leeren
+  // ließe „Verbindung weg" genauso aussehen wie „kein Wert vorhanden"; dass
+  // die Werte nicht mehr aktuell sind, sagt das Banner über der Seite.
+  const usable = Boolean(fresh) && fresh!.litres !== null;
   const stale = fresh?.quality === Quality.Stale || !online;
 
   return (
@@ -62,6 +66,10 @@ function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
             <span className="wasser__of">
               {t("water.remaining")} · {formatL(fresh!.capacity_l)} {t("water.capacity")}
             </span>
+            {/* Auch die Gesamtmenge wird gekennzeichnet, nicht nur die
+                einzelnen Tanks — sonst wäre die auffälligste Zahl der Seite
+                die einzige ohne Hinweis. */}
+            {fresh?.quality === Quality.Stale && <StaleMark />}
           </>
         ) : (
           /* Kein Teilergebnis: Solange ein Tank nichts Belastbares meldet,
@@ -118,7 +126,7 @@ function TankRow({
   /** Beim Abwasser interessiert der freie Platz, nicht der Inhalt. */
   waste?: boolean;
 }) {
-  const usable = USABLE.includes(tank.quality) && tank.percent !== null && online;
+  const usable = USABLE.includes(tank.quality) && tank.percent !== null;
   const stale = tank.quality === Quality.Stale || !online;
 
   return (
@@ -156,7 +164,7 @@ function TankRow({
         ) : (
           <span>{formatL(tank.capacity_l)} {t("water.capacity")}</span>
         )}
-        {stale && usable && <span className="tankrow__stale">{t("state.stale")}</span>}
+        {usable && tank.quality === Quality.Stale && <StaleMark />}
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ class TestPruefungVorHardwarekontakt:
     """Alles, was ohne einen einzigen Hardwarezugriff abgewiesen wird."""
 
     async def test_unbekannte_entity(self, bus: CommandBus, simulation):
-        result = await submit(bus, "light.gibt.esnicht", "set_state", state="ON")
+        result = await submit(bus, "water.gibt.esnicht", "set_state", state="ON")
         assert result.phase is CommandPhase.REJECTED
         assert result.rejection is RejectionReason.UNKNOWN_ENTITY
 
@@ -37,7 +37,7 @@ class TestPruefungVorHardwarekontakt:
         assert result.rejection is RejectionReason.MISSING_CAPABILITY
 
     async def test_unbekannter_parameter(self, bus: CommandBus, simulation):
-        result = await submit(bus, "light.interior.living", "set_state", helligkeit=50)
+        result = await submit(bus, "water.pump.main", "set_state", helligkeit=50)
         assert result.phase is CommandPhase.REJECTED
         assert result.rejection is RejectionReason.INVALID_PARAMS
 
@@ -49,7 +49,7 @@ class TestPruefungVorHardwarekontakt:
     async def test_ohne_adapter_kein_befehl(self, registry, state, events):
         # Ein Command Bus ohne Adapter darf nichts stillschweigend schlucken.
         bus = CommandBus(registry, state, events)
-        result = await submit(bus, "light.interior.living", "set_state", state="ON")
+        result = await submit(bus, "water.pump.main", "set_state", state="ON")
         assert result.phase is CommandPhase.REJECTED
         assert result.rejection is RejectionReason.DEVICE_UNAVAILABLE
 
@@ -58,9 +58,9 @@ class TestAusfuehrung:
     async def test_erfolgreicher_schaltbefehl(
         self, bus: CommandBus, state: StateStore, simulation
     ):
-        result = await submit(bus, "light.interior.living", "set_state", state="ON")
+        result = await submit(bus, "water.pump.main", "set_state", state="ON")
         assert result.phase is CommandPhase.COMPLETED
-        assert state.require("light.interior.living").state.value == "ON"
+        assert state.require("water.pump.main").state.value == "ON"
 
     async def test_idempotenz(self, bus: CommandBus, simulation):
         """Zweimal EIN ist kein Timeout.
@@ -69,8 +69,8 @@ class TestAusfuehrung:
         warten, die nicht kommt — obwohl der gewünschte Zustand längst
         erreicht ist (Kapitel 13 §33).
         """
-        await submit(bus, "light.interior.living", "set_state", state="ON")
-        zweiter = await submit(bus, "light.interior.living", "set_state", state="ON")
+        await submit(bus, "water.pump.main", "set_state", state="ON")
+        zweiter = await submit(bus, "water.pump.main", "set_state", state="ON")
         assert zweiter.phase is CommandPhase.COMPLETED
 
     async def test_bewegung_laeuft_ueber_zwischenzustand(
@@ -124,8 +124,8 @@ class TestFehlerfaelle:
     async def test_adapterfehler_wird_gemeldet(
         self, bus: CommandBus, simulation: SimulationAdapter
     ):
-        simulation.inject("light.interior.living", Fault.SENSOR_ERROR)
-        result = await submit(bus, "light.interior.living", "set_state", state="ON")
+        simulation.inject("water.pump.main", Fault.SENSOR_ERROR)
+        result = await submit(bus, "water.pump.main", "set_state", state="ON")
 
         # Der Sensor meldet einen Defekt: Das Gerät gilt als nicht erreichbar
         # oder der Adapter lehnt ab — beides ist ein Misserfolg, niemals ein
@@ -136,8 +136,8 @@ class TestFehlerfaelle:
     async def test_ungueltiger_sensorwert_bestaetigt_nichts(
         self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
     ):
-        simulation.inject("light.interior.living", Fault.SENSOR_INVALID)
-        assert state.require("light.interior.living").state.quality is Quality.INVALID
+        simulation.inject("water.pump.main", Fault.SENSOR_INVALID)
+        assert state.require("water.pump.main").state.quality is Quality.INVALID
 
     async def test_wunschzustand_wird_nach_fehler_aufgeraeumt(
         self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
@@ -171,11 +171,11 @@ class TestNachvollziehbarkeit:
         gesammelt = []
         events.subscribe("command.*", lambda event: gesammelt.append(event))
 
-        await submit(bus, "light.interior.living", "set_state", state="ON")
+        await submit(bus, "water.pump.main", "set_state", state="ON")
 
         assert len(gesammelt) == 1
         assert gesammelt[0].type == "command.completed"
-        assert gesammelt[0].entity_id == "light.interior.living"
+        assert gesammelt[0].entity_id == "water.pump.main"
 
     async def test_abgewiesener_befehl_wird_ebenfalls_gemeldet(
         self, bus: CommandBus, events, simulation
@@ -195,7 +195,7 @@ class TestNachvollziehbarkeit:
         events.subscribe("command.*", lambda event: gesammelt.append(event))
 
         command = Command(
-            entity_id="light.interior.living",
+            entity_id="water.pump.main",
             verb="set_state",
             params={"state": "ON"},
         )
