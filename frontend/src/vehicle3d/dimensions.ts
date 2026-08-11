@@ -28,6 +28,18 @@
  *       (Einstiegsseite mit Tür und Markise)
  */
 
+/**
+ * Unterkante des Aufbaus — zwischen den Rädern und am Heck.
+ *
+ * Steht außerhalb der Tabelle, weil zwei Dinge daran hängen, die gleich
+ * bleiben müssen: die Unterkante des Staukastenbandes und der **Garagenboden**.
+ * Die Garage ist der überhängende Heckteil und sitzt ganz unten; ihr Boden ist
+ * bündig mit der Unterkante des Aufbaus. Getrennt gepflegt würden die beiden
+ * Werte früher oder später auseinanderlaufen, und dann stünde die Ladekante
+ * sichtbar über oder unter der Aufbaukante.
+ */
+const BODY_BOTTOM = 0.72;
+
 export const V = {
   /* ── Hülle ──────────────────────────────────────────────────────────── */
   /** ANGEGEBEN. */
@@ -96,8 +108,11 @@ export const V = {
      *  Zuvor standen hier 1,85 m aus den Fotos. Die Schätzung lag um 35 cm zu
      *  hoch, und das war der größte Fehler im ganzen Modell: Der Aufbau wird
      *  dadurch von 2,15 m auf 2,50 m Höhe größer, ohne dass sich die
-     *  Gesamthöhe ändert. Türunterkante, Garagenboden und Einstiegsstufe sind
-     *  mit ihren jeweiligen Abständen zum Wohnboden mitgewandert. */
+     *  Gesamthöhe ändert. Türunterkante und Einstiegsstufe sind mit ihren
+     *  jeweiligen Abständen zum Wohnboden mitgewandert.
+     *
+     *  **Der Garagenboden nicht** — die Garage ist ein eigener Raum und hängt
+     *  nicht am Wohnboden, siehe `garage`. */
     floor: 1.5,
     /** Die Vorderkante ist oben **abgeschrägt**, nicht gerundet: Die Front
      *  steht bis `chamferAt` senkrecht und läuft dann schräg zum Dach.
@@ -111,7 +126,7 @@ export const V = {
   skirt: {
     front: 2.25,
     /** Unterkante zwischen den Rädern — dort sitzen die tiefen Staukästen. */
-    bottom: 0.72,
+    bottom: BODY_BOTTOM,
     /** Unterkante über dem Tandem. Muss über der Reifenoberkante liegen,
      *  sonst verschwinden die Räder hinter der Schürze. */
     arch: 1.16,
@@ -131,9 +146,23 @@ export const V = {
    *  damit auf dem Wohnboden (`box.floor` + 0,03 m Rahmen). */
   door: { x: 4.5, width: 0.85, bottom: 1.53, top: 3.72 },
 
-  /** Zwei Heckflügeltüren, außen angeschlagen.
-   *  `bottom` ist der Garagenboden, knapp über dem Wohnboden. */
-  garage: { bottom: 1.55, top: 3.72, halfWidth: 1.08 },
+  /** Heckklappe, oben angeschlagen. `bottom` ist der Garagenboden.
+   *
+   *  **Die Garage ist ein eigener Raum**, nicht der hintere Teil des
+   *  Wohnbereichs (ANGEGEBEN 2026-08-11). Sie ist der überhängende Heckteil
+   *  und sitzt ganz unten: Der Boden ist bündig mit der Unterkante des
+   *  Aufbaus, die Raumhöhe beträgt ca. 1,65 m. Daraus folgt die Oberkante
+   *  der Öffnung: 0,72 + 1,65 = 2,37 m.
+   *
+   *  Zuvor stand hier eine Öffnung von 1,90 m bis 3,72 m — aus den Fotos als
+   *  „nahezu volle Höhe der Heckwand" gelesen und an den Wohnboden gekoppelt.
+   *  Beides war falsch. Die Drohnenaufnahme zeigt die Klappe waagerecht
+   *  abstehend; in dieser Stellung ist ihre Höhe nicht abzuschätzen, und die
+   *  Schätzung ist zu groß ausgefallen. Die Klappe nimmt gut die Hälfte der
+   *  Heckwand ein, nicht deren volle Höhe.
+   *
+   *  `halfWidth` bleibt GESCHÄTZT — die Breite ist nicht genannt. */
+  garage: { bottom: BODY_BOTTOM, top: 2.37, halfWidth: 1.08 },
 
   /** Einstiegsstufe unter der Tür. GESCHÄTZT — sie hält ihren Abstand von
    *  0,46 m zur Türschwelle. Das Modell zeigt eine Stufe; real sind bei einer

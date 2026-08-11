@@ -681,6 +681,8 @@ des Fahrzeugs vollständig:
 | Hecküberhang | 3,00 m | angegeben |
 | Reifen | 315/80 R 22.5 | angegeben → Radhalbmesser 0,538 m |
 | Wohnboden über Grund | ca. 1,50 m | angegeben |
+| Unterkante Aufbau = Garagenboden | 0,72 m | geschätzt, aus den Fotos |
+| Raumhöhe der Garage | ca. 1,65 m | angegeben |
 
 Der Radhalbmesser ist nicht gemessen, sondern aus der Reifenbezeichnung
 gerechnet: Felge 22,5″ = 571,5 mm, Flanke 80 % von 315 mm = 252 mm,
@@ -706,6 +708,21 @@ Durchmesser 1075,5 mm. Das ist das Neumaß ohne Einfederung.
 > gelesen. Türunterkante, Garagenboden und Einstiegsstufe sind mit ihren
 > Abständen zum Wohnboden mitgewandert.
 
+> **Die Garage hängt nicht am Wohnboden.** Sie ist ein **eigener Raum** im
+> überhängenden Heckteil und sitzt ganz unten; ihr Boden ist bündig mit der
+> Unterkante des Aufbaus, die Raumhöhe beträgt ca. 1,65 m. Im Modell stand die
+> Öffnung zuvor von 1,90 m bis 3,72 m — an den Wohnboden gekoppelt und aus den
+> Fotos als „nahezu volle Höhe der Heckwand" gelesen. Beides war falsch; sie
+> reicht von 0,72 m bis 2,37 m und nimmt damit rund die Hälfte der Heckwand
+> ein. Boden und Aufbauunterkante teilen sich jetzt eine Konstante, damit sie
+> nicht wieder auseinanderlaufen.
+>
+> Daraus folgt eine noch offene Frage zum Innenausbau: Die Garagenoberkante
+> liegt 0,87 m über der Unterkante des Wohnbodens. Über dem Heck muss der
+> Wohnboden also höher liegen als im übrigen Fahrzeug. **Für die
+> Außendarstellung ist das ohne Belang** — festgehalten, damit die beiden
+> Zahlen später nicht als Widerspruch gelesen werden.
+
 **Bewusst nicht weiter verfolgt** — mit dem Fahrzeughalter am 2026-08-11 so
 entschieden:
 
@@ -715,6 +732,9 @@ entschieden:
 - **Spurweiten vorn und hinten bleiben geschätzt.** Sie sind durch die
   Gesamtbreite von 2,53 m nach oben begrenzt und wirken sich nur auf die
   Ansicht von vorn und hinten aus.
+- **Breite der Heckklappe und Unterkante des Aufbaus bleiben geschätzt**
+  (2,16 m bzw. 0,72 m). Beide sind durch Gesamtbreite und Reifenoberkante
+  begrenzt und nur aus der Heckansicht überhaupt zu sehen.
 
 > **ASSUMPTION (für die verbliebenen Werte):** Was in
 > `frontend/src/vehicle3d/dimensions.ts` nicht als `ANGEGEBEN` gekennzeichnet

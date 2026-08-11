@@ -796,9 +796,29 @@ Rückfrage bestätigt und auf 5,88 m korrigiert.
   Türunterkante, Garagenboden und Einstiegsstufe sind mit ihren Abständen zum
   Wohnboden mitgewandert, sonst hätte die Tür 35 cm über dem Boden geschwebt.
 
+- **Die Garage ist ein eigener Raum**, nicht der hintere Teil des
+  Wohnbereichs. Sie ist der überhängende Heckteil und sitzt ganz unten: Boden
+  bündig mit der Unterkante des Aufbaus, Raumhöhe ca. 1,65 m. Die Heckklappe
+  reicht damit von 0,72 m bis 2,37 m statt von 1,90 m bis 3,72 m — sie nimmt
+  rund die Hälfte der Heckwand ein, nicht deren volle Höhe.
+
+  Hier lagen **zwei** Fehler übereinander: Der Garagenboden war an den
+  Wohnboden gekoppelt, obwohl die Garage mit ihm nichts zu tun hat, und die
+  Klappenhöhe war aus den Fotos zu groß geschätzt. Auf der maßgeblichen
+  Aufnahme steht die Klappe **waagerecht abstehend** — in dieser Stellung
+  zeigt sie ihre Unterseite, und ihre Höhe ist aus keinem Blickwinkel
+  abzuschätzen. Garagenboden und Aufbauunterkante teilen sich jetzt eine
+  Konstante, damit sie nicht wieder auseinanderlaufen.
+
 **Punkt K1 ist damit geschlossen.** Bewusst nicht weiter verfolgt: Der
-Vorderüberhang bleibt gerechnet statt gemessen, die Spurweiten bleiben
-geschätzt und sind durch die Gesamtbreite nach oben begrenzt.
+Vorderüberhang bleibt gerechnet statt gemessen; Spurweiten, Klappenbreite und
+Unterkante des Aufbaus bleiben geschätzt und sind durch Gesamtbreite und
+Reifenoberkante nach oben begrenzt.
+
+**Notiert, nicht gelöst:** Die Garagenoberkante liegt 0,87 m über der
+Unterkante des Wohnbodens. Über dem Heck muss der Wohnboden also höher liegen
+als im übrigen Fahrzeug — für die Außendarstellung ohne Belang, aber
+festgehalten, damit die Zahlen nicht als Widerspruch gelesen werden.
 
 ### Dokumentiert — was Fotos für das Fahrzeugmodell leisten (Punkt K3)
 

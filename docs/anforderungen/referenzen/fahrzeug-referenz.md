@@ -48,12 +48,23 @@ Sechs Fotos des realen Fahrzeugs (2026-08-09):
 
 | Funktion | Beobachtung |
 | --- | --- |
-| **Garage** | über **eine oben angeschlagene Heckklappe**, die nach oben hebt und geöffnet waagerecht wie ein Vordach absteht. Nahezu volle Höhe und Breite der Heckwand. **Kein Rolltor, keine Flügeltüren.** |
+| **Garage** | **Ein eigener Raum** im überhängenden Heckteil, ganz unten — nicht der hintere Teil des Wohnbereichs (angegeben 2026-08-11). Boden bündig mit der Unterkante des Aufbaus, Raumhöhe **ca. 1,65 m**. Öffnung über **eine oben angeschlagene Heckklappe**, die nach oben hebt und geöffnet waagerecht wie ein Vordach absteht. Nahezu volle Breite der Heckwand, aber nur etwa deren **halbe Höhe**. **Kein Rolltor, keine Flügeltüren.** |
 | **Eingangstür** | auf der **rechten Seite** (Einstiegsseite), im vorderen Drittel, nahezu volle Aufbauhöhe, mit Fenster im oberen Bereich |
 | **Markise** | Kassette auf der **rechten Dachkante**, dunkel, über nahezu die gesamte Aufbaulänge |
 | **Solar** | Dach vollflächig belegt, **zwei Reihen zu je fünf Modulen** |
 | **Fenster** | links vier (drei breite, ein kleines quadratisch); rechts zwei breite plus das Türfenster. Kräftige dunkle Rahmen mit deutlich gerundeten Ecken, im **mittleren Drittel** der Aufbauhöhe — nicht direkt unter dem Dach. |
 | Heckleuchten | mehrere runde Einzelleuchten in den oberen und unteren Heckecken |
+
+> **Die Heckklappe war aus den Fotos zu groß geschätzt.** Hier stand zuvor
+> „nahezu volle Höhe der Heckwand"; sie nimmt tatsächlich etwa die Hälfte
+> davon ein. Die Fehlerquelle ist dieselbe Aufnahme, die vorher zwei andere
+> Fehler korrigiert hatte: Auf ihr steht die Klappe **waagerecht abstehend**.
+> In dieser Stellung zeigt sie dem Betrachter ihre Unterseite, und ihre Höhe
+> ist aus keinem Blickwinkel abzuschätzen.
+>
+> **Lehre:** Ein bewegliches Teil ist auf einem Foto nur in der Ruhestellung
+> vermessbar. Ein Foto, das eine Funktion belegt, belegt noch keine Maße —
+> es zeigt sie in genau der Stellung, in der man sie am schlechtesten sieht.
 
 ## Maße
 
@@ -79,9 +90,24 @@ Gesamthöhe: **Die Fotos hatten die Trennlinie zwischen Staukastenband und
 Wohnaufbau zu hoch gelesen.** Auf den Sonnenaufnahmen liegt genau dort ein
 harter Schatten, der wie eine Kante wirkt.
 
+**Angegeben (2026-08-11):** Die Garage ist ein eigener Raum ganz unten im
+überhängenden Heckteil, Boden bündig mit der Unterkante des Aufbaus
+(0,72 m über Grund), Raumhöhe **ca. 1,65 m**. Die Öffnung reicht damit von
+0,72 m bis 2,37 m.
+
+> **Eine Folge, die noch nicht geklärt ist.** Die Garagenoberkante liegt bei
+> 2,37 m und damit **0,87 m über der Unterkante des Wohnbodens** (1,50 m).
+> Über dem Heck können also nicht beide Räume auf ihren genannten Höhen
+> übereinanderliegen — dort muss der Wohnboden höher sein als im übrigen
+> Fahrzeug, wie es bei einem Bett über der Heckgarage üblich ist. Für die
+> **Außendarstellung ist das ohne Belang**: Das Modell zeigt die Hülle und die
+> Heckklappe, keine Innenwände. Festgehalten, damit die Zahlen nicht später
+> als Widerspruch gelesen werden.
+
 Damit sind alle Hauptmaße des Fahrzeugs bekannt. Geschätzt bleiben nur noch
-die Spurweiten und die Aufteilung des Aufbaus — Fensterlagen, Türbreite,
-Dachaufbauten. Der Vorderüberhang bleibt bewusst gerechnet statt gemessen.
+die Spurweiten, die Breite der Heckklappe und die Aufteilung des Aufbaus —
+Fensterlagen, Türbreite, Dachaufbauten. Der Vorderüberhang bleibt bewusst
+gerechnet statt gemessen.
 
 Diese Angaben sind als **Punkt K1** in
 [`OPEN_HARDWARE_REQUIREMENTS.md`](../../OPEN_HARDWARE_REQUIREMENTS.md)
