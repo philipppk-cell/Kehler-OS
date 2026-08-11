@@ -9,6 +9,7 @@ import { Fahrzeug } from "./pages/Fahrzeug";
 import { Diagnose } from "./pages/Diagnose";
 import { Einstellungen } from "./pages/Einstellungen";
 import { Placeholder } from "./pages/Placeholder";
+import { BootScreen } from "./boot/BootScreen";
 import { RealtimeClient, realtimeUrl } from "./realtime/client";
 import { fetchSystem } from "./api/client";
 import { useAppState } from "./realtime/hooks";
@@ -34,30 +35,37 @@ export function App() {
   }, []);
 
   return (
-    <Shell page={page} onNavigate={setPage}>
-      {page === "dashboard" ? (
-        <Dashboard />
-      ) : page === "water" ? (
-        <Wasser />
-      ) : page === "energy" ? (
-        <Energie />
-      ) : page === "climate" ? (
-        <Klima />
-      ) : page === "heating" ? (
-        <Heizung />
-      ) : page === "vehicle" ? (
-        <Fahrzeug />
-      ) : page === "diagnostics" ? (
-        <Diagnose />
-      ) : page === "settings" ? (
-        <Einstellungen />
-      ) : (
-        <Placeholder title={t(`nav.${page}`)} />
-      )}
+    <>
+      {/* Liegt über allem und entscheidet selbst, wann es geht: sobald der
+          erste Zustand da ist — oder sofort, wenn die Verbindung scheitert,
+          damit das Banner dahinter sichtbar wird. */}
+      <BootScreen />
 
-      {/* Fehlgeschlagene Befehle werden verständlich gemeldet — nie stumm
-          verschluckt (Kapitel 17 §20/§22). */}
-      {lastError && <div className="toast toast--error">{lastError.message}</div>}
-    </Shell>
+      <Shell page={page} onNavigate={setPage}>
+        {page === "dashboard" ? (
+          <Dashboard />
+        ) : page === "water" ? (
+          <Wasser />
+        ) : page === "energy" ? (
+          <Energie />
+        ) : page === "climate" ? (
+          <Klima />
+        ) : page === "heating" ? (
+          <Heizung />
+        ) : page === "vehicle" ? (
+          <Fahrzeug />
+        ) : page === "diagnostics" ? (
+          <Diagnose />
+        ) : page === "settings" ? (
+          <Einstellungen />
+        ) : (
+          <Placeholder title={t(`nav.${page}`)} />
+        )}
+
+        {/* Fehlgeschlagene Befehle werden verständlich gemeldet — nie stumm
+            verschluckt (Kapitel 17 §20/§22). */}
+        {lastError && <div className="toast toast--error">{lastError.message}</div>}
+      </Shell>
+    </>
   );
 }

@@ -305,6 +305,7 @@ const de: Record<string, string> = {
   "vehicle.windows": "Fenster",
 
   // Verbindung
+  "boot.starting": "SYSTEM STARTET",
   "conn.online": "Mit dem Fahrzeug verbunden",
   "conn.connecting": "Verbindung wird aufgebaut",
   "conn.reconnecting": "Verbindung wird wiederhergestellt",

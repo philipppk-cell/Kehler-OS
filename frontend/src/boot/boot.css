@@ -1,0 +1,140 @@
+/* Startbildschirm. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42).
+
+   Er liegt über allem, auch über dem Kopfbereich: Beim Start gibt es noch
+   nichts zu bedienen, und ein halb sichtbares Gerüst dahinter sähe aus wie
+   eine Oberfläche, die nicht fertig geladen hat. */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+
+  display: grid;
+  place-items: center;
+  padding: calc(var(--space-6) + env(safe-area-inset-top)) var(--space-6)
+    calc(var(--space-6) + env(safe-area-inset-bottom));
+
+  background:
+    radial-gradient(900px 500px at 50% -10%, rgba(56, 214, 238, 0.05), transparent 60%),
+    var(--bg-base);
+
+  /* Der Behälter ist die Bezugsgröße für die Schriftgrade darin — so ist der
+     Startbildschirm auf dem Handy und auf dem iPad gleich proportioniert und
+     nicht einmal winzig und einmal riesig. */
+  container-type: inline-size;
+
+  opacity: 1;
+  transition: opacity var(--duration-normal, 220ms) ease;
+}
+
+/* Muss zu AUSBLENDEN_MS in BootScreen.tsx passen. */
+.boot--weg {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 400ms;
+}
+
+.boot__buehne {
+  display: grid;
+  place-items: center;
+  gap: var(--space-5);
+  width: min(560px, 84cqw);
+}
+
+.boot__lkw {
+  width: min(300px, 62cqw);
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.boot__strich {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Der Boden ist Zeichnung und nicht Fahrzeug — er tritt zurück. */
+.boot__boden {
+  stroke: var(--text-tertiary);
+  stroke-width: 1.6;
+}
+
+.boot__marke {
+  font-size: clamp(20px, 6cqw, 38px);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.22em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.boot__marke b {
+  color: var(--accent);
+  font-weight: var(--weight-semibold);
+}
+
+.boot__linie {
+  width: 46%;
+  height: 1px;
+  background: var(--accent);
+  transform-origin: center;
+}
+
+.boot__zeile {
+  font-family: var(--font-numeric);
+  font-size: clamp(9px, 2cqw, 12px);
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+
+/* ── Der Ablauf ──────────────────────────────────────────────────────────
+   Erst zeichnet sich der Aufbau, dann die Kabine, dann die Räder — in der
+   Reihenfolge, in der man ein Fahrzeug von Hand zeichnen würde. Danach
+   Schriftzug, Linie, Statuszeile.
+
+   Die Gesamtdauer steht als ABLAUF_MS in BootScreen.tsx. Wer hier etwas
+   ändert, muss sie dort mitziehen: Sonst verschwindet der Bildschirm mitten
+   im Ablauf oder steht nach seinem Ende unnötig herum.                    */
+
+.boot__lkw path,
+.boot__lkw circle {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: boot-zeichnen 0.7s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.boot__kabine { animation-duration: 0.5s; animation-delay: 0.55s; }
+.boot__boden { animation-duration: 0.5s; animation-delay: 0.3s; }
+.boot__rad { animation-duration: 0.4s; animation-delay: 0.95s; }
+.boot__rad--2 { animation-delay: 1.05s; }
+.boot__rad--3 { animation-delay: 1.15s; }
+
+.boot__marke { animation: boot-aufsteigen 0.6s 1.35s both; }
+.boot__linie { animation: boot-breiter 0.6s 1.75s cubic-bezier(0.2, 0.8, 0.3, 1) both,
+                          boot-auftauchen 0.3s 1.75s both; }
+.boot__zeile { animation: boot-auftauchen 0.5s 2.05s both; }
+
+@keyframes boot-zeichnen { to { stroke-dashoffset: 0; } }
+@keyframes boot-auftauchen { from { opacity: 0; } to { opacity: 1; } }
+@keyframes boot-aufsteigen {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes boot-breiter { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Wer weniger Bewegung eingestellt hat, bekommt das Zeichen fertig — und
+   ohne jede künstliche Wartezeit, siehe BootScreen.tsx. */
+@media (prefers-reduced-motion: reduce) {
+  .boot__lkw path,
+  .boot__lkw circle,
+  .boot__marke,
+  .boot__linie,
+  .boot__zeile {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}

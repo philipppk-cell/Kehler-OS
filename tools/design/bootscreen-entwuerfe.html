@@ -201,7 +201,10 @@
   #e3.ab .lkw .kabine  { animation: zeichnen 0.5s 0.55s cubic-bezier(0.4, 0, 0.2, 1) both; }
   #e3.ab .lkw .rad     { animation: zeichnen 0.4s 0.95s cubic-bezier(0.4, 0, 0.2, 1) both; }
   #e3.ab .wortmarke { animation: aufsteigen 0.6s 1.35s both; }
-  #e3.ab .zeile { animation: auftauchen 0.5s 1.75s both; }
+  #e3 .rule { width: 46%; height: 1px; background: var(--accent); transform-origin: center; }
+  #e3.ab .rule { animation: breiter 0.6s 1.75s cubic-bezier(0.2, 0.8, 0.3, 1) both,
+                            auftauchen 0.3s 1.75s both; }
+  #e3.ab .zeile { animation: auftauchen 0.5s 2.05s both; }
 
   /* ── 4 · Messkurve ──────────────────────────────────────────────────── */
   #e4 .kurve path { stroke-dasharray: 300; stroke-dashoffset: 300; }
@@ -334,6 +337,7 @@
             <circle class="strich rad" cx="182" cy="66" r="7" style="animation-delay:1.15s" />
           </svg>
           <div class="wortmarke">KEHLER <b>OS</b></div>
+          <div class="rule"></div>
           <div class="zeile">SYSTEM STARTET</div>
         </div>
       </div>
