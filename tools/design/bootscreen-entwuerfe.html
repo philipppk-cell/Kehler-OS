@@ -194,17 +194,19 @@
   #e2.ab .wortmarke { animation: aufsteigen 0.6s 1.2s both; }
   #e2.ab .zeile { animation: auftauchen 0.5s 1.6s both; }
 
-  /* ── 3 · Fahrzeug ───────────────────────────────────────────────────── */
-  #e3 .lkw path, #e3 .lkw circle { stroke-dasharray: 400; stroke-dashoffset: 400; }
+  /* ── 3 · Fahrzeug ─────────────────────────────────────────────────────
+     Stand nach der Auswahl (2026-08-11): geschlossener Umriss in einer Farbe
+     statt drei Teilen mit grauer Bodenlinie, und deutlich ruhiger. Diese
+     Fassung ist die eingebaute — siehe frontend/src/boot/. */
+  #e3 .lkw path, #e3 .lkw circle { stroke-dasharray: 1; stroke-dashoffset: 1; }
   #e3.ab .lkw { opacity: 1; }
-  #e3.ab .lkw .aufbau  { animation: zeichnen 0.7s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both; }
-  #e3.ab .lkw .kabine  { animation: zeichnen 0.5s 0.55s cubic-bezier(0.4, 0, 0.2, 1) both; }
-  #e3.ab .lkw .rad     { animation: zeichnen 0.4s 0.95s cubic-bezier(0.4, 0, 0.2, 1) both; }
-  #e3.ab .wortmarke { animation: aufsteigen 0.6s 1.35s both; }
+  #e3.ab .lkw .umriss { animation: zeichnen 1.6s 0.15s cubic-bezier(0.45, 0, 0.3, 1) both; }
+  #e3.ab .lkw .rad    { animation: zeichnen 0.5s 1.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e3.ab .wortmarke { animation: aufsteigen 0.7s 2s both; }
   #e3 .rule { width: 46%; height: 1px; background: var(--accent); transform-origin: center; }
-  #e3.ab .rule { animation: breiter 0.6s 1.75s cubic-bezier(0.2, 0.8, 0.3, 1) both,
-                            auftauchen 0.3s 1.75s both; }
-  #e3.ab .zeile { animation: auftauchen 0.5s 2.05s both; }
+  #e3.ab .rule { animation: breiter 0.6s 2.45s cubic-bezier(0.2, 0.8, 0.3, 1) both,
+                            auftauchen 0.35s 2.45s both; }
+  #e3.ab .zeile { animation: auftauchen 0.5s 2.85s both; }
 
   /* ── 4 · Messkurve ──────────────────────────────────────────────────── */
   #e4 .kurve path { stroke-dasharray: 300; stroke-dashoffset: 300; }
@@ -320,10 +322,10 @@
         <span class="nummer">03</span>
         <h2>Fahrzeug</h2>
         <p class="warum">
-          Die Silhouette des Aufbaus entsteht Strich für Strich. Am
-          konkretesten — man sieht sofort, worum es geht. Zugleich am
-          festgelegtesten: Ändert sich am Fahrzeug etwas, stimmt das Zeichen
-          nicht mehr.
+          <strong>Gewählt.</strong> Der Umriss zeichnet sich in einem Zug. Am
+          konkretesten — man sieht sofort, worum es geht. Diese Fassung ist die
+          eingebaute: geschlossener Umriss in einer Farbe und ruhiger als die
+          übrigen Entwürfe.
         </p>
       </div>
       <div class="schirm" id="e3">

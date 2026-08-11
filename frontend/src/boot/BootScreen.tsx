@@ -1,9 +1,9 @@
 /**
  * Der Startbildschirm.
  *
- * Die Silhouette des Aufbaus zeichnet sich Strich für Strich, dann erscheint
- * der Schriftzug, dann die Linie, dann die Statuszeile (Entwurf 03, gewählt am
- * 2026-08-10).
+ * Der Umriss des Fahrzeugs zeichnet sich in einem Zug, dann kommen die Räder,
+ * dann der Schriftzug, dann die Linie, dann die Statuszeile (Entwurf 03,
+ * gewählt am 2026-08-10).
  *
  * ── Wann er verschwindet ──────────────────────────────────────────────────
  *
@@ -14,11 +14,12 @@
  * schlechtere Auskunft.
  *
  * Die erste Bedingung kostet dagegen Zeit, und das wird hier nicht
- * beschönigt: **Bis zu 2,1 Sekunden**, einmal beim Öffnen. Kommt der Zustand
+ * beschönigt: **Bis zu 3,35 Sekunden**, einmal beim Öffnen. Kommt der Zustand
  * früher, war das Warten künstlich. Ein Ablauf, der auf halber Strecke
  * abgeschnitten wird, sieht allerdings kaputt aus — und ein Startbildschirm,
- * der kaputt aussieht, ist schlimmer als zwei Sekunden. Die Entscheidung
- * gehört dem Fahrzeughalter und ist so gefallen.
+ * der kaputt aussieht, ist schlimmer. Die Dauer ist eine Entscheidung des
+ * Fahrzeughalters — er hat den Ablauf am 2026-08-11 ausdrücklich langsamer
+ * gewünscht.
  *
  * ── Wann er sich zurückzieht ──────────────────────────────────────────────
  *
@@ -32,8 +33,10 @@ import { useAppState } from "../realtime/hooks";
 import { t } from "../i18n/de";
 import "./boot.css";
 
-/** Dauer des Ablaufs bis einschließlich Statuszeile. */
-const ABLAUF_MS = 2100;
+/** Dauer des Ablaufs bis einschließlich Statuszeile.
+ *
+ * Muss zu den Zeiten in `boot.css` passen — dort steht die Aufteilung. */
+const ABLAUF_MS = 3350;
 
 /** Dauer des Ausblendens — muss zu `.boot--weg` in `boot.css` passen. */
 const AUSBLENDEN_MS = 420;
@@ -70,13 +73,41 @@ export function BootScreen() {
       aria-label={t("boot.starting")}
     >
       <div className="boot__buehne">
+        {/* Ein geschlossener Umriss, in einem Zug gezeichnet: Front hoch,
+            Scheibe, Kabinendach, Stirnseite des Aufbaus, Dach, Heck, Unterkante
+            zurück.
+
+            Vorher waren es drei Teile plus eine graue Bodenlinie. Die
+            Bodenlinie war nicht bloß Zierde — sie schloss Kabine und Aufbau
+            unten ab, die beide als offene Formen gezeichnet waren. Sie
+            ersatzlos zu streichen hätte ein unten offenes Fahrzeug ergeben.
+            Jetzt gehört die Unterkante zum Fahrzeug und hat dessen Farbe.
+
+            `pathLength="1"` normiert die Länge: Der Ablauf rechnet mit 0 bis 1
+            und nicht mit der tatsächlichen Pfadlänge. Ohne das müsste die
+            Strichlänge zur Geometrie passen, und jede Änderung am Umriss
+            verschöbe stillschweigend die Dauer. */}
         <svg className="boot__lkw" viewBox="0 0 220 84" aria-hidden="true">
-          <path className="boot__strich boot__aufbau" d="M60 62V16h142v46" />
-          <path className="boot__strich boot__kabine" d="M58 62V36l-9-9H26l-8 11v24" />
-          <path className="boot__strich boot__boden" d="M14 62h194" />
-          <circle className="boot__strich boot__rad" cx="40" cy="66" r="7" />
-          <circle className="boot__strich boot__rad boot__rad--2" cx="156" cy="66" r="7" />
-          <circle className="boot__strich boot__rad boot__rad--3" cx="182" cy="66" r="7" />
+          <path
+            className="boot__strich boot__umriss"
+            pathLength="1"
+            d="M18 62V40l10-12h28V16h144v46z"
+          />
+          <circle className="boot__strich boot__rad" pathLength="1" cx="42" cy="69" r="7" />
+          <circle
+            className="boot__strich boot__rad boot__rad--2"
+            pathLength="1"
+            cx="152"
+            cy="69"
+            r="7"
+          />
+          <circle
+            className="boot__strich boot__rad boot__rad--3"
+            pathLength="1"
+            cx="178"
+            cy="69"
+            r="7"
+          />
         </svg>
 
         {/* Dieselbe Auszeichnung wie im Kopfbereich der Oberfläche: gesperrt,

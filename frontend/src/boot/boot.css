@@ -56,12 +56,6 @@
   stroke-linejoin: round;
 }
 
-/* Der Boden ist Zeichnung und nicht Fahrzeug — er tritt zurück. */
-.boot__boden {
-  stroke: var(--text-tertiary);
-  stroke-width: 1.6;
-}
-
 .boot__marke {
   font-size: clamp(20px, 6cqw, 38px);
   font-weight: var(--weight-semibold);
@@ -90,31 +84,36 @@
 }
 
 /* ── Der Ablauf ──────────────────────────────────────────────────────────
-   Erst zeichnet sich der Aufbau, dann die Kabine, dann die Räder — in der
-   Reihenfolge, in der man ein Fahrzeug von Hand zeichnen würde. Danach
-   Schriftzug, Linie, Statuszeile.
+   Der Umriss zeichnet sich in einem Zug, dann kommen die Räder, dann
+   Schriftzug, Linie und Statuszeile.
+
+   Bewusst **ruhig**: Der Umriss allein braucht 1,6 Sekunden. Ein Zeichen, das
+   entsteht, soll man entstehen sehen — schnell gezeichnet wirkt es wie ein
+   Aufblitzen und nicht wie eine Zeichnung.
 
    Die Gesamtdauer steht als ABLAUF_MS in BootScreen.tsx. Wer hier etwas
    ändert, muss sie dort mitziehen: Sonst verschwindet der Bildschirm mitten
-   im Ablauf oder steht nach seinem Ende unnötig herum.                    */
+   im Ablauf oder steht nach seinem Ende unnötig herum.
+
+   `stroke-dasharray: 1` funktioniert nur zusammen mit `pathLength="1"` am
+   Element — siehe BootScreen.tsx.                                         */
 
 .boot__lkw path,
 .boot__lkw circle {
-  stroke-dasharray: 400;
-  stroke-dashoffset: 400;
-  animation: boot-zeichnen 0.7s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
 }
 
-.boot__kabine { animation-duration: 0.5s; animation-delay: 0.55s; }
-.boot__boden { animation-duration: 0.5s; animation-delay: 0.3s; }
-.boot__rad { animation-duration: 0.4s; animation-delay: 0.95s; }
-.boot__rad--2 { animation-delay: 1.05s; }
-.boot__rad--3 { animation-delay: 1.15s; }
+.boot__umriss { animation: boot-zeichnen 1.6s 0.15s cubic-bezier(0.45, 0, 0.3, 1) both; }
 
-.boot__marke { animation: boot-aufsteigen 0.6s 1.35s both; }
-.boot__linie { animation: boot-breiter 0.6s 1.75s cubic-bezier(0.2, 0.8, 0.3, 1) both,
-                          boot-auftauchen 0.3s 1.75s both; }
-.boot__zeile { animation: boot-auftauchen 0.5s 2.05s both; }
+.boot__rad { animation: boot-zeichnen 0.5s 1.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.boot__rad--2 { animation-delay: 1.62s; }
+.boot__rad--3 { animation-delay: 1.74s; }
+
+.boot__marke { animation: boot-aufsteigen 0.7s 2s both; }
+.boot__linie { animation: boot-breiter 0.6s 2.45s cubic-bezier(0.2, 0.8, 0.3, 1) both,
+                          boot-auftauchen 0.35s 2.45s both; }
+.boot__zeile { animation: boot-auftauchen 0.5s 2.85s both; }
 
 @keyframes boot-zeichnen { to { stroke-dashoffset: 0; } }
 @keyframes boot-auftauchen { from { opacity: 0; } to { opacity: 1; } }
