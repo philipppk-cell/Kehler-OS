@@ -666,22 +666,51 @@ inaktiv statt unzuverlässig.
 
 **Beantwortet (2026-08-09):** Gesamtlänge **11,5 m**, Gesamthöhe **4,0 m**.
 
-Die dreidimensionale Fahrzeugdarstellung im Dashboard ist im Übrigen aus Fotos
-nachgebildet (siehe
-[Fahrzeugreferenz](anforderungen/referenzen/fahrzeug-referenz.md)). Fotos
-liefern Proportionen, keine Maße. Für ein durchgehend maßhaltiges Modell
-fehlen noch:
+**Nachgereicht (2026-08-11):** Gesamtbreite **2,53 m**, Radstand, Achsabstand
+des Tandems, Hecküberhang und Reifengröße. Damit steht die Längsaufteilung
+des Fahrzeugs vollständig:
 
-- Gesamtbreite *(derzeit mit 2,55 m angesetzt — das zulässige Höchstmaß)*
-- Radstand und Achsabstand des Tandems
-- Überhang vorn und hinten
-- Höhe des Wohnbodens über Grund
-- Reifengröße
+| Maß | Wert | Herkunft |
+| --- | --- | --- |
+| Gesamtlänge | 11,50 m | angegeben |
+| Gesamtbreite | 2,53 m | angegeben |
+| Gesamthöhe | 4,00 m | angegeben |
+| Vorderüberhang | 1,42 m | **gerechnet** — Rest auf die Gesamtlänge |
+| Radstand (VA → 1. HA) | 5,88 m | angegeben, siehe Korrektur unten |
+| Achsabstand Tandem | 1,20 m | angegeben |
+| Hecküberhang | 3,00 m | angegeben |
+| Reifen | 315/80 R 22.5 | angegeben → Radhalbmesser 0,538 m |
 
-> **ASSUMPTION (bis zur Klärung):** Die Werte in
-> `frontend/src/vehicle3d/dimensions.ts` sind aus den Fotos **geschätzt**. Sie
-> stehen dort an genau einer Stelle und sind als Schätzung gekennzeichnet. Die
-> Korrektur ist ein Zahlenaustausch, keine Modellüberarbeitung.
+Der Radhalbmesser ist nicht gemessen, sondern aus der Reifenbezeichnung
+gerechnet: Felge 22,5″ = 571,5 mm, Flanke 80 % von 315 mm = 252 mm,
+Durchmesser 1075,5 mm. Das ist das Neumaß ohne Einfederung.
+
+> **Warum der Radstand korrigiert wurde.** Zuerst genannt waren 4,80 m. Damit
+> summierten sich die Längsmaße auf 10,45 m statt 11,50 m. Rechnete man den
+> fehlenden Meter stattdessen nach vorn, ergab sich ein Vorderüberhang von
+> 2,50 m — die Vorderachse hätte **hinter** dem Fahrerhaus gestanden, was die
+> Fotos eindeutig widerlegen. Die Differenz entsprach fast genau zwei
+> Reifenhalbmessern (1,08 m bei 315/80 R 22.5). Der Wert war von Reifenkante
+> zu Reifenkante gemessen, nicht von Radmitte zu Radmitte. Mitte zu Mitte sind
+> es 5,88 m, und die Summe geht exakt auf: 1,42 + 5,88 + 1,20 + 3,00 = 11,50.
+>
+> **Lehre:** Ein Achsmaß braucht die Angabe, wovon aus gemessen wurde. Ohne
+> sie ist ein Reifenhalbmesser Auslegungssache — und bei einem LKW-Reifen sind
+> das über einen halben Meter je Rad.
+
+**Noch offen für ein durchgehend maßhaltiges Modell:**
+
+- **Höhe des Wohnbodens über Grund** *(im Modell mit 1,85 m angesetzt)* — mit
+  einem Gliedermaßstab an der Einstiegstür in einer Minute gemessen
+- Spurweiten vorn und hinten *(geschätzt, aber durch die 2,53 m Gesamtbreite
+  nach oben begrenzt)*
+- der Vorderüberhang bleibt gerechnet und trägt damit den Fehler aller
+  übrigen Längsmaße
+
+> **ASSUMPTION (für die verbliebenen Werte):** Was in
+> `frontend/src/vehicle3d/dimensions.ts` nicht als `ANGEGEBEN` gekennzeichnet
+> ist, ist aus den Fotos **geschätzt**. Die Werte stehen dort an genau einer
+> Stelle. Die Korrektur ist ein Zahlenaustausch, keine Modellüberarbeitung.
 >
 > Das Modell ist ausschließlich Anzeige. Aus ihm wird nichts berechnet — keine
 > Durchfahrtshöhe, kein Wendekreis, kein Gewicht. Ein geschätztes Maß kann

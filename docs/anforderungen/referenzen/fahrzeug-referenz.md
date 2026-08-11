@@ -59,14 +59,24 @@ Sechs Fotos des realen Fahrzeugs (2026-08-09):
 
 **Angegeben (2026-08-09):** Gesamtlänge **11,5 m**, Gesamthöhe **4,0 m**.
 
-Aus Fotos lassen sich darüber hinaus Proportionen ablesen, aber keine Maße.
-Damit fehlen weiterhin:
+**Angegeben (2026-08-11):** Gesamtbreite **2,53 m**, Radstand **5,88 m**,
+Achsabstand des Tandems **1,20 m**, Hecküberhang **3,00 m**, Reifen
+**315/80 R 22.5**. Der Vorderüberhang ergibt sich daraus rechnerisch zu
+**1,42 m**. Die Längsaufteilung des Fahrzeugs ist damit gemessen und nicht
+mehr aus den Fotos geschätzt.
 
-- Gesamtbreite (im Modell mit 2,55 m angesetzt — das zulässige Höchstmaß)
-- Radstand und Achsabstand des Tandems
-- Überhang vorn und hinten
-- Höhe des Wohnbodens über Grund
-- Reifengröße
+> **Was die Fotos dabei geleistet haben.** Der Radstand war zuerst mit 4,80 m
+> genannt; damit fehlte gut ein Meter auf die Gesamtlänge. Rechnete man ihn
+> nach vorn, hätte die Vorderachse hinter dem Fahrerhaus gestanden — und
+> **genau das haben die Fotos ausgeschlossen**. Sie konnten das Maß nicht
+> liefern, aber sie konnten es widerlegen. Ursache waren zwei
+> Reifenhalbmesser: gemessen war von Reifenkante zu Reifenkante.
+
+Aus Fotos lassen sich Proportionen ablesen, aber keine Maße. Damit fehlt
+weiterhin:
+
+- Höhe des Wohnbodens über Grund (im Modell mit 1,85 m angesetzt)
+- Spurweiten vorn und hinten
 
 Diese Angaben sind als **Punkt K1** in
 [`OPEN_HARDWARE_REQUIREMENTS.md`](../../OPEN_HARDWARE_REQUIREMENTS.md)

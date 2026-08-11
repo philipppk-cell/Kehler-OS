@@ -766,6 +766,42 @@ aufgedeckt, die aus den Sonnenfotos nicht erkennbar waren:
   zeitlich begrenzte Übersteuerung; Sicherheitsregeln übersteuern sie (W5).
 - **Abfahrtscheck entfällt** (W11). Die Einzelzustände bleiben sichtbar.
 
+### Korrigiert — Fahrzeugmaße gemessen statt geschätzt (2026-08-11)
+
+Der Fahrzeughalter hat die fehlenden Maße aus Punkt K1 nachgereicht. Die
+Längsaufteilung des Modells beruht damit nicht mehr auf Fotoproportionen:
+
+- **Gesamtbreite 2,53 m** statt der angesetzten 2,55 m (des zulässigen
+  Höchstmaßes).
+- **Radstand 5,88 m, Achsabstand des Tandems 1,20 m, Hecküberhang 3,00 m.**
+  Der Vorderüberhang ergibt sich daraus rechnerisch zu 1,42 m — genau der
+  Serienwert eines MAN TGX. Die Achsen sind entsprechend gesetzt; Radläufe
+  und Schürzenausschnitte folgen ihnen automatisch.
+- **Reifen 315/80 R 22.5.** Der Radhalbmesser ist daraus gerechnet (0,538 m
+  statt geschätzter 0,53 m), die Reifenbreite auf 0,315 m korrigiert.
+
+**Ein genannter Wert war widersprüchlich und wurde nicht übernommen.** Mit
+dem zuerst genannten Radstand von 4,80 m summierten sich die Längsmaße auf
+10,45 m statt 11,50 m. Der fehlende Meter nach vorn gerechnet hätte die
+Vorderachse hinter das Fahrerhaus gestellt — die Fotos zeigen sie eindeutig
+darunter. Die Differenz entsprach zwei Reifenhalbmessern (1,08 m): gemessen
+war von Reifenkante zu Reifenkante statt von Radmitte zu Radmitte. Nach
+Rückfrage bestätigt und auf 5,88 m korrigiert.
+
+Offen bleibt in K1 nur noch die Höhe des Wohnbodens über Grund.
+
+### Dokumentiert — was Fotos für das Fahrzeugmodell leisten (Punkt K3)
+
+Auf die Frage nach einem 3D-Modell aus vielen Fotos festgehalten: Ein
+fotogrammetrischer Scan liefert ein verschmolzenes Netz ohne benannte Knoten,
+mit eingebrannter Beleuchtung und in genau einem Zustand — Heckklappe offen
+oder zu, nie beides. Damit wäre er als Zustandsanzeige unbrauchbar (Punkt K2).
+Fotos verbessern die **Form**, liefern aber keine **Maße**, solange kein
+Maßstab in derselben Ebene im Bild liegt.
+
+Der Fall hat das gleich belegt: Die Fotos konnten den falschen Radstand nicht
+ersetzen, aber sie konnten ihn widerlegen.
+
 ### Offen
 
 - Bilddatei der Designreferenz fehlt im Repository (nur Beschreibung vorhanden)

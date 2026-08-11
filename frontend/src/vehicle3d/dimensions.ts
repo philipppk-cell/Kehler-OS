@@ -2,9 +2,13 @@
  * Die Maße des Fahrzeugs — in Metern.
  *
  * ┌──────────────────────────────────────────────────────────────────────┐
- * │  Länge und Höhe sind ANGEGEBEN (11,5 m × 4,0 m).                     │
- * │  Alles Übrige ist aus Fotos GESCHÄTZT, nicht gemessen — siehe die     │
- * │  Kennzeichnung an den einzelnen Werten und offener Punkt K1.          │
+ * │  Die Hauptmaße sind ANGEGEBEN: Länge 11,5 m, Höhe 4,0 m,             │
+ * │  Breite 2,53 m, Radstand 5,88 m, Achsabstand 1,20 m,                 │
+ * │  Hecküberhang 3,00 m, Reifen 315/80 R 22.5.                          │
+ * │                                                                       │
+ * │  Die Aufteilung des Aufbaus — Fensterlagen, Türgröße, Dachaufbauten, │
+ * │  Spurweiten — ist weiterhin aus Fotos GESCHÄTZT. Jeder Wert unten     │
+ * │  trägt seine Kennzeichnung einzeln.                                   │
  * └──────────────────────────────────────────────────────────────────────┘
  *
  * Grundlage: `docs/anforderungen/referenzen/fahrzeug-referenz.md`.
@@ -28,19 +32,44 @@ export const V = {
   /* ── Hülle ──────────────────────────────────────────────────────────── */
   /** ANGEGEBEN. */
   length: 11.5,
-  /** GESCHÄTZT — 2,55 m ist das zulässige Höchstmaß und passt zu den Fotos. */
-  width: 2.55,
+  /** ANGEGEBEN (2026-08-11). */
+  width: 2.53,
   /** ANGEGEBEN. */
   height: 4.0,
 
   /* ── Fahrgestell ────────────────────────────────────────────────────── */
-  wheelRadius: 0.53,
-  wheelWidth: 0.3,
-  /** Vorderachse, erste und zweite Hinterachse (Tandem). GESCHÄTZT.
-   *  Radstand 5,4 m, Hecküberhang 3,25 m — das entspricht dem, was die
-   *  Fotos zeigen, und bleibt im üblichen Verhältnis zum Radstand. */
-  axles: { front: 1.5, rear1: 6.9, rear2: 8.25 },
-  /** Abstand der Reifenmitten von der Fahrzeugmitte. Hinten zwillingsbereift. */
+  /** ANGEGEBEN über die Reifengröße **315/80 R 22.5** (2026-08-11):
+   *  Felge 22,5″ = 571,5 mm, Flanke 80 % von 315 mm = 252 mm,
+   *  Durchmesser 571,5 + 2 × 252 = 1075,5 mm. Nicht gemessen, sondern aus
+   *  der Reifenbezeichnung gerechnet — das ist der Neureifen ohne Einfederung. */
+  wheelRadius: 0.538,
+  /** ANGEGEBEN — Nennbreite 315 mm aus derselben Bezeichnung. */
+  wheelWidth: 0.315,
+  /** Vorderachse, erste und zweite Hinterachse (Tandem), gemessen ab
+   *  Fahrzeugfront. ANGEGEBEN (2026-08-11) — aus diesen Maßen aufgebaut:
+   *
+   *    Vorderüberhang    1,42 m   GERECHNET (Rest auf die Gesamtlänge)
+   *    Radstand          5,88 m   ANGEGEBEN
+   *    Achsabstand       1,20 m   ANGEGEBEN
+   *    Hecküberhang      3,00 m   ANGEGEBEN
+   *    ─────────────────────────
+   *    Gesamtlänge      11,50 m   ANGEGEBEN, geht exakt auf
+   *
+   *  Der Radstand wurde zunächst mit 4,80 m genannt. Damit summierten sich
+   *  die Längsmaße auf 10,45 m statt 11,50 m — und rechnete man den Rest
+   *  stattdessen nach vorn, hätte die Vorderachse **hinter** dem Fahrerhaus
+   *  gestanden. Die Ursache waren zwei Reifenhalbmesser: 4,80 m war von
+   *  Reifenkante zu Reifenkante gemessen, nicht von Radmitte zu Radmitte.
+   *  Bei 315/80 R 22.5 sind das 1,08 m Unterschied. Bestätigt am 2026-08-11.
+   *
+   *  Der Vorderüberhang bleibt als einziger Längswert gerechnet statt
+   *  gemessen. Er trägt damit jeden Fehler der übrigen vier — fällt aber mit
+   *  1,42 m genau dort hin, wo ein MAN TGX ihn serienmäßig hat. */
+  axles: { front: 1.42, rear1: 7.3, rear2: 8.5 },
+  /** Abstand der Reifenmitten von der Fahrzeugmitte. Hinten zwillingsbereift.
+   *  GESCHÄTZT — die Spurweiten sind nicht genannt. Sie sind so gewählt, dass
+   *  die Zwillinge mit 315 mm Reifenbreite innerhalb der 2,53 m Gesamtbreite
+   *  bleiben (äußere Reifenkante bei 1,21 m, Aufbaukante bei 1,265 m). */
   track: { front: 1.02, rearInner: 0.7, rearOuter: 1.05 },
 
   /* ── Fahrerhaus ─────────────────────────────────────────────────────── */
