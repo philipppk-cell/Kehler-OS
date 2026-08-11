@@ -710,12 +710,32 @@ Eine Modelldatei lässt sich später nur mit dem passenden Programm ändern.
 | Dreiecke | Richtwert **unter 50 000** |
 | Animationen | keine nötig |
 
-**Die eine Anforderung, an der es steht oder fällt:** Die beweglichen Teile
-müssen **eigene, benannte Knoten** sein — Garagentor, Einstiegsstufe, Markise
-—, jeweils mit sinnvollem Drehpunkt. Ein Modell, in dem der Aufbau ein einziges
-verschmolzenes Netz ist, kann keine Zustände zeigen. Damit wäre es hübscher
-als das jetzige und nutzloser: Das Fahrzeug im Dashboard ist eine
-Zustandsanzeige und kein Bild.
+**Die eine Anforderung, an der es steht oder fällt** — und sie ist inzwischen
+gebaut und geprüft, nicht bloß gefordert:
+
+> **Je bewegliches Teil eine glTF-Animation**, benannt `garage`, `door`,
+> `step` bzw. `awning`. Sie läuft vom geschlossenen (Anfang) zum offenen Ende.
+
+Kehler OS spielt sie **nicht ab**, sondern setzt die Stelle darin: Bei einem
+halb geöffneten Tor steht die Animation in der Mitte. Den Weg, den Drehpunkt
+und das Tempo bestimmt damit das Modell — geraten wird nichts. Eine Konvention
+wie „das Teil heißt Tor, also dreht es sich schon um die richtige Achse" wäre
+genau die Art Annahme, die dieses Projekt nicht trifft.
+
+Ein Modell ohne solche Animationen wird **nicht verwendet**: Es kann keine
+Zustände zeigen, und dann wäre es hübscher als das jetzige und nutzloser — das
+Fahrzeug im Dashboard ist eine Zustandsanzeige und kein Bild. Die Oberfläche
+bleibt in dem Fall bei der Code-Darstellung und schreibt den Grund ins
+Diagnoseprotokoll des Browsers. Fehlt nur *ein* Teil, wird das Modell benutzt
+und das fehlende Teil namentlich gemeldet.
+
+**Wohin die Datei kommt:** `config/vehicle/model.glb`. Sie wird nicht
+versioniert — sie gehört zum Fahrzeug, wie die Hardwareadressen. Liegt keine
+da, greift die Code-Darstellung; das ist kein Fehlzustand.
+
+**Geprüft am 2026-08-11** mit einem eigens erzeugten Testmodell
+(`tools/model/make_test_glb.py`): Datei wird geladen, drei Teile bewegen sich,
+das absichtlich fehlende vierte wird als fehlend gemeldet.
 
 `.glb` deshalb, weil three.js es ohne Umwege lädt und weil eine einzelne Datei
 mit eingebetteten Texturen zur Regel passt, dass ohne Internet nichts fehlen

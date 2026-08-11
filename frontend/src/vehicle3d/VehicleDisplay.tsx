@@ -47,7 +47,25 @@ export function VehicleDisplay({ state }: { state: VehicleState }) {
 
   return (
     <Suspense fallback={<VehicleView state={state} />}>
-      <VehicleScene state={state} label={label} />
+      <VehicleScene
+          state={state}
+          label={label}
+          onModelReport={(report) => {
+            // Bewusst ins Protokoll und nicht in die Oberfläche: Die Auskunft
+            // richtet sich an den, der ein Modell hinterlegt, nicht an den,
+            // der im Fahrzeug sitzt. Sie erscheint auch dann, wenn alles
+            // geklappt hat — ein Modell mit fehlender Bewegung sieht sonst
+            // richtig aus und ist es nicht.
+            const fehlt = report.fehlend.length
+              ? ` — ohne Bewegung: ${report.fehlend.join(", ")}`
+              : "";
+            console.info(
+              `Kehler OS · Fahrzeugmodell aus ${report.quelle === "datei" ? "Datei" : "Code"}` +
+                `${report.gefunden.length ? ` (${report.gefunden.join(", ")})` : ""}${fehlt}` +
+                `${report.grund ? ` — ${report.grund}` : ""}`,
+            );
+          }}
+        />
     </Suspense>
   );
 }

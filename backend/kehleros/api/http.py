@@ -125,7 +125,27 @@ def create_app(application: Application) -> FastAPI:
                 {"id": area.id, "name_key": area.name_key}
                 for area in application.vehicle.areas
             ],
+            # Ob ein 3D-Modell hinterlegt ist. Ohne eines bleibt es bei der aus
+            # Code gebauten Darstellung — das ist der Auslieferungsstand und
+            # kein Fehlzustand (ADR 0008).
+            "has_model": application.model_file is not None,
         }
+
+    @router.get("/vehicle/model")
+    async def vehicle_model() -> FileResponse:
+        """Das 3D-Modell des Fahrzeugs, falls hinterlegt.
+
+        Liegt in `config/vehicle/model.glb`, also bei der Beschreibung des
+        Fahrzeugs — es gehört zum Fahrzeug und nicht zum Programm.
+
+        Ohne Datei ein sauberes 404. Die Oberfläche nimmt dann die aus Code
+        gebaute Darstellung; ein leeres Bild oder ein Platzhalterwürfel wäre
+        die schlechtere Antwort.
+        """
+        pfad = application.model_file
+        if pfad is None:
+            raise HTTPException(status_code=404, detail="Kein Fahrzeugmodell hinterlegt")
+        return FileResponse(pfad, media_type="model/gltf-binary")
 
     @router.get("/diagnostics/services")
     async def services() -> dict[str, Any]:

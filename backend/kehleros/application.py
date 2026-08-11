@@ -50,12 +50,27 @@ class SystemInfo:
 class Application:
     """Das laufende Kehler OS."""
 
-    def __init__(self, settings: Settings, vehicle: VehicleConfig) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        vehicle: VehicleConfig,
+        *,
+        vehicle_dir: Path | None = None,
+    ) -> None:
         from . import __version__
 
         self.version = __version__
         self.settings = settings
         self.vehicle = vehicle
+
+        self.vehicle_dir = vehicle_dir
+        """Verzeichnis der Fahrzeugkonfiguration.
+
+        Nur dafür da, das 3D-Modell daneben zu finden. Ein eigener
+        Konfigurationseintrag dafür wäre eine Einstellung, die niemand je
+        anders setzt — die Datei liegt bei der Beschreibung des Fahrzeugs,
+        weil sie zum Fahrzeug gehört.
+        """
 
         self.registry = Registry()
         self.registry.register_all(build_entities(vehicle))
@@ -90,7 +105,7 @@ class Application:
     ) -> Application:
         settings = load_settings(settings_path)
         vehicle = load_vehicle(vehicle_path)
-        return cls(settings, vehicle)
+        return cls(settings, vehicle, vehicle_dir=vehicle_path.parent)
 
     def _build_adapters(self) -> list[Adapter]:
         """Wählt die Adapter anhand der Betriebsart.
@@ -241,6 +256,20 @@ class Application:
                 )
 
     # ── Zustand nach außen ──────────────────────────────────────────────────
+
+    @property
+    def model_file(self) -> Path | None:
+        """Das 3D-Modell des Fahrzeugs, falls eines hinterlegt ist.
+
+        Ist keines da, bleibt es bei der aus Code gebauten Darstellung
+        (ADR 0008). Das ist kein Mangelzustand, sondern der Auslieferungsstand:
+        Die Oberfläche zeigt in beiden Fällen dasselbe Fahrzeug mit denselben
+        Zuständen — nur eben verschieden fein.
+        """
+        if self.vehicle_dir is None:
+            return None
+        pfad = self.vehicle_dir / "model.glb"
+        return pfad if pfad.is_file() else None
 
     def info(self) -> SystemInfo:
         return SystemInfo(

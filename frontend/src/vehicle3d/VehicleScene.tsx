@@ -34,6 +34,7 @@ import {
 } from "three";
 
 import { buildVehicle, type VehicleModel, type VehicleState } from "./buildVehicle";
+import { loadVehicle, type ModelReport } from "./loadVehicle";
 import { PIVOT, V } from "./dimensions";
 import { t } from "../i18n/de";
 import "./vehicle3d.css";
@@ -74,10 +75,17 @@ function shiftFromStyle(el: HTMLElement): number {
 export function VehicleScene({
   state,
   label,
+  onModelReport,
 }: {
   state: VehicleState;
   /** Beschreibt den dargestellten Zustand für Vorlesewerkzeuge. */
   label: string;
+  /** Woher das Fahrzeug stammt und welche Teile es bewegen kann.
+   *
+   *  Wird immer gemeldet, auch wenn alles geklappt hat. Ein geliefertes
+   *  Modell, dem eine Bewegung fehlt, sieht sonst richtig aus und ist es
+   *  nicht — genau der Fall, den man nur bemerkt, wenn jemand es sagt. */
+  onModelReport?: (report: ModelReport) => void;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<{ setState(s: VehicleState): void; home(): void } | null>(null);
@@ -131,10 +139,36 @@ export function VehicleScene({
 
     scene.add(new HemisphereLight(0xbcd4e2, 0x0e1216, 0.3));
 
-    const model: VehicleModel = buildVehicle();
+    /* Zuerst die aus Code gebaute Darstellung — sie steht sofort. Ein
+       geliefertes Modell wird danach geladen und tauscht sie aus. Umgekehrt
+       herum bliebe die Fläche leer, solange die Datei unterwegs ist, und ein
+       Fahrzeug, das erst nach einer Sekunde erscheint, sieht aus wie ein
+       Fehler.
+
+       `model` ist deshalb veränderlich: Alle Zugriffe unten gehen über diese
+       eine Stelle und arbeiten nach dem Tausch mit dem neuen Modell weiter. */
+    let abgebrochen = false;
+    let model: VehicleModel = buildVehicle();
     scene.add(model.root);
     model.setState(state);
     model.settle();
+
+    let letzterZustand = state;
+
+    void loadVehicle().then(({ model: geladen, report }) => {
+      onModelReport?.(report);
+      if (abgebrochen || report.quelle !== "datei") return;
+
+      scene.remove(model.root);
+      model.dispose();
+
+      model = geladen;
+      scene.add(model.root);
+      model.setState(letzterZustand);
+      model.settle();
+      place();
+      renderer.render(scene, camera);
+    });
 
     /* ── Ansicht ───────────────────────────────────────────────────────── */
     const view = { ...HOME };
@@ -317,6 +351,7 @@ export function VehicleScene({
 
     apiRef.current = {
       setState(next) {
+        letzterZustand = next;
         model.setState(next);
         if (reduced) {
           model.settle();
@@ -341,6 +376,7 @@ export function VehicleScene({
     };
 
     return () => {
+      abgebrochen = true;
       apiRef.current = null;
       if (frame) cancelAnimationFrame(frame);
       observer.disconnect();

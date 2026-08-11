@@ -55,3 +55,9 @@ backend/kehleros/api/static/
 frontend/dist-demo/
 tools/demo/recording.json
 tools/demo/kehler-os-demo.fragment.html
+
+# Das 3D-Modell des Fahrzeugs. Es gehört zum Fahrzeug wie die Hardwareadressen
+# und wird deshalb nicht versioniert: eine große Binärdatei, die je nach
+# Fahrzeug eine andere ist. Ohne sie greift die aus Code gebaute Darstellung
+# (ADR 0008) — siehe Punkt K2.
+config/vehicle/model.glb
