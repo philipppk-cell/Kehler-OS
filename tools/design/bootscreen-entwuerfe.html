@@ -1,0 +1,439 @@
+<title>Kehler OS – Bootscreen-Entwürfe</title>
+<style>
+  /* Die Werte stammen aus dem Designsystem des Projekts
+     (frontend/src/design/tokens.css). Ein Bootscreen auf hellem Grund zu
+     beurteilen wäre sinnlos — er erscheint nur auf diesem Grund. */
+  :root {
+    --bg-base: #06090d;
+    --bg-deep: #04070a;
+    --surface-1: rgba(255, 255, 255, 0.028);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.1);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.62);
+    --text-tertiary: rgba(255, 255, 255, 0.4);
+    --accent: #38d6ee;
+    --accent-bright: #6ce4f6;
+    --accent-dim: #1a9bb0;
+    --accent-wash: rgba(56, 214, 238, 0.1);
+    --accent-border: rgba(56, 214, 238, 0.34);
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  .seite {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  header.kopf { margin-bottom: 36px; }
+  .kopf h1 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .kopf p {
+    margin: 0;
+    max-width: 66ch;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .werkzeug {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  button {
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid var(--border-default);
+    border-radius: 999px;
+    background: var(--surface-1);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent-border); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.stark { background: var(--accent-wash); border-color: var(--accent-border); color: var(--accent-bright); }
+
+  .liste {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+    gap: 28px;
+  }
+  @media (max-width: 700px) { .liste { grid-template-columns: 1fr; } }
+
+  .entwurf { display: flex; flex-direction: column; gap: 12px; }
+
+  .beschriftung { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .nummer {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .beschriftung h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .beschriftung .warum {
+    flex: 1 1 100%;
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* Der Rahmen hat das Seitenverhältnis des iPad Pro 13 Zoll im Querformat. */
+  .schirm {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 50% -10%, rgba(56, 214, 238, 0.05), transparent 60%),
+      var(--bg-base);
+    display: grid;
+    place-items: center;
+  }
+
+  .buehne {
+    display: grid;
+    place-items: center;
+    gap: 22px;
+    width: 100%;
+    padding: 0 8%;
+  }
+
+  /* ── Gemeinsamer Schriftzug ────────────────────────────────────────────
+     Exakt die Auszeichnung aus dem Kopfbereich der Oberfläche: gesperrt,
+     halbfett, „OS" im Akzent. Der Bootscreen soll aussehen wie der Anfang
+     derselben Sache und nicht wie ein Vorspann davor.                     */
+  .wortmarke {
+    font-size: clamp(20px, 4.4cqw, 40px);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    white-space: nowrap;
+  }
+  .wortmarke b { color: var(--accent); font-weight: 600; }
+  .schirm { container-type: inline-size; }
+
+  .zeile {
+    font-family: var(--font-mono);
+    font-size: clamp(9px, 1.5cqw, 12px);
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+  }
+
+  svg { display: block; overflow: visible; }
+  .strich {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Strichstärken je Zeichnung, damit alle drei optisch gleich schwer wirken:
+     Die Kästchen haben verschiedene Maßstäbe, eine gemeinsame Zahl ergäbe im
+     einen Fall einen Balken und im anderen einen Faden. */
+  .lkw .strich { stroke-width: 3.4; }
+  .kurve .strich { stroke-width: 3; }
+  .strich--matt { stroke: var(--text-tertiary); stroke-width: 1.6; }
+
+  /* ═══ Die Abläufe ═══════════════════════════════════════════════════════
+     Jeder Entwurf läuft, sobald sein Rahmen die Klasse `.ab` trägt. So
+     lässt sich jeder einzeln wiederholen, ohne die Seite neu zu laden.    */
+
+  .schirm .buehne > * { opacity: 0; }
+  .schirm.ab .buehne > * { animation-fill-mode: both; }
+
+  @keyframes auftauchen { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes aufsteigen {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes zeichnen { to { stroke-dashoffset: 0; } }
+  @keyframes breiter { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes hoeher { from { transform: scaleY(0.02); } to { transform: scaleY(1); } }
+  @keyframes glimmen {
+    0%, 100% { filter: none; }
+    50% { filter: drop-shadow(0 0 10px var(--accent)); }
+  }
+
+  /* ── 1 · Schriftzug ─────────────────────────────────────────────────── */
+  #e1 .buchstabe { display: inline-block; opacity: 0; }
+  #e1.ab .buchstabe { animation: aufsteigen 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+  #e1.ab .wortmarke { opacity: 1; }
+  #e1 .rule {
+    width: 46%; height: 1px; background: var(--accent); transform-origin: center;
+  }
+  #e1.ab .rule { animation: breiter 0.7s 0.75s cubic-bezier(0.2, 0.8, 0.3, 1) both,
+                            auftauchen 0.3s 0.75s both; }
+  #e1.ab .zeile { animation: auftauchen 0.5s 1.15s both; }
+
+  /* ── 2 · Gezeichnetes K ─────────────────────────────────────────────── */
+  #e2 .k path { stroke-dasharray: 40; stroke-dashoffset: 40; }
+  #e2.ab .k { opacity: 1; }
+  #e2.ab .k .senkrecht { animation: zeichnen 0.45s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e2.ab .k .oben     { animation: zeichnen 0.35s 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e2.ab .k .unten    { animation: zeichnen 0.35s 0.8s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e2.ab .wortmarke { animation: aufsteigen 0.6s 1.2s both; }
+  #e2.ab .zeile { animation: auftauchen 0.5s 1.6s both; }
+
+  /* ── 3 · Fahrzeug ───────────────────────────────────────────────────── */
+  #e3 .lkw path, #e3 .lkw circle { stroke-dasharray: 400; stroke-dashoffset: 400; }
+  #e3.ab .lkw { opacity: 1; }
+  #e3.ab .lkw .aufbau  { animation: zeichnen 0.7s 0.1s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e3.ab .lkw .kabine  { animation: zeichnen 0.5s 0.55s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e3.ab .lkw .rad     { animation: zeichnen 0.4s 0.95s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  #e3.ab .wortmarke { animation: aufsteigen 0.6s 1.35s both; }
+  #e3.ab .zeile { animation: auftauchen 0.5s 1.75s both; }
+
+  /* ── 4 · Messkurve ──────────────────────────────────────────────────── */
+  #e4 .kurve path { stroke-dasharray: 300; stroke-dashoffset: 300; }
+  #e4 .kurve .raster { opacity: 0; }
+  #e4.ab .kurve { opacity: 1; }
+  #e4.ab .kurve .raster { animation: auftauchen 0.5s 0.1s both; }
+  #e4.ab .kurve .linie { animation: zeichnen 1.1s 0.3s cubic-bezier(0.3, 0, 0.3, 1) both; }
+  #e4.ab .kurve .punkt { animation: auftauchen 0.3s 1.3s both, glimmen 1s 1.3s both; }
+  #e4.ab .wortmarke { animation: aufsteigen 0.6s 1.45s both; }
+  #e4.ab .zeile { animation: auftauchen 0.5s 1.85s both; }
+
+  /* ── 5 · Einschalten ────────────────────────────────────────────────── */
+  #e5 .flaeche {
+    width: 62%; height: 3px; background: var(--accent-bright);
+    border-radius: 2px; transform-origin: center;
+  }
+  #e5.ab .flaeche {
+    animation: auftauchen 0.15s both, breiter 0.45s cubic-bezier(0.2, 0.9, 0.2, 1) both,
+               ausblenden 0.5s 0.75s both;
+  }
+  @keyframes ausblenden { to { opacity: 0; transform: scaleX(1) scaleY(6); filter: blur(6px); } }
+  #e5.ab .wortmarke { animation: auftauchen 0.6s 0.95s both; }
+  #e5.ab .zeile { animation: auftauchen 0.5s 1.4s both; }
+
+  /* Wer weniger Bewegung eingestellt hat, bekommt sie auch hier nicht. Die
+     Entwürfe bleiben beurteilbar — sie erscheinen dann einfach fertig. */
+  @media (prefers-reduced-motion: reduce) {
+    .schirm.ab .buehne > *,
+    .schirm.ab .buehne * { animation: none !important; opacity: 1 !important;
+                            transform: none !important; stroke-dashoffset: 0 !important; }
+  }
+
+  .fuss {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 13px;
+    color: var(--text-tertiary);
+    max-width: 72ch;
+  }
+  .fuss h3 { color: var(--text-secondary); font-size: 14px; margin: 0 0 8px; }
+  .fuss p { margin: 0 0 10px; }
+</style>
+
+<div class="seite">
+  <header class="kopf">
+    <h1>Bootscreen — fünf Entwürfe</h1>
+    <p>
+      Jeder Entwurf läuft so ab, wie er beim Öffnen von Kehler OS erscheinen
+      würde. Der Grund ist derselbe wie in der Oberfläche; ein Bootscreen auf
+      hellem Papier zu beurteilen, sagt nichts. Tippe auf einen Rahmen, um ihn
+      zu wiederholen.
+    </p>
+    <div class="werkzeug">
+      <button class="stark" onclick="alleAbspielen()">Alle abspielen</button>
+      <button onclick="document.body.classList.toggle('lupe')">Größer / kleiner</button>
+    </div>
+  </header>
+
+  <div class="liste">
+
+    <!-- 1 ───────────────────────────────────────────────────────────── -->
+    <section class="entwurf">
+      <div class="beschriftung">
+        <span class="nummer">01</span>
+        <h2>Schriftzug</h2>
+        <p class="warum">
+          Nur Typografie. Die Buchstaben setzen sich, dann zieht sich eine feine
+          Linie darunter. Es ist exakt die Auszeichnung aus dem Kopfbereich —
+          der Start sieht aus wie der Anfang derselben Sache, nicht wie ein
+          Vorspann davor.
+        </p>
+      </div>
+      <div class="schirm" id="e1">
+        <div class="buehne">
+          <div class="wortmarke" aria-label="Kehler OS">
+            <span class="buchstabe" style="animation-delay:.05s">K</span><span class="buchstabe" style="animation-delay:.1s">E</span><span class="buchstabe" style="animation-delay:.15s">H</span><span class="buchstabe" style="animation-delay:.2s">L</span><span class="buchstabe" style="animation-delay:.25s">E</span><span class="buchstabe" style="animation-delay:.3s">R</span><span class="buchstabe" style="animation-delay:.35s">&nbsp;</span><b><span class="buchstabe" style="animation-delay:.42s">O</span><span class="buchstabe" style="animation-delay:.48s">S</span></b>
+          </div>
+          <div class="rule"></div>
+          <div class="zeile">SYSTEM STARTET</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 ───────────────────────────────────────────────────────────── -->
+    <section class="entwurf">
+      <div class="beschriftung">
+        <span class="nummer">02</span>
+        <h2>Gezeichnetes K</h2>
+        <p class="warum">
+          Das Zeichen aus dem Symbol der Anwendung zeichnet sich selbst — erst
+          die Senkrechte, dann die beiden Schrägen. Wie eine technische
+          Zeichnung, die entsteht. Es ist das Zeichen, das ohnehin schon auf dem
+          Startbildschirm liegt.
+        </p>
+      </div>
+      <div class="schirm" id="e2">
+        <div class="buehne">
+          <svg class="k" viewBox="0 0 32 32" width="86" height="86" aria-hidden="true">
+            <path class="strich senkrecht" d="M11 8v16" />
+            <path class="strich oben" d="M11 16l8-8" />
+            <path class="strich unten" d="M11 16l8 8" />
+          </svg>
+          <div class="wortmarke">KEHLER <b>OS</b></div>
+          <div class="zeile">SYSTEM STARTET</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 ───────────────────────────────────────────────────────────── -->
+    <section class="entwurf">
+      <div class="beschriftung">
+        <span class="nummer">03</span>
+        <h2>Fahrzeug</h2>
+        <p class="warum">
+          Die Silhouette des Aufbaus entsteht Strich für Strich. Am
+          konkretesten — man sieht sofort, worum es geht. Zugleich am
+          festgelegtesten: Ändert sich am Fahrzeug etwas, stimmt das Zeichen
+          nicht mehr.
+        </p>
+      </div>
+      <div class="schirm" id="e3">
+        <div class="buehne">
+          <svg class="lkw" viewBox="0 0 220 84" width="252" height="96" aria-hidden="true">
+            <path class="strich aufbau" d="M60 62V16h142v46" />
+            <path class="strich kabine" d="M58 62V36l-9-9H26l-8 11v24" />
+            <path class="strich--matt strich boden" d="M14 62h194" />
+            <circle class="strich rad" cx="40" cy="66" r="7" />
+            <circle class="strich rad" cx="156" cy="66" r="7" style="animation-delay:1.05s" />
+            <circle class="strich rad" cx="182" cy="66" r="7" style="animation-delay:1.15s" />
+          </svg>
+          <div class="wortmarke">KEHLER <b>OS</b></div>
+          <div class="zeile">SYSTEM STARTET</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 ───────────────────────────────────────────────────────────── -->
+    <section class="entwurf">
+      <div class="beschriftung">
+        <span class="nummer">04</span>
+        <h2>Messkurve</h2>
+        <p class="warum">
+          Eine Linie läuft über ein feines Raster und endet in einem leuchtenden
+          Punkt. Zeigt, worum es im System geht: Werte über die Zeit. Passt zu
+          den Verlaufskurven, die es jetzt gibt.
+        </p>
+      </div>
+      <div class="schirm" id="e4">
+        <div class="buehne">
+          <svg class="kurve" viewBox="0 0 240 74" width="250" height="78" aria-hidden="true">
+            <g class="raster">
+              <path class="strich--matt strich" d="M8 12h224" opacity="0.55" />
+              <path class="strich--matt strich" d="M8 37h224" opacity="0.55" />
+              <path class="strich--matt strich" d="M8 62h224" opacity="0.55" />
+            </g>
+            <path class="strich linie"
+              d="M10 58 L44 50 L74 54 L104 34 L134 40 L164 20 L196 26 L228 14" />
+            <circle class="punkt" cx="228" cy="14" r="4" fill="var(--accent-bright)" />
+          </svg>
+          <div class="wortmarke">KEHLER <b>OS</b></div>
+          <div class="zeile">SYSTEM STARTET</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 ───────────────────────────────────────────────────────────── -->
+    <section class="entwurf">
+      <div class="beschriftung">
+        <span class="nummer">05</span>
+        <h2>Einschalten</h2>
+        <p class="warum">
+          Ein Lichtstrich springt an, weitet sich und verglüht — dann steht der
+          Schriftzug da. Wie ein Gerät, das eingeschaltet wird, nicht wie eine
+          Anwendung, die startet. Der kürzeste der fünf.
+        </p>
+      </div>
+      <div class="schirm" id="e5">
+        <div class="buehne">
+          <div class="flaeche"></div>
+          <div class="wortmarke">KEHLER <b>OS</b></div>
+          <div class="zeile">SYSTEM STARTET</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="fuss">
+    <h3>Was für alle fünf gilt</h3>
+    <p>
+      <strong>Der Start wird nicht künstlich verlängert.</strong> Ein Bootscreen,
+      der eine Sekunde stehen bleibt, obwohl das System längst bereit ist, ist
+      eine Vorführung auf Kosten des Benutzers. Der gewählte Entwurf verschwindet,
+      sobald der erste Zustand da ist — und bleibt sichtbar, solange es dauert.
+    </p>
+    <p>
+      Wer im Betriebssystem <em>weniger Bewegung</em> eingestellt hat, bekommt sie
+      auch hier nicht: Dann erscheint das Zeichen fertig, ohne Ablauf.
+    </p>
+    <p>
+      Alle fünf benutzen ausschließlich Farben und Schriftgrade aus dem
+      bestehenden Designsystem und kommen ohne Bilddateien aus — sie sind
+      gezeichnet, nicht geladen.
+    </p>
+  </div>
+</div>
+
+<script>
+  const schirme = [...document.querySelectorAll(".schirm")];
+
+  function abspielen(el) {
+    el.classList.remove("ab");
+    // Erzwingt einen Umbruch, sonst startet dieselbe Animation nicht neu.
+    void el.offsetWidth;
+    el.classList.add("ab");
+  }
+
+  function alleAbspielen() {
+    schirme.forEach((el, i) => setTimeout(() => abspielen(el), i * 260));
+  }
+
+  schirme.forEach((el) => {
+    el.style.cursor = "pointer";
+    el.title = "Zum Wiederholen antippen";
+    el.addEventListener("click", () => abspielen(el));
+  });
+
+  document.head.insertAdjacentHTML(
+    "beforeend",
+    "<style>body.lupe .liste{grid-template-columns:1fr}</style>",
+  );
+
+  alleAbspielen();
+</script>
