@@ -84,12 +84,13 @@
 }
 
 /* ── Der Ablauf ──────────────────────────────────────────────────────────
-   Der Umriss zeichnet sich in einem Zug, dann kommen die Räder, dann
-   Schriftzug, Linie und Statuszeile.
+   Erst der Aufbau, dann die Kabine, dann die Räder — in der Reihenfolge, in
+   der man ein Fahrzeug von Hand zeichnen würde. Danach Schriftzug, Linie,
+   Statuszeile.
 
-   Bewusst **ruhig**: Der Umriss allein braucht 1,6 Sekunden. Ein Zeichen, das
-   entsteht, soll man entstehen sehen — schnell gezeichnet wirkt es wie ein
-   Aufblitzen und nicht wie eine Zeichnung.
+   Bewusst **ruhig**: Aufbau und Kabine brauchen zusammen fast zwei Sekunden.
+   Ein Zeichen, das entsteht, soll man entstehen sehen — schnell gezeichnet
+   wirkt es wie ein Aufblitzen und nicht wie eine Zeichnung.
 
    Die Gesamtdauer steht als ABLAUF_MS in BootScreen.tsx. Wer hier etwas
    ändert, muss sie dort mitziehen: Sonst verschwindet der Bildschirm mitten
@@ -104,11 +105,12 @@
   stroke-dashoffset: 1;
 }
 
-.boot__umriss { animation: boot-zeichnen 1.6s 0.15s cubic-bezier(0.45, 0, 0.3, 1) both; }
+.boot__aufbau { animation: boot-zeichnen 1.1s 0.15s cubic-bezier(0.45, 0, 0.3, 1) both; }
+.boot__kabine { animation: boot-zeichnen 0.85s 1s cubic-bezier(0.45, 0, 0.3, 1) both; }
 
-.boot__rad { animation: boot-zeichnen 0.5s 1.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
-.boot__rad--2 { animation-delay: 1.62s; }
-.boot__rad--3 { animation-delay: 1.74s; }
+.boot__rad { animation: boot-zeichnen 0.5s 1.55s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.boot__rad--2 { animation-delay: 1.67s; }
+.boot__rad--3 { animation-delay: 1.79s; }
 
 .boot__marke { animation: boot-aufsteigen 0.7s 2s both; }
 .boot__linie { animation: boot-breiter 0.6s 2.45s cubic-bezier(0.2, 0.8, 0.3, 1) both,

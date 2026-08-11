@@ -1,9 +1,12 @@
 /**
  * Der Startbildschirm.
  *
- * Der Umriss des Fahrzeugs zeichnet sich in einem Zug, dann kommen die Räder,
- * dann der Schriftzug, dann die Linie, dann die Statuszeile (Entwurf 03,
- * gewählt am 2026-08-10).
+ * Aufbau und Kabine zeichnen sich nacheinander, dann kommen die Räder, dann
+ * der Schriftzug, dann die Linie, dann die Statuszeile (Entwurf 03, gewählt am
+ * 2026-08-10).
+ *
+ * Die Zeichnung ist **unten offen**. Das ist keine Nachlässigkeit, sondern so
+ * gewünscht: Die Form endet dort, wo die Räder sitzen.
  *
  * ── Wann er verschwindet ──────────────────────────────────────────────────
  *
@@ -73,39 +76,40 @@ export function BootScreen() {
       aria-label={t("boot.starting")}
     >
       <div className="boot__buehne">
-        {/* Ein geschlossener Umriss, in einem Zug gezeichnet: Front hoch,
-            Scheibe, Kabinendach, Stirnseite des Aufbaus, Dach, Heck, Unterkante
-            zurück.
-
-            Vorher waren es drei Teile plus eine graue Bodenlinie. Die
-            Bodenlinie war nicht bloß Zierde — sie schloss Kabine und Aufbau
-            unten ab, die beide als offene Formen gezeichnet waren. Sie
-            ersatzlos zu streichen hätte ein unten offenes Fahrzeug ergeben.
-            Jetzt gehört die Unterkante zum Fahrzeug und hat dessen Farbe.
+        {/* Aufbau und Kabine sind **unten offen** — so gewollt
+            (2026-08-11). Es gab zwischendurch eine graue Bodenlinie, die sie
+            unten abschloss; sie ist entfallen. Der naheliegende Ersatz wäre
+            gewesen, den Umriss zu schließen — das war ausdrücklich nicht
+            gewünscht: Die Form endet unten, wo die Räder sitzen.
 
             `pathLength="1"` normiert die Länge: Der Ablauf rechnet mit 0 bis 1
             und nicht mit der tatsächlichen Pfadlänge. Ohne das müsste die
-            Strichlänge zur Geometrie passen, und jede Änderung am Umriss
-            verschöbe stillschweigend die Dauer. */}
+            Strichlänge zur Geometrie passen, und jede Änderung an der
+            Zeichnung verschöbe stillschweigend die Dauer. */}
         <svg className="boot__lkw" viewBox="0 0 220 84" aria-hidden="true">
           <path
-            className="boot__strich boot__umriss"
+            className="boot__strich boot__aufbau"
             pathLength="1"
-            d="M18 62V40l10-12h28V16h144v46z"
+            d="M60 62V16h142v46"
           />
-          <circle className="boot__strich boot__rad" pathLength="1" cx="42" cy="69" r="7" />
+          <path
+            className="boot__strich boot__kabine"
+            pathLength="1"
+            d="M58 62V36l-9-9H26l-8 11v24"
+          />
+          <circle className="boot__strich boot__rad" pathLength="1" cx="40" cy="66" r="7" />
           <circle
             className="boot__strich boot__rad boot__rad--2"
             pathLength="1"
-            cx="152"
-            cy="69"
+            cx="156"
+            cy="66"
             r="7"
           />
           <circle
             className="boot__strich boot__rad boot__rad--3"
             pathLength="1"
-            cx="178"
-            cy="69"
+            cx="176"
+            cy="66"
             r="7"
           />
         </svg>
