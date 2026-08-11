@@ -687,6 +687,47 @@ fehlen noch:
 > Durchfahrtshöhe, kein Wendekreis, kein Gewicht. Ein geschätztes Maß kann
 > daher zu keiner falschen Aussage über das Fahrzeug führen.
 
+### K2 · Falls ein fertiges 3D-Modell geliefert wird — `OFFEN` · `NICHT BLOCKIEREND`
+
+**Gefragt am 2026-08-11:** In welchem Format müsste ein Fahrzeugmodell
+vorliegen?
+
+**Zuerst die Gegenfrage:** Für ein *maßhaltiges* Fahrzeug wird **keine Datei**
+gebraucht, sondern die Zahlen aus K1. Die Darstellung entsteht aus Code
+(ADR 0008), die Korrektur ist ein Zahlenaustausch. Wer ein Modell erst
+anfertigen lassen müsste, geht den teureren Weg zum schlechteren Ergebnis:
+Eine Modelldatei lässt sich später nur mit dem passenden Programm ändern.
+
+**Liegt aber bereits ein Modell vor** — etwa vom Aufbauhersteller —, dann:
+
+| Anforderung | Wert |
+| --- | --- |
+| Format | **glTF 2.0 binär (`.glb`)** |
+| Texturen | **eingebettet**, keine Nebendateien |
+| Maßstab | real, in **Metern** |
+| Achsen | Y oben, Z nach vorn (glTF-Standard) |
+| Ursprung | Fahrzeugmitte auf Bodenhöhe |
+| Dreiecke | Richtwert **unter 50 000** |
+| Animationen | keine nötig |
+
+**Die eine Anforderung, an der es steht oder fällt:** Die beweglichen Teile
+müssen **eigene, benannte Knoten** sein — Garagentor, Einstiegsstufe, Markise
+—, jeweils mit sinnvollem Drehpunkt. Ein Modell, in dem der Aufbau ein einziges
+verschmolzenes Netz ist, kann keine Zustände zeigen. Damit wäre es hübscher
+als das jetzige und nutzloser: Das Fahrzeug im Dashboard ist eine
+Zustandsanzeige und kein Bild.
+
+`.glb` deshalb, weil three.js es ohne Umwege lädt und weil eine einzelne Datei
+mit eingebetteten Texturen zur Regel passt, dass ohne Internet nichts fehlen
+darf (Kapitel 17 §107). `.fbx`, `.obj`, `.step` und `.blend` sind
+Austauschformate der Konstruktion, nicht der Darstellung — sie müssten ohnehin
+zuerst nach glTF gewandelt werden.
+
+**Zu bedenken:** Ein geliefertes Modell hebt zwei Zusagen aus ADR 0008 auf.
+Die Maße stünden dann nicht mehr an einer lesbaren Stelle, und im Repository
+läge ein Binärartefakt, das ohne 3D-Programm niemand mehr ändern kann. Das
+kann sich lohnen — aber es ist eine Entscheidung und kein reiner Zugewinn.
+
 ---
 
 ## Zusammenfassung nach Dringlichkeit
