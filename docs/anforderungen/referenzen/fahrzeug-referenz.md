@@ -72,11 +72,16 @@ mehr aus den Fotos geschätzt.
 > liefern, aber sie konnten es widerlegen. Ursache waren zwei
 > Reifenhalbmesser: gemessen war von Reifenkante zu Reifenkante.
 
-Aus Fotos lassen sich Proportionen ablesen, aber keine Maße. Damit fehlt
-weiterhin:
+**Angegeben (2026-08-11):** Höhe des Wohnbodens über Grund **ca. 1,50 m**.
+Geschätzt waren 1,85 m — das war die größte Einzelabweichung des ganzen
+Modells. Der Aufbau ist damit 2,50 m hoch statt 2,15 m, bei unveränderter
+Gesamthöhe: **Die Fotos hatten die Trennlinie zwischen Staukastenband und
+Wohnaufbau zu hoch gelesen.** Auf den Sonnenaufnahmen liegt genau dort ein
+harter Schatten, der wie eine Kante wirkt.
 
-- Höhe des Wohnbodens über Grund (im Modell mit 1,85 m angesetzt)
-- Spurweiten vorn und hinten
+Damit sind alle Hauptmaße des Fahrzeugs bekannt. Geschätzt bleiben nur noch
+die Spurweiten und die Aufteilung des Aufbaus — Fensterlagen, Türbreite,
+Dachaufbauten. Der Vorderüberhang bleibt bewusst gerechnet statt gemessen.
 
 Diese Angaben sind als **Punkt K1** in
 [`OPEN_HARDWARE_REQUIREMENTS.md`](../../OPEN_HARDWARE_REQUIREMENTS.md)

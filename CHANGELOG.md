@@ -788,7 +788,17 @@ darunter. Die Differenz entsprach zwei Reifenhalbmessern (1,08 m): gemessen
 war von Reifenkante zu Reifenkante statt von Radmitte zu Radmitte. Nach
 Rückfrage bestätigt und auf 5,88 m korrigiert.
 
-Offen bleibt in K1 nur noch die Höhe des Wohnbodens über Grund.
+- **Wohnboden ca. 1,50 m über Grund** statt geschätzter 1,85 m. Das war die
+  größte Einzelabweichung des Modells: Der Aufbau ist damit 2,50 m hoch statt
+  2,15 m, bei unveränderter Gesamthöhe von 4,0 m. Die Fotos hatten die
+  Trennlinie zwischen Staukastenband und Wohnaufbau zu hoch gelesen — auf den
+  Sonnenaufnahmen liegt dort ein harter Schatten, der wie eine Kante wirkt.
+  Türunterkante, Garagenboden und Einstiegsstufe sind mit ihren Abständen zum
+  Wohnboden mitgewandert, sonst hätte die Tür 35 cm über dem Boden geschwebt.
+
+**Punkt K1 ist damit geschlossen.** Bewusst nicht weiter verfolgt: Der
+Vorderüberhang bleibt gerechnet statt gemessen, die Spurweiten bleiben
+geschätzt und sind durch die Gesamtbreite nach oben begrenzt.
 
 ### Dokumentiert — was Fotos für das Fahrzeugmodell leisten (Punkt K3)
 

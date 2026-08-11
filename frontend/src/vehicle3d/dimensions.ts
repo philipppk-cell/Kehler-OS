@@ -90,8 +90,15 @@ export const V = {
   /* ── Wohnaufbau ─────────────────────────────────────────────────────── */
   box: {
     front: 2.35,
-    /** Unterkante des Wohnbodens. */
-    floor: 1.85,
+    /** Unterkante des Wohnbodens. ANGEGEBEN (2026-08-11) als „ca. 1,50 m" —
+     *  gemessen, aber gerundet, deshalb keine zweite Nachkommastelle.
+     *
+     *  Zuvor standen hier 1,85 m aus den Fotos. Die Schätzung lag um 35 cm zu
+     *  hoch, und das war der größte Fehler im ganzen Modell: Der Aufbau wird
+     *  dadurch von 2,15 m auf 2,50 m Höhe größer, ohne dass sich die
+     *  Gesamthöhe ändert. Türunterkante, Garagenboden und Einstiegsstufe sind
+     *  mit ihren jeweiligen Abständen zum Wohnboden mitgewandert. */
+    floor: 1.5,
     /** Die Vorderkante ist oben **abgeschrägt**, nicht gerundet: Die Front
      *  steht bis `chamferAt` senkrecht und läuft dann schräg zum Dach.
      *  So zeigt es die Drohnenaufnahme. */
@@ -120,14 +127,19 @@ export const V = {
 
   /* ── Öffnungen ──────────────────────────────────────────────────────── */
 
-  /** Eingangstür, rechte Seite. */
-  door: { x: 4.5, width: 0.85, bottom: 1.88, top: 3.72 },
+  /** Eingangstür, rechte Seite. Die Unterkante ist die Schwelle und liegt
+   *  damit auf dem Wohnboden (`box.floor` + 0,03 m Rahmen). */
+  door: { x: 4.5, width: 0.85, bottom: 1.53, top: 3.72 },
 
-  /** Zwei Heckflügeltüren, außen angeschlagen. */
-  garage: { bottom: 1.9, top: 3.72, halfWidth: 1.08 },
+  /** Zwei Heckflügeltüren, außen angeschlagen.
+   *  `bottom` ist der Garagenboden, knapp über dem Wohnboden. */
+  garage: { bottom: 1.55, top: 3.72, halfWidth: 1.08 },
 
-  /** Einstiegsstufe unter der Tür. */
-  step: { x: 4.6, width: 0.7, depth: 0.34, height: 1.42 },
+  /** Einstiegsstufe unter der Tür. GESCHÄTZT — sie hält ihren Abstand von
+   *  0,46 m zur Türschwelle. Das Modell zeigt eine Stufe; real sind bei einer
+   *  Schwelle auf 1,53 m mehrere nötig. Die Stufe ist hier ein bewegliches
+   *  Teil mit Zustand, keine Treppenkonstruktion. */
+  step: { x: 4.6, width: 0.7, depth: 0.34, height: 1.07 },
 
   /** Fenster je Seite: [x, Unterkante, Breite, Höhe].
    *

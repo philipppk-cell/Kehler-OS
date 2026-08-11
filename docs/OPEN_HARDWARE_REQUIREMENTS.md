@@ -662,7 +662,7 @@ inaktiv statt unzuverlässig.
 
 ## K – Fahrzeugdarstellung
 
-### K1 · Abmessungen des Fahrzeugs — `TEILWEISE` · `NICHT BLOCKIEREND`
+### K1 · Abmessungen des Fahrzeugs — `GEKLÄRT` (2026-08-11) · `NICHT BLOCKIEREND`
 
 **Beantwortet (2026-08-09):** Gesamtlänge **11,5 m**, Gesamthöhe **4,0 m**.
 
@@ -680,6 +680,7 @@ des Fahrzeugs vollständig:
 | Achsabstand Tandem | 1,20 m | angegeben |
 | Hecküberhang | 3,00 m | angegeben |
 | Reifen | 315/80 R 22.5 | angegeben → Radhalbmesser 0,538 m |
+| Wohnboden über Grund | ca. 1,50 m | angegeben |
 
 Der Radhalbmesser ist nicht gemessen, sondern aus der Reifenbezeichnung
 gerechnet: Felge 22,5″ = 571,5 mm, Flanke 80 % von 315 mm = 252 mm,
@@ -698,14 +699,22 @@ Durchmesser 1075,5 mm. Das ist das Neumaß ohne Einfederung.
 > sie ist ein Reifenhalbmesser Auslegungssache — und bei einem LKW-Reifen sind
 > das über einen halben Meter je Rad.
 
-**Noch offen für ein durchgehend maßhaltiges Modell:**
+> **Der Wohnboden war die größte Einzelkorrektur.** Aus den Fotos waren
+> 1,85 m geschätzt, gemessen sind es ca. 1,50 m. Der Aufbau wächst dadurch von
+> 2,15 m auf 2,50 m Höhe, ohne dass sich die Gesamthöhe ändert — die Fotos
+> hatten die Trennlinie zwischen Staukastenband und Wohnaufbau zu hoch
+> gelesen. Türunterkante, Garagenboden und Einstiegsstufe sind mit ihren
+> Abständen zum Wohnboden mitgewandert.
 
-- **Höhe des Wohnbodens über Grund** *(im Modell mit 1,85 m angesetzt)* — mit
-  einem Gliedermaßstab an der Einstiegstür in einer Minute gemessen
-- Spurweiten vorn und hinten *(geschätzt, aber durch die 2,53 m Gesamtbreite
-  nach oben begrenzt)*
-- der Vorderüberhang bleibt gerechnet und trägt damit den Fehler aller
-  übrigen Längsmaße
+**Bewusst nicht weiter verfolgt** — mit dem Fahrzeughalter am 2026-08-11 so
+entschieden:
+
+- **Der Vorderüberhang bleibt gerechnet** (1,42 m als Rest auf die
+  Gesamtlänge) statt gemessen. Er trägt damit den Fehler aller übrigen
+  Längsmaße, fällt aber genau auf den Serienwert eines MAN TGX.
+- **Spurweiten vorn und hinten bleiben geschätzt.** Sie sind durch die
+  Gesamtbreite von 2,53 m nach oben begrenzt und wirken sich nur auf die
+  Ansicht von vorn und hinten aus.
 
 > **ASSUMPTION (für die verbliebenen Werte):** Was in
 > `frontend/src/vehicle3d/dimensions.ts` nicht als `ANGEGEBEN` gekennzeichnet
