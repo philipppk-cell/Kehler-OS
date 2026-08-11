@@ -728,6 +728,73 @@ Die Maße stünden dann nicht mehr an einer lesbaren Stelle, und im Repository
 läge ein Binärartefakt, das ohne 3D-Programm niemand mehr ändern kann. Das
 kann sich lohnen — aber es ist eine Entscheidung und kein reiner Zugewinn.
 
+### K3 · Ein Modell aus vielen Fotos rechnen (Fotogrammetrie) — `GEKLÄRT` (2026-08-11) · `NICHT BLOCKIEREND`
+
+**Gefragt am 2026-08-11:** Lässt sich aus einer großen Zahl von Fotos ein
+3D-Modell des Fahrzeugs erzeugen?
+
+**Antwort: hier nicht — und für das Dashboard wäre es auch das falsche
+Modell.** Zwei Gründe, die unabhängig voneinander gelten.
+
+**1. Fotogrammetrie ist ein eigenes Programm, keine Fähigkeit dieser
+Umgebung.** Der Weg ist real und erprobt — RealityCapture, Metashape,
+Meshroom, oder auf einem Gerät mit LiDAR direkt Polycam oder Scaniverse. Er
+braucht sechzig bis mehrere hundert überlappende Aufnahmen und eine
+Grafikkarte, die daraus eine Punktwolke und ein Netz rechnet. Was hier mit
+Fotos geschieht, ist etwas anderes: Sie werden **angesehen**, und daraus
+werden Proportionen, Bauteillagen und Farben abgelesen. Genau so ist die
+heutige Darstellung entstanden ([Fahrzeugreferenz](anforderungen/referenzen/fahrzeug-referenz.md)).
+
+**2. Ein fertig gerechneter Scan wäre genau das Modell, das K2 als untauglich
+beschreibt.** Fotogrammetrie liefert ein einziges verschmolzenes Netz aus
+Millionen Dreiecken, mit den Schatten und Spiegelungen des Aufnahmetags
+eingebrannt und ohne benannte Knoten. Heckklappe, Einstiegsstufe und Markise
+wären dieselbe Oberfläche wie die Aufbauwand — unbeweglich. Dazu kommt: Ein
+Scan zeigt das Fahrzeug in **einem** Zustand. Die Heckklappe war beim
+Fotografieren offen oder geschlossen; beides zeigt er nie.
+
+#### Was Fotos stattdessen wirklich leisten
+
+**Weitere Fotos verbessern die Form, nicht die Maße.** Ablesbar ist alles,
+was „wo sitzt was" beantwortet: Lage und Größe der Fenster, Höhe und Breite
+der Eingangstür, Länge der Markisenkassette, Verlauf des Staukastenbandes,
+Radlaufausschnitte. Das ändert `buildVehicle.ts` und macht das Fahrzeug
+wiedererkennbarer. Es ändert keine einzige Zahl in `dimensions.ts` —
+**Fotos ohne Bezugsgröße liefern Verhältnisse, keine Meter.**
+
+**Ein einziges Foto kann Maße liefern, wenn ein Maßstab mit darauf ist.** Ein
+ausgeklappter Gliedermaßstab, an die Fahrzeugflanke gelehnt, in derselben
+Ebene wie das zu messende Teil. Aufnahme aus möglichst großer Entfernung mit
+Zoom (das nimmt die Perspektive heraus), senkrecht zur Seitenwand, Kamera auf
+halber Fahrzeughöhe. Aus einem solchen Bild sind alle Längen dieser Ebene
+ableitbar — Radstand, Achsabstand, Überhänge, Bodenhöhe. Es ist mehr wert als
+zweihundert Aufnahmen ohne Bezugspunkt.
+
+#### Der kürzere Weg: fünf Zahlen
+
+Für ein maßhaltiges Fahrzeug fehlen genau die Angaben aus K1. Jede einzelne
+ist schneller gemessen oder abgelesen als fotografiert:
+
+| Fehlende Größe (K1) | Bester Weg |
+| --- | --- |
+| Gesamtbreite | Bandmaß quer am Aufbau, oder Fahrzeugpapiere |
+| Radstand und Achsabstand des Tandems | Bandmaß, Radmitte zu Radmitte |
+| Überhang vorn und hinten | Bandmaß, Achsmitte zur Stoßstange bzw. Heckwand |
+| Höhe des Wohnbodens über Grund | Gliedermaßstab an der Einstiegstür |
+| Reifengröße | Aufschrift der Reifenflanke abfotografieren (z. B. `315/80 R22.5`) — daraus folgt der Radhalbmesser rechnerisch |
+
+Radstand und zulässige Abmessungen stehen zudem in der
+Zulassungsbescheinigung Teil I und in der Aufbaudokumentation.
+
+**Liegen diese Werte vor, ist K1 geschlossen** — durch einen Zahlenaustausch
+in `frontend/src/vehicle3d/dimensions.ts`. Ohne Fotogrammetrie, ohne
+3D-Programm und ohne Binärdatei im Repository (ADR 0008).
+
+**Falls dennoch gescannt wird:** Ein Scan ist als *Vorlage* nützlich — man
+kann an ihm Maße abgreifen und Formen vergleichen. Als ausgeliefertes Modell
+im Dashboard ist er es nicht; dafür gilt K2, einschließlich der Anforderung
+benannter Knoten für jedes bewegliche Teil.
+
 ---
 
 ## Zusammenfassung nach Dringlichkeit

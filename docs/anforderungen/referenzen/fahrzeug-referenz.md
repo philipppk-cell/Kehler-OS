@@ -66,6 +66,7 @@ Damit fehlen weiterhin:
 - Radstand und Achsabstand des Tandems
 - Überhang vorn und hinten
 - Höhe des Wohnbodens über Grund
+- Reifengröße
 
 Diese Angaben sind als **Punkt K1** in
 [`OPEN_HARDWARE_REQUIREMENTS.md`](../../OPEN_HARDWARE_REQUIREMENTS.md)
@@ -73,6 +74,12 @@ aufgenommen. Für die Maßtabelle in `frontend/src/vehicle3d/dimensions.ts`
 gilt: Jeder Wert ist dort einzeln als `ANGEGEBEN` oder `GESCHÄTZT`
 gekennzeichnet. Sie steht bewusst an genau einer Stelle, damit die Korrektur
 ein Zahlenaustausch ist und keine Modellüberarbeitung.
+
+**Weitere Fotos ändern daran nichts** — auch nicht viele. Sie verbessern die
+Form (Fensterlagen, Türgröße, Verlauf des Staukastenbandes), liefern aber
+keine Meter, solange kein Maßstab mit im Bild liegt. Was Fotos leisten, was
+sie nicht leisten und warum ein fotogrammetrischer Scan hier das falsche
+Modell wäre, steht als **Punkt K3** in derselben Datei.
 
 ## Bewusst nicht modelliert
 
