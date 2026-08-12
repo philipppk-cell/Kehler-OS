@@ -88,6 +88,13 @@ const MATERIALS = {
   wood: new MeshStandardMaterial({ color: 0x8a7f6d, roughness: 0.82, metalness: 0 }),
   /** Die Treppenstufen unter der Terrasse: helles Leichtmetall. */
   alu: new MeshStandardMaterial({ color: 0x9aa3ab, roughness: 0.4, metalness: 0.6 }),
+  /** Seitliche Begrenzungsleuchten — auf den Fotos kräftig orange und über
+   *  die ganze Flanke verteilt. Klein, aber sie gliedern die Fläche. */
+  marker: new MeshStandardMaterial({
+    color: 0xc4641a, roughness: 0.35, emissive: 0x2a1103,
+  }),
+  /** Chrom an Grill und Scheinwerfern. */
+  chrome: new MeshStandardMaterial({ color: 0xb9c2c9, roughness: 0.18, metalness: 0.9 }),
 };
 
 /**
@@ -116,8 +123,8 @@ function extrude(shape: Shape, width: number, bevel = 0.025): BufferGeometry {
     bevelEnabled: true,
     bevelThickness: bevel,
     bevelSize: bevel,
-    bevelSegments: 1,
-    curveSegments: 10,
+    bevelSegments: 2,
+    curveSegments: 16,
   });
   // ExtrudeGeometry wächst von z = 0 nach vorn; wir wollen mittig sitzen.
   geometry.translate(0, 0, -width / 2 + bevel);
@@ -247,17 +254,58 @@ function buildCabFront(): Group {
   );
   g.add(screen);
 
-  // Kühlergrill — auf den Fotos ein schmales Band mit viel Lack ringsum.
-  const grille = panel(0.05, 0.22, cab.width - 1.05, MATERIALS.trim);
-  grille.position.set(sx - 0.01, 1.72, 0);
+  // Kühlergrill: dunkles Feld mit Chromspange und Lamellen. Auf den
+  // Frontaufnahmen ist das die Gliederung, an der man einen MAN erkennt.
+  const grille = new Mesh(
+    extrude(roundedRect(cab.width - 0.86, 0.46, 0.06), 0.05, 0.008),
+    MATERIALS.trim,
+  );
+  grille.rotation.y = Math.PI / 2;
+  grille.position.set(sx - 0.015, 1.74, 0);
   g.add(grille);
 
-  // Scheinwerfer in den unteren Ecken
-  for (const side of [-1, 1]) {
-    const lamp = panel(0.05, 0.18, 0.34, MATERIALS.glass);
-    lamp.position.set(sx - 0.01, 1.22, side * (cab.width / 2 - 0.32));
-    g.add(lamp);
+  const bar = panel(0.04, 0.07, cab.width - 0.9, MATERIALS.chrome);
+  bar.position.set(sx - 0.045, 1.9, 0);
+  g.add(bar);
+
+  for (let i = 0; i < 4; i += 1) {
+    const slat = panel(0.03, 0.035, cab.width - 1.02, MATERIALS.paintDark);
+    slat.position.set(sx - 0.045, 1.7 - i * 0.09, 0);
+    g.add(slat);
   }
+
+  // Scheinwerfer: Gehäuse mit Glas davor statt einer flachen Platte.
+  for (const side of [-1, 1]) {
+    const zc = side * (cab.width / 2 - 0.3);
+    const housing = new Mesh(
+      extrude(roundedRect(0.44, 0.26, 0.05), 0.06, 0.008),
+      MATERIALS.trim,
+    );
+    housing.rotation.y = Math.PI / 2;
+    housing.position.set(sx - 0.015, 1.2, zc);
+    g.add(housing);
+
+    const lens = new Mesh(
+      extrude(roundedRect(0.37, 0.19, 0.04), 0.04, 0.006),
+      MATERIALS.glass,
+    );
+    lens.rotation.y = Math.PI / 2;
+    lens.position.set(sx - 0.05, 1.2, zc);
+    g.add(lens);
+  }
+
+  // Stoßfänger mit der Trittstufe darin.
+  const bumper = new Mesh(
+    extrude(roundedRect(cab.width - 0.06, 0.34, 0.08), 0.12, 0.014),
+    MATERIALS.paint,
+  );
+  bumper.rotation.y = Math.PI / 2;
+  bumper.position.set(sx - 0.05, 0.92, 0);
+  g.add(bumper);
+
+  const stepWell = panel(0.06, 0.14, 0.66, MATERIALS.trim);
+  stepWell.position.set(sx - 0.11, 0.86, 0);
+  g.add(stepWell);
 
   // Außenspiegel — auf den Fotos markant und für das Wiedererkennen wichtig.
   for (const side of [-1, 1]) {
@@ -461,18 +509,135 @@ function buildRoof(): Group {
 
 function buildRearLamps(): Group {
   const g = new Group();
-  const geometry = new CylinderGeometry(0.065, 0.065, 0.05, 12);
-  geometry.rotateZ(Math.PI / 2);
+  // Fassung und Glas getrennt: Auf dem Heckfoto sitzt jede Leuchte sichtbar
+  // in einem dunklen Ring, sie liegt nicht flach auf dem Blech.
+  const housing = new CylinderGeometry(0.082, 0.082, 0.035, 16);
+  housing.rotateZ(Math.PI / 2);
+  const lens = new CylinderGeometry(0.062, 0.062, 0.05, 16);
+  lens.rotateZ(Math.PI / 2);
 
-  // Sie sitzen in dem schmalen Streifen neben der Heckklappe, so wie auf
-  // dem Heckfoto.
+  // Drei Leuchten unten, eine oben je Ecke — so zeigt es die Heckaufnahme.
   for (const side of [-1, 1]) {
-    for (const y of [3.36, 3.16, 2.96]) {
-      const lamp = new Mesh(geometry, MATERIALS.lamp);
-      lamp.position.set(V.length + 0.02, y, side * (V.width / 2 - 0.09));
-      g.add(lamp);
+    const z = side * (V.width / 2 - 0.11);
+    for (const y of [1.28, 1.06, 0.84, 3.6]) {
+      const ring = new Mesh(housing, MATERIALS.trim);
+      ring.position.set(V.length + 0.015, y, z);
+      g.add(ring);
+
+      const glass = new Mesh(lens, MATERIALS.lamp);
+      glass.position.set(V.length + 0.035, y, z);
+      g.add(glass);
     }
   }
+
+  // Kennzeichen, unten mittig — auf dem Heckfoto das hellste Element.
+  const plate = panel(0.03, 0.13, 0.53, MATERIALS.alu);
+  plate.position.set(V.length + 0.03, 0.92, RIGHT * 0.42);
+  g.add(plate);
+
+  return g;
+}
+
+/**
+ * Der Kotflügel über der Vorderachse.
+ *
+ * Er hat ganz gefehlt: Das Vorderrad hing frei unter einer geraden Kante.
+ * Auf der Nahaufnahme der Flanke ist der Radlauf ein kräftig gerundeter
+ * Ausschnitt mit umlaufender Kante — von der Seite eines der auffälligsten
+ * Merkmale der Front.
+ */
+function buildFrontFender(): Group {
+  const g = new Group();
+  const { axles, wheelRadius, cab } = V;
+  const cy = wheelRadius;
+  const inner = wheelRadius + 0.075;
+  const outer = inner + 0.1;
+
+  const s = new Shape();
+  s.absarc(axles.front, cy, outer, Math.PI, 0, true);
+  s.lineTo(axles.front + inner, cy);
+  s.absarc(axles.front, cy, inner, 0, Math.PI, false);
+  s.closePath();
+
+  for (const side of [-1, 1]) {
+    const arch = new Mesh(extrude(s, 0.07, 0.01), MATERIALS.paint);
+    arch.position.z = side * (cab.width / 2 + 0.005);
+    g.add(arch);
+  }
+  return g;
+}
+
+/**
+ * Staukastenklappen, Lüftungsgitter und Begrenzungsleuchten der Flanke.
+ *
+ * Das Staukastenband war eine einzige glatte Fläche über elf Meter. Auf den
+ * Fotos ist es gegliedert: mehrere breite Klappen mit umlaufenden Fugen, ein
+ * Lüftungsgitter hinter dem Fahrerhaus und orange Begrenzungsleuchten. Nichts
+ * davon ist ein Zustand — es sind feste Bauteile, und sie sind der
+ * Unterschied zwischen einer Fläche und einem Fahrzeug.
+ */
+function buildLockers(): Group {
+  const g = new Group();
+  const { skirt, box, width, length } = V;
+  const top = box.floor - 0.09;
+  const bottom = skirt.bottom + 0.09;
+  const h = top - bottom;
+  const cy = (top + bottom) / 2;
+  const z = width / 2 - 0.045;
+
+  // Klappen vor und hinter dem Tandem. Über dem Tandem bleibt die Flanke
+  // frei — rechts sitzt dort die Terrasse, links die Radabdeckung.
+  const doors: [number, number][] = [
+    [2.55, 1.2],
+    [3.85, 1.2],
+    [5.15, 1.0],
+    [9.75, 1.35],
+  ];
+
+  for (const side of [-1, 1]) {
+    for (const [x, w] of doors) {
+      const frame = new Mesh(
+        extrude(roundedRect(w, h, 0.07), 0.02, 0.006),
+        MATERIALS.trim,
+      );
+      frame.rotation.y = side > 0 ? 0 : Math.PI;
+      frame.position.set(x + w / 2, cy, side * z);
+      g.add(frame);
+
+      const leaf = new Mesh(
+        extrude(roundedRect(w - 0.05, h - 0.05, 0.06), 0.03, 0.008),
+        MATERIALS.paint,
+      );
+      leaf.rotation.y = side > 0 ? 0 : Math.PI;
+      leaf.position.set(x + w / 2, cy, side * (z + 0.012));
+      g.add(leaf);
+    }
+
+    // Lüftungsgitter hinter dem Fahrerhaus, auf den Fotos ein schräg
+    // gestelltes Lamellenfeld.
+    for (let i = 0; i < 6; i += 1) {
+      const louvre = panel(0.05, 0.26, 0.02, MATERIALS.trim);
+      louvre.position.set(6.5 + i * 0.09, cy + 0.06, side * (z + 0.02));
+      louvre.rotation.z = -0.42;
+      g.add(louvre);
+    }
+
+    // Begrenzungsleuchten über die Länge verteilt.
+    for (const x of [2.5, 5.4, 7.9, 10.9]) {
+      const marker = panel(0.16, 0.05, 0.02, MATERIALS.marker);
+      marker.position.set(x, box.floor - 0.05, side * (z + 0.03));
+      g.add(marker);
+    }
+  }
+
+  // Waagerechte Fuge unter der Fensterreihe — sie teilt die große Fläche
+  // des Aufbaus und ist auf jeder Seitenaufnahme zu sehen.
+  for (const side of [-1, 1]) {
+    const seam = panel(length - box.front - 0.3, 0.025, 0.02, MATERIALS.trim);
+    seam.position.set((box.front + length) / 2, 2.28, side * (width / 2 - 0.005));
+    g.add(seam);
+  }
+
   return g;
 }
 
@@ -768,6 +933,8 @@ export function buildVehicle(): VehicleModel {
   body.add(buildRoof());
   body.add(buildGarageOpening());
   body.add(buildRearLamps());
+  body.add(buildFrontFender());
+  body.add(buildLockers());
   root.add(body);
   root.add(buildShadow());
 
