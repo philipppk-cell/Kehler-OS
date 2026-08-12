@@ -14,8 +14,8 @@
  */
 
 import { Button, Card, Row, StaleMark, Status, Toggle } from "../design/primitives";
-import { IconPump } from "../design/icons";
-import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
+import { IconPump, IconValve } from "../design/icons";
+import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
@@ -24,6 +24,23 @@ import { t } from "../i18n/de";
 import "./wasser.css";
 
 const USABLE: readonly string[] = [Quality.Valid, Quality.Stale];
+
+/**
+ * Welcher Tank durch welches Ventil entleert wird.
+ *
+ * Die Zuordnung steht hier und nicht im Backend, weil sie eine Aussage über
+ * die **Darstellung** ist: Ventil und Füllstand gehören nebeneinander, damit
+ * man am Entsorgungsplatz beides zugleich sieht — das offene Ventil und den
+ * fallenden Stand. Zwei getrennte Listen zwängen den Benutzer, sie im Kopf
+ * zusammenzubringen, und das ausgerechnet in dem Moment, in dem etwas läuft.
+ *
+ * Fehlt zu einem Tank ein Ventil, erscheint schlicht keine Bedienung. Der
+ * Eintrag ist ein Angebot, keine Zusicherung.
+ */
+const DRAIN_VALVES: Record<string, string> = {
+  "water.tank.grey": "water.valve.grey",
+  "water.tank.black": "water.valve.black",
+};
 
 export function Wasser() {
   const water = useWater();
@@ -141,6 +158,7 @@ function TankRow({
 }) {
   const usable = USABLE.includes(tank.quality) && tank.percent !== null;
   const stale = tank.quality === Quality.Stale || !online;
+  const valveId = DRAIN_VALVES[tank.entity_id];
 
   return (
     <div className="tankrow">
@@ -179,6 +197,98 @@ function TankRow({
         )}
         {usable && tank.quality === Quality.Stale && <StaleMark />}
       </div>
+
+      {valveId !== undefined && <ValveRow valveId={valveId} online={online} />}
+    </div>
+  );
+}
+
+/* ── Ablassventil ────────────────────────────────────────────────────────── */
+
+/**
+ * Ein Ablassventil: zwei Stellungen, zwei Schaltflächen, kein Stopp.
+ *
+ * Der fehlende Stopp ist keine Auslassung dieser Datei — die Entity bietet
+ * ihn nicht an, weil die Hardware ihn nicht hat. Deshalb wird auch hier
+ * nichts fest verdrahtet: Welche Schaltfläche erscheint, entscheidet die
+ * Capability (Kapitel 12 §55).
+ *
+ * **Ein offenes Ventil wird hervorgehoben, nicht nur benannt.** Es ist der
+ * einzige Zustand auf dieser Seite, der von selbst nicht wieder weggeht und
+ * dessen Vergessen etwas kostet — der Tank läuft leer, und beim Losfahren
+ * fährt ein offenes Ventil mit.
+ */
+function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
+  const valve = useEntity(valveId);
+  const { pending } = useAppState();
+  const definition = valve?.definition;
+  const name = definition?.name_key ? t(definition.name_key) : valveId;
+
+  if (definition === undefined) return null;
+
+  if (definition.configured === false) {
+    return (
+      <div className="valve">
+        <span className="valve__icon"><IconValve size={16} /></span>
+        <span className="valve__label">{t("water.drain")}</span>
+        <Status tone="unknown" label={t("state.notConfigured")} compact />
+      </div>
+    );
+  }
+
+  const verbs = new Set((definition.capabilities ?? []).map((c) => c.verb));
+  const value = online ? textOf(valve) : null;
+  const isOpen = value === "OPEN";
+  const busy = pending.has(valveId);
+
+  function drive(verb: string) {
+    // Ob eine Bestätigung nötig ist, steht in der Capability. Der Loader
+    // stuft `open` und `close` getrennt ein — die Oberfläche liest die
+    // Einstufung, sie erfindet sie nicht (Kapitel 15 §21).
+    const needed =
+      (definition!.capabilities ?? []).find((c) => c.verb === verb)
+        ?.needs_confirmation ?? false;
+    if (needed && !window.confirm(t("water.confirmDrain", undefined, { name }))) {
+      return;
+    }
+    sendCommand(valveId, verb);
+  }
+
+  return (
+    <div className={`valve${isOpen ? " valve--open" : ""}`}>
+      <span className="valve__icon"><IconValve size={16} /></span>
+      <span className="valve__label">{t("water.drain")}</span>
+
+      <span className="valve__state">
+        {value === null ? (
+          <Status tone="unknown" label={t("state.unknown")} compact />
+        ) : (
+          <Status
+            tone={isOpen ? "warn" : "ok"}
+            label={isOpen ? t("water.valveRunning") : t("state.closed")}
+            compact
+          />
+        )}
+      </span>
+
+      <span className="valve__controls">
+        <Button
+          disabled={!online || busy || !verbs.has("open")}
+          onClick={() => drive("open")}
+        >
+          {t("water.valveOpen")}
+        </Button>
+        {/* Schließen bleibt erreichbar, solange das Ventil offen ist — auch
+            während ein Befehl läuft wäre es das Falsche, es zu sperren. Es
+            ist die Handlung, die den Zustand beendet. */}
+        <Button
+          variant={isOpen ? "accent" : "default"}
+          disabled={!online || busy || !verbs.has("close")}
+          onClick={() => drive("close")}
+        >
+          {t("water.valveClose")}
+        </Button>
+      </span>
     </div>
   );
 }
@@ -280,6 +390,7 @@ function NoteCard() {
       <ul className="wasser__notes">
         <li>{t("water.thresholdsSet")}</li>
         <li>{t("water.thresholdMarks")}</li>
+        <li>{t("water.valveNote")}</li>
       </ul>
       <Button variant="quiet" full disabled>
         {t("water.historyLater")}

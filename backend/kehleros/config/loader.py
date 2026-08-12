@@ -13,6 +13,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
+from ..domain.enums import Risk
 from ..domain.models import CommandSpec, Entity
 from .models import EntityConfig, Settings, VehicleConfig
 
@@ -142,6 +143,44 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
             CommandSpec(verb="close", expects="CLOSED", **common, **ends),
             # Der Stopp unterbricht und wird selbst nicht unterbrochen.
             CommandSpec(verb="stop", expects="STOPPED", preempts=True, **common),
+        )
+
+    if config.type == "valve":
+        # Zwei Befehle, zwei Stellungen, kein Stopp — ein Absperrorgan hat
+        # nichts dazwischen.
+        #
+        # ── Warum die beiden verschieden eingestuft sind ──────────────────
+        #
+        # Das Risiko liegt **im Öffnen**. Ein offenes Ablassventil entleert
+        # den Tank, und wo das geschieht, bestimmt nicht die Software.
+        # Deshalb trägt `open` die konfigurierte Einstufung und verlangt ab
+        # HIGH eine Bestätigung.
+        #
+        # `close` bleibt ausdrücklich LOW, und das ist kein Versehen:
+        # Schließen ist die Handlung, mit der man einen unerwünschten
+        # Zustand **beendet**. Sie hinter eine Rückfrage zu stellen hieße,
+        # den Rückweg schwerer zu machen als den Hinweg — dieselbe
+        # Überlegung, aus der die Strombegrenzung trotz Schreibzugriff nur
+        # MEDIUM trägt: Eine Bestätigung ohne Schutzwirkung ist reine
+        # Reibung (Kapitel 15 §21).
+        #
+        # Möglich ist das, weil `risk` seit jeher am einzelnen Befehl hängt
+        # und nicht an der Entity. Bisher hat nur niemand davon Gebrauch
+        # gemacht; die Oberfläche liest die Einstufung ohnehin je Verb
+        # (`needs_confirmation` in serialization.py).
+        return (
+            CommandSpec(
+                verb="open",
+                expects="OPEN",
+                timeout_ms=config.timeout_ms,
+                risk=config.risk,
+            ),
+            CommandSpec(
+                verb="close",
+                expects="CLOSED",
+                timeout_ms=config.timeout_ms,
+                risk=Risk.LOW,
+            ),
         )
 
     if config.type == "setpoint":

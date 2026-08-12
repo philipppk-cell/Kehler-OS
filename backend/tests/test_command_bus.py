@@ -110,6 +110,73 @@ class TestAusfuehrung:
             await task
 
 
+class TestAblassventil:
+    """Ein Absperrorgan ist keine Mechanik mit kurzer Laufzeit.
+
+    Die Unterscheidung ist keine Wortklauberei: Ein ``movable`` brächte einen
+    Stopp mit und meldete Zwischenzustände. Beides hat ein Ablassventil nicht,
+    und beides würde die Oberfläche anzeigen, wenn der Typ falsch wäre.
+    """
+
+    async def test_ventil_schaltet_ohne_zwischenzustand(
+        self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
+    ):
+        # Ein Zyklus, damit der Anfangszustand im State Store steht. Vor der
+        # ersten Meldung ist er UNKNOWN — und das ist richtig so: Kehler OS
+        # weiß beim Start nicht, wie ein Ventil steht (Kapitel 18 §38).
+        await simulation.poll()
+        assert state.require("water.valve.grey").state.value == "CLOSED"
+
+        result = await submit(bus, "water.valve.grey", "open")
+        assert result.phase is CommandPhase.COMPLETED
+        assert state.require("water.valve.grey").state.value == "OPEN"
+
+        result = await submit(bus, "water.valve.grey", "close")
+        assert result.phase is CommandPhase.COMPLETED
+        assert state.require("water.valve.grey").state.value == "CLOSED"
+
+    async def test_ventil_meldet_niemals_eine_fahrt(
+        self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
+    ):
+        """Kein OPENING, kein CLOSING — auch nicht kurz.
+
+        Beim Garagentor ist der Zwischenzustand ein Merkmal; hier wäre er eine
+        Behauptung über eine Bewegung, die nicht stattfindet. Der Test greift
+        deshalb **während** des Befehls zu.
+        """
+        await simulation.poll()
+
+        gesehen: list[object] = []
+        task = asyncio.create_task(submit(bus, "water.valve.grey", "open"))
+        for _ in range(6):
+            await asyncio.sleep(0.01)
+            gesehen.append(state.require("water.valve.grey").state.value)
+        await task
+
+        assert "OPENING" not in gesehen
+        assert set(gesehen) <= {"CLOSED", "OPEN"}
+
+    async def test_ventil_kennt_keinen_stopp(self, bus: CommandBus, simulation):
+        """Und weist ihn ab, bevor irgendetwas die Hardware erreicht."""
+        result = await submit(bus, "water.valve.grey", "stop")
+        assert result.phase is CommandPhase.REJECTED
+        assert result.rejection is RejectionReason.MISSING_CAPABILITY
+
+    async def test_blockiert_wird_am_ventil_nicht_angeboten(
+        self, simulation: SimulationAdapter
+    ):
+        """Die Diagnose meldet nur, was tatsächlich etwas bewirkt.
+
+        ``BLOCKED`` wird ausschließlich im Bewegungsablauf ausgewertet. Es am
+        Ventil anzubieten hieße, eine Schaltfläche ohne Wirkung anzubieten —
+        und wer sie drückt und nichts sieht, sucht den Fehler anschließend an
+        der falschen Stelle.
+        """
+        entities = simulation.diagnostics()["entities"]
+        assert Fault.BLOCKED.value not in entities["water.valve.grey"]["faults"]
+        assert Fault.BLOCKED.value in entities["vehicle.garage.door"]["faults"]
+
+
 class TestFehlerfaelle:
     async def test_timeout_wenn_hardware_nicht_bestaetigt(
         self, bus: CommandBus, simulation: SimulationAdapter

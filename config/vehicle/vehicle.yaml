@@ -98,6 +98,50 @@ entities:
     deadband: 0.5
     expected_interval_s: 30
 
+  # ── Ablassventile ─────────────────────────────────────────────────────────
+  # BESTÄTIGT (2026-08-12): Grau- und Schwarzwassertank haben **je ein
+  # Ablassventil**, insgesamt zwei. Sie kennen ausschließlich **öffnen und
+  # schließen** — keine Zwischenstellung, kein Anhalten unterwegs.
+  #
+  # Sie sind deshalb `valve` und nicht `movable`: Ein bewegliches Teil brächte
+  # einen Stopp-Befehl mit, den es an diesen Ventilen nicht gibt, und die
+  # Oberfläche zeigte eine Schaltfläche für eine Funktion, die die Hardware
+  # nicht hat.
+  #
+  # `risk: HIGH` bedeutet: Das **Öffnen** verlangt eine bewusste Bestätigung.
+  # Das Schließen nicht — der Loader stuft die beiden getrennt ein. Ein offenes
+  # Ablassventil entleert den Tank dorthin, wo das Fahrzeug gerade steht; das
+  # Schließen beendet genau diesen Zustand und darf nie schwerer erreichbar
+  # sein als das Öffnen.
+  #
+  # Die Bestätigung ist eine Rückfrage und keine Schutzeinrichtung. Wo
+  # abgelassen werden darf, entscheidet der Fahrer — Kehler OS kennt keinen
+  # Standort und keine Entsorgungsstelle und behauptet daher auch nichts
+  # darüber (Kapitel 15 §24).
+  #
+  # VORLÄUFIG: `timeout_ms`. Wie lange ein Stellantrieb bis zur Rückmeldung
+  # braucht, ist nicht genannt; 10 s sind großzügig gewählt und werden mit der
+  # Anbindung berichtigt.
+  #
+  # OFFEN (Punkt C4): Ob die Ventile eine **Stellungsrückmeldung** besitzen.
+  # Ohne sie kann Kehler OS nie bestätigen, dass ein Ventil wirklich zu ist —
+  # es bliebe bei „Unbekannt" und dem angezeigten Wunschzustand. Das ist keine
+  # Frage der Software, sondern der Verdrahtung.
+
+  - id: water.valve.grey
+    name_key: valve.grey
+    type: valve
+    area: tech
+    risk: HIGH
+    timeout_ms: 10000
+
+  - id: water.valve.black
+    name_key: valve.black
+    type: valve
+    area: tech
+    risk: HIGH
+    timeout_ms: 10000
+
   # VORLÄUFIG: dass es eine schaltbare Wasserpumpe gibt, ist anzunehmen —
   # bestätigt ist es nicht.
   - id: water.pump.main

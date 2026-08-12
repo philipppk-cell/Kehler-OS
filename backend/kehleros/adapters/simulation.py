@@ -59,6 +59,19 @@ class Motion(StrEnum):
     BLOCKED = "BLOCKED"
 
 
+class Position(StrEnum):
+    """Die beiden Stellungen eines Absperrorgans.
+
+    Bewusst **nicht** ``Motion`` mit weggelassenen Werten: Ein Ablassventil
+    kennt kein Dazwischen. Würde es aus demselben Vorrat bedient, wäre die
+    Frage „kann dieses Ding OPENING melden" eine Frage an den Code statt an
+    die Hardware — und irgendwann meldete es das dann auch.
+    """
+
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
+
+
 def _range_key(entity: Entity) -> str:
     """Ordnet einer Entity ihren plausiblen Wertebereich zu.
 
@@ -188,6 +201,15 @@ class SimulationAdapter(Adapter):
         eine Entity dazukommt.
         """
         caps = set(entity.capabilities)
+
+        # Das Ventil steht **vor** der Bewegung, und das ist kein Stilfrage:
+        # Ein Absperrorgan hat ebenfalls `open` und `close`, unterscheidet
+        # sich aber genau im fehlenden `stop`. Ohne diesen Vorrang griffe die
+        # Bedingung darunter, und das Ventil meldete `OPENING` — einen
+        # Zustand, den es nicht hat. Die Oberfläche zeigte dann eine Fahrt,
+        # die nirgends stattfindet.
+        if entity.kind == "valve":
+            return _Device(entity=entity, kind="valve", value=Position.CLOSED.value)
 
         if {"open", "close"} <= caps:
             return _Device(entity=entity, kind="motion", value=Motion.CLOSED.value)
@@ -409,6 +431,16 @@ class SimulationAdapter(Adapter):
 
         if device.kind == "motion":
             self._start_motion(device, command.verb)
+        elif device.kind == "valve":
+            # Ein Ventil schaltet, es fährt nicht: kein Zwischenzustand, kein
+            # Fortschritt, keine Laufzeit.
+            #
+            # Der Zielzustand wird aus der Capability übernommen und nicht
+            # hier ein zweites Mal festgelegt. Sonst gäbe es zwei Stellen,
+            # die wissen, dass `open` zu `OPEN` führt — und liefen sie
+            # auseinander, wartete der Command Bus bis zum Timeout auf einen
+            # Zustand, den der Simulator nie meldet.
+            device.value = spec.expects
         elif device.kind == "switch":
             device.value = command.params.get("state", spec.expects)
         elif device.kind == "setpoint":

@@ -136,6 +136,8 @@ const de: Record<string, string> = {
   "tank.grey": "Grauwasser",
   "tank.black": "Schwarzwasser",
   "water.pump": "Wasserpumpe",
+  "valve.grey": "Ablassventil Grauwasser",
+  "valve.black": "Ablassventil Schwarzwasser",
 
   // Wasserseite
   "water.title": "Wasser",
@@ -148,6 +150,18 @@ const de: Record<string, string> = {
   "water.totalUnknown": "Gesamtstand nicht ermittelbar",
   "water.totalUnknownHint":
     "Solange ein Tank keinen belastbaren Wert liefert, wäre jede Gesamtangabe eine Schätzung.",
+  // Ablassventile. Eigene Beschriftungen und nicht die des Fahrzeugs: Dort
+  // heißt „Öffnen" eine Klappe aufzufahren, hier Wasser abzulassen. Gleiche
+  // Wörter für verschiedene Vorgänge sind eine Einladung zum Vertippen.
+  "water.drain": "Ablassen",
+  "water.valveOpen": "Ventil öffnen",
+  "water.valveClose": "Ventil schließen",
+  "water.valveRunning": "Läuft ab",
+  "water.confirmDrain":
+    "{name} wirklich öffnen? Der Tank entleert sich dorthin, wo das Fahrzeug gerade steht.",
+  "water.valveNote":
+    "Das Öffnen verlangt eine Bestätigung, das Schließen nicht — der Rückweg darf nie schwerer sein als der Hinweg.",
+
   "water.notesTitle": "Hinweise",
   "water.thresholdsSet":
     "Frischwasser: Warnung unter 20 %, kritisch unter 10 %. Abwasser: Warnung über 80 %, kritisch über 90 %.",

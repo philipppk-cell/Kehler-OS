@@ -25,7 +25,9 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-EntityType = Literal["measurement", "contact", "status", "switch", "movable", "setpoint"]
+EntityType = Literal[
+    "measurement", "contact", "status", "switch", "movable", "valve", "setpoint"
+]
 """Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.
 
 Er ist bewusst von ``measurement`` getrennt: Ein Türkontakt liefert OPEN oder
@@ -38,6 +40,22 @@ SCHEER-Heizung meldet nicht „an/aus", sondern eine Betriebsphase. Ihn als
 ``switch`` zu führen hieße zu behaupten, Kehler OS könne ihn setzen. Beides
 wäre falsch: Die Phase entsteht in der HeatMate-Regelung, hier wird sie nur
 gelesen.
+
+Ein ``valve`` ist ein Absperrorgan mit genau zwei Stellungen: **offen** und
+**geschlossen**. Es hat weder einen ``switch`` noch ein ``movable`` werden
+können, und beide Gründe sind praktischer Natur:
+
+Als ``switch`` hätte es das falsche Vokabular. Ein Schalter meldet ``ON`` und
+``OFF``, und die Oberfläche zeigt genau das an. „Ablassventil Grauwasser: Ein"
+sagt nicht, ob Wasser läuft — ein Ventil ist offen oder zu.
+
+Als ``movable`` hätte es einen Befehl zu viel. Ein bewegliches Teil bringt
+``stop`` mit, weil eine Klappe zwanzig Sekunden fährt und man sie unterwegs
+anhalten können muss. Ein Ablassventil kennt genau zwei Stellungen und keinen
+Halt dazwischen. Eine Stopp-Schaltfläche wäre ein Bedienelement für eine
+Funktion, die die Hardware nicht hat — genau das, was das Capability-Prinzip
+verhindern soll (Kapitel 12 §55). Ebenso entfielen ``OPENING``/``CLOSING``:
+Zwischenzustände einer Bewegung, die es hier nicht gibt.
 
 Ein ``setpoint`` ist ein einstellbarer Zahlenwert mit Grenzen — die
 Eingangsstrombegrenzung des Landstroms ebenso wie eine Solltemperatur. Es gab

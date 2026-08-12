@@ -11,6 +11,7 @@ from kehleros.core.command_bus import CommandBus
 from kehleros.core.event_bus import EventBus
 from kehleros.core.registry import Registry
 from kehleros.core.state_store import StateStore
+from kehleros.domain.enums import Risk
 from kehleros.domain.models import CommandSpec, Entity
 
 
@@ -25,7 +26,16 @@ def make_entity(
     min_value: float | None = None,
     max_value: float | None = None,
     step: float | None = None,
+    kind: str = "measurement",
 ) -> Entity:
+    """``kind`` ist nicht kosmetisch.
+
+    Der Simulator leitet sein Verhalten überwiegend aus den Capabilities ab,
+    an zwei Stellen aber aus der Art: ``status`` und ``valve`` lassen sich
+    daran nicht erkennen. Ein Ventil ohne ``kind`` würde hier als bewegliches
+    Teil simuliert — mit Zwischenzuständen, die es nicht hat. Der Test liefe
+    durch und prüfte etwas anderes als das ausgelieferte Verhalten.
+    """
     return Entity(
         id=entity_id,
         name_key=entity_id,
@@ -37,6 +47,7 @@ def make_entity(
         min_value=min_value,
         max_value=max_value,
         step=step,
+        kind=kind,
     )
 
 
@@ -75,6 +86,7 @@ def _specs_for(entity_type: str, **felder) -> tuple[CommandSpec, ...]:
 
 
 MOVABLE = _specs_for("movable")
+VALVE = _specs_for("valve", risk=Risk.HIGH)
 
 
 @pytest.fixture
@@ -88,6 +100,7 @@ def registry() -> Registry:
                 "water.tank.fresh", unit="percent", expected_interval_s=1.0, deadband=0.5
             ),
             make_entity("vehicle.awning.main", commands=MOVABLE, configured=False),
+            make_entity("water.valve.grey", commands=VALVE, kind="valve"),
             make_entity(
                 "energy.shore.limit",
                 commands=SETPOINT,

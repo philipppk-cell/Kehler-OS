@@ -12,6 +12,7 @@ import pytest
 
 from kehleros.config.loader import ConfigError, build_entities, load_vehicle
 from kehleros.config.models import EntityConfig, VehicleConfig
+from kehleros.domain.enums import Risk
 from kehleros.domain.ids import InvalidEntityId, validate_entity_id
 
 REPO = Path(__file__).resolve().parents[2]
@@ -109,6 +110,62 @@ class TestCapabilitiesAusTyp:
         )[0]
         assert set(entity.capabilities) == {"open", "close", "stop"}
 
+    def test_ventil_kennt_open_und_close_aber_keinen_stopp(self):
+        """Der fehlende Stopp ist der ganze Grund für den eigenen Typ.
+
+        Ein ``movable`` brächte ihn mit, und die Oberfläche zeigte eine
+        Schaltfläche für eine Funktion, die die Hardware nicht hat
+        (Kapitel 12 §55).
+        """
+        entity = build_entities(
+            VehicleConfig(
+                entities=[EntityConfig(id="water.valve.grey", name_key="v", type="valve")]
+            )
+        )[0]
+        assert set(entity.capabilities) == {"open", "close"}
+        assert "stop" not in entity.capabilities
+
+    def test_ventil_oeffnen_ist_bestaetigungspflichtig_schliessen_nicht(self):
+        """Der Rückweg darf nie schwerer sein als der Hinweg.
+
+        Ein offenes Ablassventil entleert den Tank; das Schließen beendet
+        genau diesen Zustand. Eine Rückfrage davor wäre Reibung ohne
+        Schutzwirkung (Kapitel 15 §21).
+        """
+        entity = build_entities(
+            VehicleConfig(
+                entities=[
+                    EntityConfig(
+                        id="water.valve.black",
+                        name_key="v",
+                        type="valve",
+                        risk=Risk.HIGH,
+                    )
+                ]
+            )
+        )[0]
+        oeffnen = entity.spec_for("open")
+        schliessen = entity.spec_for("close")
+        assert oeffnen is not None and schliessen is not None
+        assert oeffnen.risk is Risk.HIGH
+        assert oeffnen.risk.needs_confirmation is True
+        assert schliessen.risk is Risk.LOW
+        assert schliessen.risk.needs_confirmation is False
+
+    def test_ventil_erwartet_die_zustaende_offen_und_geschlossen(self):
+        """Nicht ON/OFF: Ein Ventil ist offen oder zu.
+
+        Der erwartete Zustand ist zugleich das, worauf der Command Bus
+        wartet — und das, was der Simulator setzt.
+        """
+        entity = build_entities(
+            VehicleConfig(
+                entities=[EntityConfig(id="water.valve.grey", name_key="v", type="valve")]
+            )
+        )[0]
+        assert entity.spec_for("open").expects == "OPEN"  # type: ignore[union-attr]
+        assert entity.spec_for("close").expects == "CLOSED"  # type: ignore[union-attr]
+
     def test_kein_dimmer_ohne_konfiguration(self):
         """RGB und Dimmen werden nicht angenommen (Kapitel 18 §25/§34)."""
         entity = build_entities(
@@ -145,6 +202,32 @@ class TestMitgelieferteKonfiguration:
             "water.tank.grey": 280,
             "water.tank.black": 370,
         }
+
+    def test_genau_zwei_ablassventile(self):
+        """Zwei Ventile, für Grau- und Schwarzwasser (bestätigt 2026-08-12).
+
+        Der Test hält die **Anzahl** fest und nicht nur die Namen: Ein drittes
+        Ventil in der Konfiguration wäre eine Erfindung über das Fahrzeug, und
+        die Oberfläche böte eine Bedienung an, hinter der nichts hängt
+        (Kapitel 18 §97).
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        ventile = {e.id for e in vehicle.entities if e.type == "valve"}
+        assert ventile == {"water.valve.grey", "water.valve.black"}
+
+    def test_ablassventile_verlangen_bestaetigung_zum_oeffnen(self):
+        """Am realen Fahrzeug, nicht nur im Modell.
+
+        Ohne diese Prüfung könnte die Einstufung in der Konfiguration
+        stillschweigend auf LOW fallen — und das Ventil ließe sich mit einem
+        einzigen Antippen öffnen.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        ventile = [e for e in build_entities(vehicle) if e.kind == "valve"]
+        assert ventile, "Es sind keine Ventile konfiguriert"
+        for ventil in ventile:
+            assert ventil.spec_for("open").risk.needs_confirmation  # type: ignore[union-attr]
+            assert not ventil.spec_for("close").risk.needs_confirmation  # type: ignore[union-attr]
 
     def test_warnschwellen_entsprechen_der_angabe(self):
         """Die Schwellen sind vom Fahrzeughalter genannt (Punkt C3).

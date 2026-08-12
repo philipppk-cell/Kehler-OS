@@ -178,6 +178,23 @@ export const IconPump = (p: IconProps) => (
   </Icon>
 );
 
+/**
+ * Ein Absperrventil — Rohr, Gehäuse, Handrad.
+ *
+ * Bewusst nicht der Tropfen, den man für „Wasser ablassen" erwarten würde:
+ * Das Symbol steht neben einem Tankfüllstand, und zwei Wassersymbole
+ * nebeneinander unterscheiden sich nicht mehr. Ein Ventil zeigt das
+ * Bedienelement, nicht sein Medium.
+ */
+export const IconValve = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M3 13h4M17 13h4" />
+    <path d="M7 9.5h10v7H7z" />
+    <path d="M12 9.5V5" />
+    <path d="M9 5h6" />
+  </Icon>
+);
+
 export const IconPlug = (p: IconProps) => (
   <Icon {...p}>
     <path d="M9 3v6" />

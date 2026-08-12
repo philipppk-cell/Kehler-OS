@@ -30,6 +30,7 @@ areas:
 #   status        mehrwertiger Zustand (Brennerphase), keine Bedienung
 #   switch        set_state(ON|OFF)
 #   movable       open / close / stop
+#   valve         open / close — ohne Stopp, ohne Zwischenstellung
 #   setpoint      set_value — **nur mit `max_value`**, sonst nur Anzeige
 #
 # Zwei Kennzeichen unterdrücken jede Bedienung — sie bedeuten Verschiedenes:
@@ -95,6 +96,20 @@ entities:
     type: movable
     area: exterior
     configured: false
+
+  # Ein Absperrorgan mit genau zwei Stellungen. Anders als ein `movable`
+  # bekommt es **keinen** Stopp — die Hardware hat keinen, also gibt es auch
+  # keine Schaltfläche dafür.
+  #
+  # `risk` wirkt hier nur auf das **Öffnen**. Schließen bleibt ohne Rückfrage:
+  # Es beendet einen Zustand, statt einen herbeizuführen, und der Rückweg darf
+  # nie schwerer sein als der Hinweg.
+  - id: water.valve.grey
+    name_key: valve.grey
+    type: valve
+    area: tech
+    risk: HIGH
+    timeout_ms: 10000
 
   # Ein mehrwertiger Zustand. `states` ist das **interne Vokabular von
   # Kehler OS**, nicht das des Geräts — die Zuordnung von Rohwerten macht der

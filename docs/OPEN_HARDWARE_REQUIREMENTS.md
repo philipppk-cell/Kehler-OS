@@ -255,6 +255,54 @@ und die Warnstufe würde nie sichtbar.
 
 ---
 
+### C4 · Ablassventile — `TEILWEISE` (2026-08-12) · `NICHT BLOCKIEREND`
+
+**Bestätigt am 2026-08-12:** Grau- und Schwarzwassertank haben **je ein
+Ablassventil**, insgesamt zwei. Sie kennen ausschließlich **öffnen und
+schließen** — keine Zwischenstellung, kein Anhalten unterwegs.
+
+Daraus ist der Entity-Typ `valve` entstanden. Er unterscheidet sich von
+`movable` genau um den fehlenden Stopp: Ein bewegliches Teil brächte ihn mit,
+und die Oberfläche zeigte eine Schaltfläche für eine Funktion, die die
+Hardware nicht hat. Von `switch` unterscheidet er sich im Vokabular — ein
+Ventil ist offen oder zu, nicht ein oder aus.
+
+**Was noch fehlt:**
+
+- **Stellungsrückmeldung.** Melden die Ventile ihre Stellung zurück, oder
+  lassen sie sich nur ansteuern? Das ist die eine Frage, die den Unterschied
+  macht: Ohne Rückmeldung kann Kehler OS nie bestätigen, dass ein Ventil
+  wirklich zu ist. Die Anzeige bliebe bei „Unbekannt", der Befehl liefe in
+  einen Timeout, und sichtbar wäre nur der Wunschzustand. Das ist kein
+  Softwareproblem und keines, das sich softwareseitig lösen lässt — es ist
+  eine Frage der Verdrahtung.
+- **Stellzeit** für `timeout_ms`. Derzeit stehen 10 s; das ist großzügig
+  geschätzt und keine Angabe (VORLÄUFIG in der Konfiguration).
+- **Datenpunkte** in der SPS — Teil von A3.
+
+**Was ausdrücklich nicht angenommen wird:**
+
+Es gibt **keine Verriegelung gegen Öffnen während der Fahrt**. Eine solche
+wäre eine Schutzfunktion, und die Oberfläche ist keine Sicherheitseinrichtung
+(Kapitel 15 §24). Hinzu kommt, dass der Fahrmodus mangels Datenquelle gar
+nicht automatisch gesetzt wird (Punkt J1) — eine Sperre, die nie greift, wäre
+schlimmer als keine, weil man sich auf sie verließe.
+
+Stattdessen verlangt das **Öffnen** eine bewusste Bestätigung (`risk: HIGH`).
+Das Schließen nicht: Es beendet den Zustand, den das Öffnen herbeiführt, und
+der Rückweg darf nie schwerer sein als der Hinweg. Die beiden Befehle werden
+im Loader getrennt eingestuft.
+
+> **Noch zu entscheiden:** Soll ein Ventil, das länger offen steht, an sich
+> erinnern? Der Fall ist real — man öffnet am Entsorgungsplatz und fährt
+> los, ohne zu schließen. Eine Meldung dafür braucht aber eine Zeitgrenze,
+> und die hat niemand festgelegt. Sie hier zu erfinden wäre dieselbe Art
+> Annahme, die dieses Dokument sonst verhindert (Kapitel 18 §98). Solange
+> keine Grenze genannt ist, zeigt die Wasserseite das offene Ventil
+> hervorgehoben an und meldet sonst nichts.
+
+---
+
 ## D – Nivellierung
 
 ### D1 · Neigungssensorik — `OFFEN` · `BLOCKIEREND` für Phase 11
@@ -773,6 +821,7 @@ A5 vorhandene Sicherheitsverriegelungen · I3 Netztrennung
 
 **Danach, für den sinnvollen Alltagsbetrieb:**
 B1 Cerbo-Schnittstelle · C1 Tanksensorik ·
+C4 Stellungsrückmeldung der Ablassventile ·
 E1/E3 Garagen- und Verriegelungsrückmeldungen · I4 Display
 
 **Zuletzt und bewusst nicht zuerst:**
