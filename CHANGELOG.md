@@ -832,8 +832,45 @@ Maßstab in derselben Ebene im Bild liegt.
 Der Fall hat das gleich belegt: Die Fotos konnten den falschen Radstand nicht
 ersetzen, aber sie konnten ihn widerlegen.
 
+### Korrigiert — Terrasse statt Einstiegsstufe, Tür über dem Tandem (2026-08-12)
+
+Ein zweiter Satz Fotos, diesmal ohne Gegenlicht und mit beiden Stellungen der
+beweglichen Teile, hat den größten Verständnisfehler des Modells aufgedeckt:
+
+- **Aus der „Einstiegsstufe" wurde eine Terrasse.** Modelliert war ein
+  Brettchen von 0,70 × 0,34 m. Das Fahrzeug hat stattdessen eine knapp drei
+  Meter lange Plattform über dem Tandem — Holzbelag, Außenschürze mit zwei
+  Radbögen, darunter eine Treppe mit fünf Stufen und ohne Handlauf. Terrasse
+  und Treppe sind **ein** Zustand und fahren gemeinsam.
+- **Eingefahren verschwindet sie vollständig.** Die Schürze mit den Radbögen
+  ist nicht etwa eine feste Verkleidung, sondern die Außenhaut der Terrasse;
+  eingefahren ist die Flanke glatt und die Räder stehen frei.
+- **Die Eingangstür steht über der ersten Tandemachse**, nicht im vorderen
+  Drittel. Sie saß im Modell 2,4 m zu weit vorn. Tür und Terrasse hängen
+  jetzt an den Achslagen statt an eigenen Zahlen und wandern mit, falls sich
+  eine Achse noch einmal verschiebt.
+- Die Fenster der rechten Seite sind nach der freistehenden Aufnahme
+  nachgezogen.
+
+**Das Markisentuch wird nicht mehr dargestellt** (Wunsch des Fahrzeughalters).
+Die Kassette bleibt — sie ist verschraubt und gehört zur Silhouette. Die
+Markise bleibt bedienbar und behält ihre Schnellzugriffe; sie wird nur nicht
+mehr gezeichnet, und zwar in **beiden** Ansichten gleich. SVG und 3D zeigen
+weiterhin dasselbe Fahrzeug (ADR 0008).
+
+**Ein Sonderfall in der Ehrlichkeitsregel.** Die Terrasse ist das erste Teil,
+das eingefahren gar nichts hinterlässt. „Durchscheinend an der Ruhelage" ergäbe
+bei ihr ein durchscheinendes Nichts — vom eingefahrenen Nichts nicht zu
+unterscheiden, und damit die Behauptung „eingefahren", die §106 verbietet. Bei
+unbekannter Stellung wird deshalb die Außenschürze bündig in der Flanke
+gezeigt. ADR 0008 hält das fest.
+
 ### Offen
 
 - Bilddatei der Designreferenz fehlt im Repository (nur Beschreibung vorhanden)
+- Entity und i18n-Schlüssel heißen weiterhin `vehicle.step.entry` bzw.
+  `vehicle.step`; das Bauteil ist eine Terrasse. Die Anzeige nennt es richtig,
+  die Umbenennung der Kennung erfasst Konfiguration und Hardwaremapping und
+  steht noch aus.
 - keine realen Hardwareparameter vorhanden — Entwicklung läuft simuliert
 - Übersteuerungsdauer und Bindung an den Moduswechsel im Detail (vor M6)

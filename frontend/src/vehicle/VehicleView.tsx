@@ -24,7 +24,8 @@
  *   Fahrerhaus      x 512…664,  y 100…208
  *   Achsen          hinten x 214 / 288,  vorn x 600
  *   Garage          x 146…248  (hinten unten)
- *   Eingangstür     x 404…456
+ *   Eingangstür     x 266…310  (über der ersten Tandemachse)
+ *   Terrasse        x 169…333  (über dem Tandem, eingefahren unsichtbar)
  */
 
 import "./vehicle.css";
@@ -43,8 +44,7 @@ export type Part = "closed" | "open" | "moving" | "unknown" | "absent";
 export interface VehicleState {
   garage: Part;
   door: Part;
-  step: Part;
-  awning: Part;
+  terrace: Part;
 }
 
 const GROUND = 252;
@@ -82,8 +82,10 @@ export function VehicleView({ state }: { state: VehicleState }) {
       <g transform="translate(200 0)">
       <rect x="90" y={GROUND} width="600" height="1" fill="url(#kv-ground)" />
 
-      {/* Markise liegt hinter dem Aufbau, damit die Kassette bündig sitzt */}
-      <Awning state={state.awning} />
+      {/* Markisenkassette. Sie ist am Fahrzeug verschraubt und deshalb Teil
+          des Aufbaus, kein Zustand. Das ausgefahrene Tuch wird auf Wunsch des
+          Fahrzeughalters nicht dargestellt — in beiden Ansichten gleich. */}
+      <rect x="140" y="46" width="240" height="10" rx="4" className="v-panel" />
 
       {/* ── Aufbau ─────────────────────────────────────────────────────── */}
       <g>
@@ -93,17 +95,13 @@ export function VehicleView({ state }: { state: VehicleState }) {
           stroke="var(--border-strong)"
           strokeWidth="1.5"
         />
-        {/* Fenster des Wohnbereichs, gleichmäßig geteilt */}
-        {[172, 262, 336].map((x, i) => (
-          <rect
-            key={x}
-            x={x}
-            y="82"
-            width={i === 0 ? 70 : 58}
-            height="46"
-            rx="4"
-            className="v-window"
-          />
+        {/* Fenster der Einstiegsseite: zwei, eines vor und eines hinter der
+            Tür. Dazwischen liegt die geschlossene Fläche über der Terrasse. */}
+        {[
+          [160, 64],
+          [380, 70],
+        ].map(([x, w]) => (
+          <rect key={x} x={x} y="82" width={w} height="46" rx="4" className="v-window" />
         ))}
         {/* Trennfuge zwischen Wohn- und Garagenbereich */}
         <path d="M262 136 H512" className="v-seam" />
@@ -126,7 +124,7 @@ export function VehicleView({ state }: { state: VehicleState }) {
 
       <Garage state={state.garage} />
       <Door state={state.door} />
-      <Step state={state.step} />
+      <Terrace state={state.terrace} />
 
       {/* ── Räder ──────────────────────────────────────────────────────── */}
       <g>
@@ -178,59 +176,69 @@ function Door({ state }: { state: Part }) {
 
   return (
     <g className={`v-part v-part--${state}`}>
-      <rect x="404" y="118" width="52" height="90" rx="3" className="v-cavity" />
+      {/* Die Tür steht über der ersten Tandemachse (AXLES[1] = 288). */}
+      <rect x="266" y="118" width="44" height="90" rx="3" className="v-cavity" />
       <g
         className="v-animated"
-        style={{ transform: `scaleX(${swing})`, transformOrigin: "404px 0" }}
+        style={{ transform: `scaleX(${swing})`, transformOrigin: "266px 0" }}
       >
-        <rect x="404" y="118" width="52" height="90" rx="3" className="v-panel" />
-        <circle cx="446" cy="166" r="2.5" className="v-detail" />
+        <rect x="266" y="118" width="44" height="90" rx="3" className="v-panel" />
+        <circle cx="302" cy="166" r="2.5" className="v-detail" />
       </g>
     </g>
   );
 }
 
-function Step({ state }: { state: Part }) {
+/**
+ * Die ausfahrbare Terrasse über dem Tandem.
+ *
+ * Sie ist der einzige Teil, der eingefahren **gar nichts** hinterlässt — die
+ * Fotos zeigen dann eine glatte Flanke und frei stehende Räder. Bei
+ * unbekannter Stellung erscheint deshalb die Außenschürze gestrichelt an der
+ * Ruhelage, also bündig in der Flanke. Ein gestricheltes Nichts wäre vom
+ * eingefahrenen Nichts nicht zu unterscheiden (Kapitel 18 §106).
+ */
+function Terrace({ state }: { state: Part }) {
   if (state === "absent") return null;
 
-  const out = state === "open" ? 1 : state === "moving" ? 0.5 : 0;
+  // Der Schlitz über dem Tandem, aus dem sie kommt — von vor der hinteren bis
+  // hinter die vordere Tandemachse (AXLES[0] = 214, AXLES[1] = 288).
+  const x = 169;
+  const w = 164;
 
-  return (
-    <g className={`v-part v-part--${state}`}>
-      <g
-        className="v-animated"
-        style={{
-          transform: `translate(${out * 22}px, ${out * 14}px)`,
-          opacity: out === 0 ? 0.4 : 1,
-        }}
-      >
-        <rect x="408" y="212" width="46" height="7" rx="2" className="v-panel" />
-        <rect x="414" y="226" width="34" height="6" rx="2" className="v-panel" />
+  if (state === "unknown") {
+    return (
+      <g className="v-part v-part--unknown">
+        <rect x={x} y="204" width={w} height="26" rx="3" className="v-panel" />
       </g>
-    </g>
-  );
-}
+    );
+  }
 
-function Awning({ state }: { state: Part }) {
-  if (state === "absent") return null;
+  if (state === "closed") return null;
 
-  const extend = state === "open" ? 1 : state === "moving" ? 0.5 : 0;
-  const reach = 132 * extend;
-  const drop = 30 * extend;
+  const out = state === "open" ? 1 : 0.5;
+  const drop = out * 12;
 
   return (
     <g className={`v-part v-part--${state}`}>
-      {/* Kassette sitzt bündig auf der Aufbaukante */}
-      <rect x="140" y="46" width="240" height="10" rx="4" className="v-panel" />
-      {extend > 0 && (
-        <g className="v-animated">
-          <path
-            d={`M144 56 L${144 - reach} ${56 + drop} L${144 - reach} ${64 + drop} L144 64 Z`}
-            className="v-fabric"
+      <g className="v-animated">
+        {/* Belag. Die Seitenansicht kann das Ausfahren zum Betrachter hin
+            nicht zeigen — es wird als Absetzen nach unten angedeutet. */}
+        <rect x={x} y={204 + drop} width={w} height="8" rx="2" className="v-panel" />
+        {/* Treppe, nach vorn abfallend. Kein Handlauf. */}
+        {[0, 1, 2, 3].map((i) => (
+          <rect
+            key={i}
+            x={x + w + i * 11}
+            y={212 + drop + (i + 1) * 8}
+            width="11"
+            height="4"
+            rx="1"
+            className="v-panel"
           />
-          <path d={`M${144 - reach} ${60 + drop} V196`} className="v-support" />
-        </g>
-      )}
+        ))}
+      </g>
     </g>
   );
 }
+

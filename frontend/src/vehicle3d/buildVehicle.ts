@@ -18,8 +18,11 @@
  *   absent                   → keine Hardwarezuordnung. Das Teil wird gar
  *                              nicht erzeugt (Kapitel 18 §101).
  *
- * Die Markisenkassette gehört zum Aufbau und ist immer da — sie ist am
- * Fahrzeug verschraubt. Nur das ausgefahrene Tuch ist ein Zustand.
+ * **Die Markise wird nicht dargestellt** — so vom Fahrzeughalter entschieden
+ * (2026-08-12). Die Kassette bleibt, denn sie ist am Fahrzeug verschraubt und
+ * gehört zur Silhouette; nur das ausgefahrene Tuch entfällt. Die Markise
+ * bleibt dabei bedienbar, sie wird lediglich nicht gezeigt — und zwar in
+ * **beiden** Ansichten, damit SVG und 3D dasselbe Fahrzeug zeigen (ADR 0008).
  */
 
 import {
@@ -27,7 +30,6 @@ import {
   BufferGeometry,
   CanvasTexture,
   CylinderGeometry,
-  DoubleSide,
   ExtrudeGeometry,
   Group,
   Mesh,
@@ -44,8 +46,7 @@ import type { Part } from "../vehicle/VehicleView";
 export interface VehicleState {
   garage: Part;
   door: Part;
-  step: Part;
-  awning: Part;
+  terrace: Part;
 }
 
 export interface VehicleModel {
@@ -83,12 +84,10 @@ const MATERIALS = {
   rim: new MeshStandardMaterial({ color: 0x2b3238, roughness: 0.45, metalness: 0.65 }),
   solar: new MeshStandardMaterial({ color: 0x0d1620, roughness: 0.22, metalness: 0.35 }),
   lamp: new MeshStandardMaterial({ color: 0x5a1418, roughness: 0.35, emissive: 0x220608 }),
-  fabric: new MeshStandardMaterial({
-    color: 0xdfe4e8,
-    roughness: 0.85,
-    metalness: 0,
-    side: DoubleSide,
-  }),
+  /** Der Holzbelag der Terrasse — verwittertes Graubraun, matt. */
+  wood: new MeshStandardMaterial({ color: 0x8a7f6d, roughness: 0.82, metalness: 0 }),
+  /** Die Treppenstufen unter der Terrasse: helles Leichtmetall. */
+  alu: new MeshStandardMaterial({ color: 0x9aa3ab, roughness: 0.4, metalness: 0.6 }),
 };
 
 /**
@@ -461,6 +460,14 @@ interface Movable {
   current: number;
   target: number;
   unknown: boolean;
+  /**
+   * Für Teile, denen der Werkstoffwechsel allein nicht genügt.
+   *
+   * Nur die Terrasse braucht das: Sie ist in der Ruhelage unsichtbar, und ein
+   * durchscheinendes Nichts wäre von einem eingefahrenen Nichts nicht zu
+   * unterscheiden. Siehe `buildTerrace`.
+   */
+  onUnknown?(unknown: boolean): void;
 }
 
 function makeMovable(object: Group, apply: (t: number) => void): Movable {
@@ -555,58 +562,123 @@ function buildEntryDoor(): Movable {
   });
 }
 
-function buildStep(): Movable {
-  const { step, width } = V;
+/**
+ * Die ausfahrbare Terrasse über dem Tandem.
+ *
+ * **Ausgefahren ein Bauteil, eingefahren nichts.** Anders als jedes andere
+ * bewegliche Teil verschwindet die Terrasse vollständig — die Fotos zeigen
+ * eingefahren eine glatte Flanke und frei stehende Tandemräder. Der Wagen
+ * (`carriage`) fährt deshalb nicht nur heraus, er wird auch unsichtbar
+ * geschaltet, sobald er drin ist. Sonst hinge die Schürze im eingefahrenen
+ * Zustand sichtbar unter dem Aufbau über den Rädern.
+ *
+ * **Daraus folgt eine Feinheit bei „Stellung unbekannt".** Die Regel aus
+ * ADR 0008 lautet: das Teil an der Ruhelage zeigen, durchscheinend. Würde man
+ * dafür einfach den eingefahrenen Wagen durchscheinend schalten, käme ein
+ * durchscheinendes Nichts heraus — vom eingefahrenen Nichts nicht zu
+ * unterscheiden, und der Betrachter läse daraus „eingefahren". Genau das
+ * verbietet §106.
+ *
+ * Deshalb der `ghost`: dieselbe Silhouette wie die Außenschürze, aber bündig
+ * in der Flanke statt ausgefahren, und **nur bei unbekannter Stellung**
+ * sichtbar. Das ist die Regel wörtlich genommen — das Teil an der Ruhelage,
+ * durchscheinend — und zugleich von beiden gemeldeten Stellungen
+ * unterscheidbar.
+ *
+ * Wie sich das Ausfahren mechanisch abspielt, ist nicht bekannt. Die
+ * Zwischenstellung ist deshalb eine gerade Bewegung nach außen und **keine
+ * Behauptung über die Kinematik**; belegt sind nur die beiden Endlagen.
+ */
+function buildTerrace(): Movable {
+  const { terrace, axles, width } = V;
   const g = new Group();
+  const carriage = new Group();
+  g.add(carriage);
 
-  const tread = panel(step.width, 0.05, step.depth, MATERIALS.trim);
-  tread.position.set(step.x + step.width / 2, step.height, width / 2 - step.depth / 2);
-  g.add(tread);
+  const z0 = width / 2;
+  const R = terrace.archRadius;
 
-  const start = tread.position.z;
-  return makeMovable(g, (t) => {
-    tread.position.z = start + t * (step.depth + 0.16);
-    tread.position.y = step.height - t * 0.16;
+  // Außenschürze mit den beiden Radbögen. Wie das Staukastenband ein
+  // Seitenprofil in der XY-Ebene, nur dünn gezogen: Was die Fotos zeigen,
+  // ist genau diese Silhouette.
+  const s = new Shape();
+  s.moveTo(terrace.from, terrace.deck);
+  s.lineTo(terrace.from, terrace.apron);
+  for (const axle of [axles.rear1, axles.rear2]) {
+    s.lineTo(axle - R, terrace.apron);
+    s.lineTo(axle - R, terrace.archSpringLine);
+    s.absarc(axle, terrace.archSpringLine, R, Math.PI, 0, true);
+    s.lineTo(axle + R, terrace.apron);
+  }
+  s.lineTo(terrace.to, terrace.apron);
+  s.lineTo(terrace.to, terrace.deck);
+  s.closePath();
+
+  const apronGeometry = extrude(s, 0.05, 0.012);
+  const apron = new Mesh(apronGeometry, MATERIALS.paint);
+  apron.position.z = z0 + terrace.depth;
+  carriage.add(apron);
+
+  // Der Holzbelag. Er liegt bündig auf der Schürzenkante über dem Tandem und
+  // reicht von dort bis an die Außenschürze.
+  const deck = panel(terrace.to - terrace.from, 0.06, terrace.depth, MATERIALS.wood);
+  deck.position.set(
+    (terrace.from + terrace.to) / 2,
+    terrace.deck - 0.03,
+    z0 + terrace.depth / 2,
+  );
+  carriage.add(deck);
+
+  // Die Treppe kommt unter dem Belag hervor und fällt nach vorn ab.
+  // Kein Handlauf — ausdrücklich bestätigt.
+  const { count, width: treadWidth, going } = terrace.stairs;
+  const rise = terrace.deck / (count + 1);
+  const stairZ = z0 + terrace.depth - treadWidth / 2 - 0.08;
+  for (let i = 1; i <= count; i += 1) {
+    const tread = panel(going, 0.04, treadWidth, MATERIALS.alu);
+    tread.position.set(terrace.from - (i - 0.5) * going, terrace.deck - i * rise, stairZ);
+    carriage.add(tread);
+  }
+  // Die beiden Wangen. Sie tragen die Stufen und sind auf den Fotos deutlich
+  // zu sehen — ein Handlauf ist das nicht, den hat die Treppe ausdrücklich
+  // nicht. Ohne sie schweben die Stufen frei in der Luft.
+  const run = count * going;
+  const fall = count * rise;
+  for (const side of [-1, 1]) {
+    const stringer = panel(Math.hypot(run, fall) + 0.12, 0.07, 0.04, MATERIALS.alu);
+    stringer.position.set(
+      terrace.from - run / 2,
+      terrace.deck - fall / 2 - 0.05,
+      stairZ + side * (treadWidth / 2),
+    );
+    stringer.rotation.z = Math.atan2(fall, run);
+    carriage.add(stringer);
+  }
+
+  /**
+   * Die Terrasse an der Ruhelage, nur bei unbekannter Stellung sichtbar.
+   *
+   * Dieselbe Silhouette wie die Außenschürze, aber bündig in der Flanke statt
+   * ausgefahren — genau das, was ADR 0008 für „unbekannt" vorsieht: das Teil
+   * an der Ruhelage, durchscheinend und schwach leuchtend. Belag und Treppe
+   * bleiben weg, die stäken sonst durch den Aufbau.
+   */
+  const ghost = new Mesh(apronGeometry, MATERIALS.paint);
+  ghost.position.z = z0;
+  ghost.visible = false;
+  g.add(ghost);
+
+  let unknown = false;
+  const movable = makeMovable(g, (t) => {
+    carriage.position.z = (t - 1) * terrace.depth;
+    carriage.visible = !unknown && t > 0.02;
+    ghost.visible = unknown;
   });
-}
-
-function buildAwning(): Movable {
-  const { awning } = V.roof;
-  const g = new Group();
-  const len = awning.to - awning.from;
-  const reachMax = 2.9;
-
-  const cloth = new Mesh(new PlaneGeometry(len, 1, 1, 1), MATERIALS.fabric);
-  cloth.rotation.x = -Math.PI / 2;
-  g.add(cloth);
-
-  const legs = [-1, 1].map(() => {
-    const leg = panel(0.05, 1, 0.05, MATERIALS.rim);
-    g.add(leg);
-    return leg;
-  });
-
-  return makeMovable(g, (t) => {
-    const reach = Math.max(0.001, t * reachMax);
-    const drop = t * 0.42;
-    const z0 = V.width / 2;
-
-    cloth.scale.set(1, reach, 1);
-    cloth.position.set((awning.from + awning.to) / 2, V.height - 0.02 - drop / 2, z0 + reach / 2);
-    cloth.rotation.x = -Math.PI / 2 + Math.atan2(drop, reach);
-    cloth.visible = t > 0.001;
-
-    const footY = V.height - drop;
-    legs.forEach((leg, i) => {
-      leg.visible = t > 0.001;
-      leg.scale.y = footY;
-      leg.position.set(
-        i === 0 ? awning.from + 0.2 : awning.to - 0.2,
-        footY / 2,
-        z0 + reach,
-      );
-    });
-  });
+  movable.onUnknown = (value) => {
+    unknown = value;
+    movable.apply(movable.current);
+  };
+  return movable;
 }
 
 /* ── Boden ─────────────────────────────────────────────────────────────── */
@@ -667,8 +739,7 @@ export function buildVehicle(): VehicleModel {
   const builders: Record<keyof VehicleState, () => Movable> = {
     garage: buildTailgate,
     door: buildEntryDoor,
-    step: buildStep,
-    awning: buildAwning,
+    terrace: buildTerrace,
   };
 
   const parts = new Map<keyof VehicleState, Movable>();
@@ -714,6 +785,7 @@ export function buildVehicle(): VehicleModel {
 
         // Bei unbekannter Stellung wird nichts bewegt und nichts behauptet.
         part.unknown = value === "unknown";
+        part.onUnknown?.(part.unknown);
         part.target = value === "open" ? 1 : value === "moving" ? 0.45 : 0;
 
         for (const mesh of part.meshes) {

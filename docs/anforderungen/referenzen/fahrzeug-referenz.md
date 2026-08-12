@@ -30,6 +30,22 @@ Sechs Fotos des realen Fahrzeugs (2026-08-09):
 > Lehre für spätere Nachbildungen: **Fotos ohne Bezugspunkt in der Umgebung
 > taugen nicht zur Farbbestimmung.**
 
+**Zweiter Satz (2026-08-12), rund fünfzehn Aufnahmen.** Front freistehend,
+beide Seiten ohne Gegenlicht, Heck mit **geschlossener** Klappe, Dach von
+oben, Reifenflanke im Klartext, und die **Terrasse in beiden Stellungen** —
+ausgefahren mit Treppe und eingefahren.
+
+> **Was dieser Satz korrigiert hat, war kein Detail.** Aus den ersten Fotos
+> war ein Bauteil als „Einstiegsstufe" gelesen worden, 0,70 × 0,34 m unter
+> einer Tür im vorderen Drittel. In Wirklichkeit ist es eine **Terrasse über
+> dem Tandem**, fast drei Meter lang, mit eigener Treppe — und die Tür steht
+> darüber, nicht zwei Meter davor.
+>
+> **Lehre:** Zwei Fotos derselben Seite, beide im Gegenlicht, ergeben keine
+> zweite Meinung. Erst eine Aufnahme aus anderer Richtung und bei anderem
+> Licht prüft die erste. Bei der Farbe war das schon einmal so, bei der
+> Heckklappe ein zweites Mal, hier das dritte Mal.
+
 ## Fahrzeug
 
 **MAN TGX, Fahrerhaus weiß, 6×2-Fahrgestell mit Kofferaufbau.**
@@ -49,8 +65,9 @@ Sechs Fotos des realen Fahrzeugs (2026-08-09):
 | Funktion | Beobachtung |
 | --- | --- |
 | **Garage** | **Ein eigener Raum** im überhängenden Heckteil, ganz unten — nicht der hintere Teil des Wohnbereichs (angegeben 2026-08-11). Boden bündig mit der Unterkante des Aufbaus, Raumhöhe **ca. 1,65 m**. Öffnung über **eine oben angeschlagene Heckklappe**, die nach oben hebt und geöffnet waagerecht wie ein Vordach absteht. Nahezu volle Breite der Heckwand, aber nur etwa deren **halbe Höhe**. **Kein Rolltor, keine Flügeltüren.** |
-| **Eingangstür** | auf der **rechten Seite** (Einstiegsseite), im vorderen Drittel, nahezu volle Aufbauhöhe, mit Fenster im oberen Bereich |
-| **Markise** | Kassette auf der **rechten Dachkante**, dunkel, über nahezu die gesamte Aufbaulänge |
+| **Eingangstür** | auf der **rechten Seite** (Einstiegsseite), **über der ersten Tandemachse**, nahezu volle Aufbauhöhe, mit Fenster im oberen Bereich |
+| **Terrasse** | rechte Seite, **über dem Tandem**. Fährt seitlich aus der Flanke: Holzbelag, Außenschürze mit zwei Radbögen, darunter eine Treppe mit fünf Stufen und **ohne Handlauf**. **Terrasse und Treppe sind ein Zustand**, sie fahren gemeinsam. **Eingefahren ist nichts davon zu sehen** — glatte Flanke, frei stehende Räder. |
+| **Markise** | Kassette auf der **rechten Dachkante**, dunkel, über nahezu die gesamte Aufbaulänge. Das ausgefahrene Tuch wird auf Wunsch des Fahrzeughalters **nicht dargestellt**; die Kassette bleibt, sie ist verschraubt. |
 | **Solar** | Dach vollflächig belegt, **zwei Reihen zu je fünf Modulen** |
 | **Fenster** | links vier (drei breite, ein kleines quadratisch); rechts zwei breite plus das Türfenster. Kräftige dunkle Rahmen mit deutlich gerundeten Ecken, im **mittleren Drittel** der Aufbauhöhe — nicht direkt unter dem Dach. |
 | Heckleuchten | mehrere runde Einzelleuchten in den oberen und unteren Heckecken |

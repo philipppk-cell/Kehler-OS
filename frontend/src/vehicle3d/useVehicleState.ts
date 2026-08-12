@@ -20,15 +20,16 @@ import type { EntityView } from "../realtime/types";
 export interface VehicleParts {
   garage: Part;
   door: Part;
-  step: Part;
-  awning: Part;
+  terrace: Part;
 }
 
 export function useVehicleState(): VehicleParts {
   const garage = useEntity("vehicle.garage.door");
   const door = useEntity("vehicle.door.main");
-  const step = useEntity("vehicle.step.entry");
-  const awning = useEntity("vehicle.awning.main");
+  // Die Entity heißt weiterhin `step`, weil sie einer Hardwarezuordnung
+  // entspricht und eine Umbenennung Konfiguration und Mapping erfasst. Das
+  // Bauteil ist eine Terrasse; die Anzeige nennt es auch so.
+  const terrace = useEntity("vehicle.step.entry");
   const { connection } = useAppState();
 
   // Ohne Verbindung darf die Zeichnung keine Stellung mehr zeigen. Ein
@@ -39,8 +40,7 @@ export function useVehicleState(): VehicleParts {
   return {
     garage: toPart(garage, live),
     door: toPart(door, live),
-    step: toPart(step, live),
-    awning: toPart(awning, live),
+    terrace: toPart(terrace, live),
   };
 }
 

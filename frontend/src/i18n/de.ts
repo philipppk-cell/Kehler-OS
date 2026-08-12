@@ -298,7 +298,11 @@ const de: Record<string, string> = {
 
   // Fahrzeug
   "vehicle.garage_door": "Garage",
-  "vehicle.step": "Stufen",
+  // Das Bauteil ist eine ausfahrbare Terrasse über dem Tandem, keine Stufe.
+  // Der Schlüssel heißt weiterhin `step`, weil er auf die Entity
+  // `vehicle.step.entry` zeigt und deren Umbenennung Konfiguration und
+  // Hardwaremapping erfasst — die Anzeige nennt es richtig.
+  "vehicle.step": "Terrasse",
   "vehicle.awning": "Markise",
   "vehicle.door_main": "Eingangstür",
   "vehicle.doors": "Türen",

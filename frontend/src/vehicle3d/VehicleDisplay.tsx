@@ -63,8 +63,7 @@ function describeForScreenReader(state: VehicleState): string {
   const names: [keyof VehicleState, string][] = [
     ["garage", t("vehicle.garage_door")],
     ["door", t("vehicle.door_main")],
-    ["step", t("vehicle.step")],
-    ["awning", t("vehicle.awning")],
+    ["terrace", t("vehicle.step")],
   ];
 
   const parts = names

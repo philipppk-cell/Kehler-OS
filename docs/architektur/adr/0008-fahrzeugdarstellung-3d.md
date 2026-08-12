@@ -93,15 +93,42 @@ Ausdrucksform:
 | **unbekannt** | gestrichelt an der Ruhelage | durchscheinend und schwach leuchtend an der Ruhelage, **ohne Bewegung** |
 | **nicht konfiguriert** | nicht gezeichnet | nicht erzeugt |
 
+Ein Sonderfall steht darunter: die Terrasse, die eingefahren vollständig
+verschwindet.
+
 Gestrichelte Linien gibt es in 3D nicht. Das räumliche Gegenstück ist ein
 Bauteil, das sichtbar anders aussieht als jedes gemeldete — durchscheinend
 statt lackiert. Entscheidend ist in beiden Fällen dasselbe: **Bei unbekannter
 Stellung wird nichts bewegt und keine Position behauptet** (§106).
 
 Die Markisenkassette ist Teil des Aufbaus und immer da; sie ist am Fahrzeug
-verschraubt. Nur das ausgefahrene Tuch ist ein Zustand. Diese Trennung ist
-kein Detail: Sie verhindert, dass eine fehlende Hardwarezuordnung ein real
-vorhandenes Bauteil verschwinden lässt.
+verschraubt. Diese Trennung ist kein Detail: Sie verhindert, dass eine
+fehlende Hardwarezuordnung ein real vorhandenes Bauteil verschwinden lässt.
+
+**Das Markisentuch wird nicht dargestellt** — so vom Fahrzeughalter
+entschieden (2026-08-12). Die Markise bleibt bedienbar und behält ihre
+Schnellzugriffe; sie wird lediglich nicht gezeichnet, und zwar in **beiden**
+Ansichten gleich. Eine Funktion nicht zu zeigen ist etwas anderes, als sie
+falsch zu zeigen: Nichts zu zeichnen behauptet nichts.
+
+### Ein Teil, das eingefahren verschwindet
+
+Die Terrasse über dem Tandem ist der Sonderfall, den die Tabelle oben nicht
+vorhergesehen hatte. Sie fährt seitlich aus der Flanke heraus — Holzbelag,
+Außenschürze mit zwei Radbögen und eine Treppe, alles als **ein** Zustand.
+Eingefahren ist von ihr nichts zu sehen: glatte Flanke, frei stehende Räder.
+
+Damit greift die Regel „durchscheinend an der Ruhelage" nicht mehr von
+selbst. Ein durchscheinendes Nichts wäre von einem eingefahrenen Nichts nicht
+zu unterscheiden, und der Betrachter läse daraus „eingefahren" — genau die
+Behauptung, die §106 verbietet. Deshalb wird bei unbekannter Stellung die
+**Außenschürze bündig in der Flanke** gezeigt, durchscheinend und schwach
+leuchtend. Das ist die Regel wörtlich genommen und zugleich von beiden
+gemeldeten Stellungen unterscheidbar.
+
+Wie das Ausfahren mechanisch abläuft, ist nicht bekannt. Die Zwischenstellung
+ist deshalb eine gerade Bewegung nach außen und **keine Behauptung über die
+Kinematik**; belegt sind allein die beiden Endlagen.
 
 ## Bedienung
 

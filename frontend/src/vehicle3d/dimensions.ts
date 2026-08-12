@@ -40,6 +40,27 @@
  */
 const BODY_BOTTOM = 0.72;
 
+/**
+ * Unterkante des Aufbaus **über dem Tandem** — dort ist die Schürze
+ * hochgezogen, damit die Räder nicht dahinter verschwinden.
+ *
+ * Steht ebenfalls außerhalb der Tabelle, weil die Terrasse genau aus dieser
+ * Kante herausfährt: Ihr Belag liegt bündig darauf. Zwei getrennte Zahlen
+ * würden bedeuten, dass die Terrasse eines Tages neben ihrem eigenen Schlitz
+ * heraussteht.
+ */
+const SKIRT_ARCH = 1.16;
+
+/**
+ * Achslagen ab Fahrzeugfront.
+ *
+ * Vorgezogen, weil zwei Bauteile daran hängen statt an eigenen Zahlen: Die
+ * **Eingangstür steht über der ersten Tandemachse** und die **Terrasse über
+ * dem Tandem**. Beides ist auf den Fotos so zu sehen, und beides soll
+ * mitwandern, falls sich eine Achslage noch einmal ändert.
+ */
+const AXLES = { front: 1.42, rear1: 7.3, rear2: 8.5 };
+
 export const V = {
   /* ── Hülle ──────────────────────────────────────────────────────────── */
   /** ANGEGEBEN. */
@@ -77,7 +98,7 @@ export const V = {
    *  Der Vorderüberhang bleibt als einziger Längswert gerechnet statt
    *  gemessen. Er trägt damit jeden Fehler der übrigen vier — fällt aber mit
    *  1,42 m genau dort hin, wo ein MAN TGX ihn serienmäßig hat. */
-  axles: { front: 1.42, rear1: 7.3, rear2: 8.5 },
+  axles: AXLES,
   /** Abstand der Reifenmitten von der Fahrzeugmitte. Hinten zwillingsbereift.
    *  GESCHÄTZT — die Spurweiten sind nicht genannt. Sie sind so gewählt, dass
    *  die Zwillinge mit 315 mm Reifenbreite innerhalb der 2,53 m Gesamtbreite
@@ -128,23 +149,34 @@ export const V = {
     /** Unterkante zwischen den Rädern — dort sitzen die tiefen Staukästen. */
     bottom: BODY_BOTTOM,
     /** Unterkante über dem Tandem. Muss über der Reifenoberkante liegen,
-     *  sonst verschwinden die Räder hinter der Schürze. */
-    arch: 1.16,
+     *  sonst verschwinden die Räder hinter der Schürze. Zugleich der
+     *  Schlitz, aus dem die Terrasse herausfährt — siehe `SKIRT_ARCH`. */
+    arch: SKIRT_ARCH,
   },
 
   /* ── Dach ───────────────────────────────────────────────────────────── */
   roof: {
     /** Solarfeld: fünf Module längs, zwei quer. */
     solar: { from: 3.25, to: 11.0, halfWidth: 1.14, cols: 5, rows: 2 },
-    /** Markisenkassette auf der rechten Dachkante. */
+    /** Markisen**kassette** auf der rechten Dachkante.
+     *
+     *  Nur die Kassette. Das ausgefahrene Tuch wird auf Wunsch des
+     *  Fahrzeughalters nicht dargestellt (2026-08-12). Die Kassette bleibt,
+     *  weil sie verschraubt ist und zur Silhouette gehört — auf den
+     *  Drohnenaufnahmen ein dunkler Balken über die ganze Dachlänge. */
     awning: { from: 3.4, to: 10.9, depth: 0.22, drop: 0.2 },
   },
 
   /* ── Öffnungen ──────────────────────────────────────────────────────── */
 
   /** Eingangstür, rechte Seite. Die Unterkante ist die Schwelle und liegt
-   *  damit auf dem Wohnboden (`box.floor` + 0,03 m Rahmen). */
-  door: { x: 4.5, width: 0.85, bottom: 1.53, top: 3.72 },
+   *  damit auf dem Wohnboden (`box.floor` + 0,03 m Rahmen).
+   *
+   *  **Die Tür steht über der ersten Tandemachse** (Fotos vom 2026-08-12).
+   *  Sie saß zuvor bei 4,50 m, also im vorderen Drittel — das war aus den
+   *  ersten Gegenlichtaufnahmen der rechten Seite falsch abgelesen. `x` ist
+   *  die Anschlagkante, deshalb die halbe Blattbreite davor. */
+  door: { x: AXLES.rear1 - 0.43, width: 0.85, bottom: 1.53, top: 3.72 },
 
   /** Heckklappe, oben angeschlagen. `bottom` ist der Garagenboden.
    *
@@ -164,11 +196,47 @@ export const V = {
    *  `halfWidth` bleibt GESCHÄTZT — die Breite ist nicht genannt. */
   garage: { bottom: BODY_BOTTOM, top: 2.37, halfWidth: 1.08 },
 
-  /** Einstiegsstufe unter der Tür. GESCHÄTZT — sie hält ihren Abstand von
-   *  0,46 m zur Türschwelle. Das Modell zeigt eine Stufe; real sind bei einer
-   *  Schwelle auf 1,53 m mehrere nötig. Die Stufe ist hier ein bewegliches
-   *  Teil mit Zustand, keine Treppenkonstruktion. */
-  step: { x: 4.6, width: 0.7, depth: 0.34, height: 1.07 },
+  /**
+   * Die ausfahrbare **Terrasse** über dem Tandem, rechte Seite.
+   *
+   * Hier stand zuvor eine `step`-Größe: eine einzelne Einstiegsstufe von
+   * 0,70 × 0,34 m unter der Tür. Das war falsch verstanden. Was das Fahrzeug
+   * wirklich hat, ist eine Plattform mit Holzbelag über beiden Tandemrädern,
+   * mit einer Außenschürze, in die zwei Radbögen geschnitten sind, und einer
+   * Treppe, die darunter hervorkommt.
+   *
+   * **Ausgefahren ist es ein Teil, eingefahren ist nichts zu sehen.** Der
+   * Fahrzeughalter hat beides fotografiert: Eingefahren ist die Flanke glatt
+   * und die Tandemräder stehen frei. Die Schürze mit den Radbögen ist also
+   * nicht etwa eine feste Verkleidung, sondern die Außenhaut der Terrasse.
+   *
+   * **Terrasse und Treppe sind ein Zustand**, nicht zwei — sie fahren
+   * gemeinsam. Die Treppe hat **keinen Handlauf**.
+   */
+  terrace: {
+    /** Längsausdehnung, an den Tandemachsen verankert: knapp 0,3 m Schürze
+     *  über die Radbögen hinaus, wie es die Fotos zeigen. */
+    from: AXLES.rear1 - 0.85,
+    to: AXLES.rear2 + 0.85,
+    /** Tiefe, um die Belag und Schürze aus der Flanke herausfahren. */
+    depth: 0.85,
+    /** Oberkante des Belags — bündig mit der Schürzenkante über dem Tandem,
+     *  aus der die Terrasse herauskommt. */
+    deck: SKIRT_ARCH,
+    /** Unterkante der Außenschürze, zwischen und neben den Radbögen. */
+    apron: 0.2,
+    /** Radbögen in der Schürze. Der Halbmesser muss über dem Reifen
+     *  (0,538 m) liegen und darf zugleich den schmalen Steg zwischen den
+     *  beiden Bögen nicht auffressen — bei 1,20 m Achsabstand bleiben davon
+     *  ohnehin nur 8 cm. `springLine` ist die Kämpferhöhe, ab der der Bogen
+     *  rund wird; darüber bleibt bis zum Belag nur ein schmaler Rand, und
+     *  genau so sieht es auf den Fotos aus. */
+    archRadius: 0.56,
+    archSpringLine: 0.56,
+    /** Treppe unter dem Belag, fällt nach vorn ab. GESCHÄTZT — auf den Fotos
+     *  sind fünf Stufen zu zählen, die Maße sind daraus abgeleitet. */
+    stairs: { count: 5, width: 0.62, going: 0.26 },
+  },
 
   /** Fenster je Seite: [x, Unterkante, Breite, Höhe].
    *
@@ -182,9 +250,13 @@ export const V = {
       [7.15, 2.68, 0.52, 0.52],
       [8.5, 2.58, 1.55, 0.58],
     ],
+    /** Rechts nach der freistehenden Aufnahme vom 2026-08-12 nachgezogen:
+     *  ein breites Fenster im vorderen Drittel, ein zweites hinter der Tür.
+     *  Zwischen Tür und Heckfenster bleibt eine große geschlossene Fläche —
+     *  die Tür sitzt jetzt bei 6,87 m und nicht mehr bei 4,50 m. */
     right: [
-      [3.25, 2.62, 1.25, 0.52],
-      [9.2, 2.62, 1.15, 0.52],
+      [3.8, 2.6, 1.6, 0.55],
+      [9.25, 2.6, 1.35, 0.55],
     ],
   },
 } as const;

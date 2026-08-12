@@ -362,7 +362,7 @@ export function VehicleScene({
 
   useEffect(() => {
     apiRef.current?.setState(state);
-  }, [state.garage, state.door, state.step, state.awning]);
+  }, [state.garage, state.door, state.terrace]);
 
   return (
     <div className="scene">
