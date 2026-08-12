@@ -123,16 +123,27 @@ entities:
   # braucht, ist nicht genannt; 10 s sind großzügig gewählt und werden mit der
   # Anbindung berichtigt.
   #
-  # OFFEN (Punkt C4): Ob die Ventile eine **Stellungsrückmeldung** besitzen.
-  # Ohne sie kann Kehler OS nie bestätigen, dass ein Ventil wirklich zu ist —
-  # es bliebe bei „Unbekannt" und dem angezeigten Wunschzustand. Das ist keine
-  # Frage der Software, sondern der Verdrahtung.
+  # BESTÄTIGT (2026-08-12): Die Ventile haben **keine Stellungsrückmeldung**.
+  # Sie lassen sich ansteuern, aber nicht auslesen.
+  #
+  # Deshalb `feedback: false`, und das ist kein Vermerk, sondern wirksam:
+  #   * Der Command Bus wartet nicht auf eine Bestätigung, die nie kommt.
+  #     Sonst endete jeder Befehl nach 10 s mit „keine Rückmeldung" — die
+  #     falsche Auskunft, denn fehlgeschlagen ist nichts.
+  #   * Der Zustand bleibt dauerhaft „Unbekannt". Das ist kein Mangel der
+  #     Software, sondern die Wahrheit über diese Hardware (Kapitel 18 §38).
+  #   * Sichtbar bleibt der zuletzt gesendete Befehl, als Befehl gekennzeichnet
+  #     und mit Zeitpunkt — nie als Stellung ausgegeben.
+  #
+  # `timeout_ms` bleibt trotzdem stehen: Es begrenzt, wie lange auf die
+  # Annahme durch die SPS gewartet wird, nicht auf eine Stellungsmeldung.
 
   - id: water.valve.grey
     name_key: valve.grey
     type: valve
     area: tech
     risk: HIGH
+    feedback: false
     timeout_ms: 10000
 
   - id: water.valve.black
@@ -140,6 +151,7 @@ entities:
     type: valve
     area: tech
     risk: HIGH
+    feedback: false
     timeout_ms: 10000
 
   # VORLÄUFIG: dass es eine schaltbare Wasserpumpe gibt, ist anzunehmen —

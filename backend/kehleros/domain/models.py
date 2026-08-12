@@ -259,6 +259,17 @@ class Entity:
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt „Nicht konfiguriert“ (Kapitel 18 §101)."""
 
+    feedback: bool = True
+    """Ob die Hardware ihren Zustand zurückmeldet.
+
+    ``False`` heißt: ansteuerbar, aber nicht auslesbar. Der Zustand bleibt
+    dann dauerhaft ``UNKNOWN``, und sichtbar ist ausschließlich der zuletzt
+    gesendete Befehl — als Befehl gekennzeichnet und nie als Messwert.
+
+    Nicht mit ``configured: False`` zu verwechseln. Dort fehlt die Zuordnung;
+    hier ist alles zugeordnet und angeschlossen, es gibt nur nichts zu lesen.
+    """
+
     unverified: bool = False
     """``True`` heißt: Ob die Funktion über die Schnittstelle überhaupt
     verfügbar ist, ist nicht bestätigt.

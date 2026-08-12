@@ -279,6 +279,19 @@ class SimulationAdapter(Adapter):
                 # verstummten Sensor.
                 continue
 
+            if not device.entity.feedback:
+                # Ein Ausgang ohne Rückmeldung meldet nichts — auch nicht in
+                # der Simulation.
+                #
+                # Die Versuchung ist groß, hier den intern bekannten Stand zu
+                # veröffentlichen: Der Simulator *weiß* ja, wie das Ventil
+                # steht. Genau das wäre der Fehler. Die Oberfläche sähe in der
+                # Simulation vollständig aus und im Fahrzeug leer, und der
+                # Unterschied fiele erst am Entsorgungsplatz auf. Eine
+                # Simulation, die mehr kann als die Anlage, prüft nichts
+                # (Kapitel 18 §65).
+                continue
+
             value = self._advance(device, elapsed)
             self._state.apply(device.entity.id, value)
 
@@ -455,10 +468,18 @@ class SimulationAdapter(Adapter):
 
         # Sofort melden, damit der Zwischenzustand nicht bis zum nächsten
         # Zyklus wartet.
-        self._state.apply(
-            device.entity.id,
-            StateValue.valid(device.value, unit=device.entity.unit, source=self.source),
-        )
+        #
+        # Ohne Rückmeldung entfällt das: Das simulierte Gerät führt seine
+        # Stellung intern weiter — es ist ja ein Ventil und steht irgendwo —,
+        # aber nach außen dringt davon nichts. Genau so verhält sich die reale
+        # Anlage, und genau darauf muss die Oberfläche vorbereitet sein.
+        if device.entity.feedback:
+            self._state.apply(
+                device.entity.id,
+                StateValue.valid(
+                    device.value, unit=device.entity.unit, source=self.source
+                ),
+            )
 
     def _start_motion(self, device: _Device, verb: str) -> None:
         if verb == "stop":

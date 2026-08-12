@@ -177,6 +177,110 @@ class TestAblassventil:
         assert Fault.BLOCKED.value in entities["vehicle.garage.door"]["faults"]
 
 
+class TestOhneRueckmeldung:
+    """Ein Aktor, der sich ansteuern, aber nicht auslesen lässt.
+
+    Die Ablassventile sind genau das (Punkt C4, bestätigt 2026-08-12). Ohne
+    eigene Behandlung wäre das System hier auf die schlimmste Art falsch: Es
+    wartete auf eine Bestätigung, die nie kommt, und meldete danach „keine
+    Rückmeldung" — obwohl gar nichts fehlgeschlagen ist.
+    """
+
+    async def test_befehl_wartet_nicht_auf_eine_bestaetigung_die_nie_kommt(
+        self, bus: CommandBus, simulation: SimulationAdapter
+    ):
+        """Der Test, der ohne die Sonderbehandlung fehlschlägt.
+
+        Die Zeitgrenze der Entity liegt bei 500 ms. Wartete der Command Bus,
+        käme die Antwort nach 500 ms und hieße TIMEOUT. Sie kommt sofort und
+        heißt COMPLETED.
+        """
+        result = await submit(bus, "water.valve.black", "open")
+
+        assert result.phase is CommandPhase.COMPLETED
+        assert result.duration_ms is not None
+        assert result.duration_ms < 400, (
+            f"Der Befehl hat {result.duration_ms:.0f} ms gebraucht — "
+            "das sieht nach Warten auf eine Rückmeldung aus"
+        )
+
+    async def test_zustand_bleibt_unbekannt(
+        self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
+    ):
+        """Ein erfolgreicher Befehl macht aus nichts kein Wissen.
+
+        Das ist der Kern: Kehler OS hat das Ventil angesteuert und weiß
+        trotzdem nicht, wo es steht (Kapitel 18 §38).
+        """
+        await simulation.poll()
+        await submit(bus, "water.valve.black", "open")
+        await simulation.poll()
+
+        aktuell = state.require("water.valve.black").state
+        assert aktuell.quality is Quality.UNKNOWN
+        assert aktuell.value is None
+
+    async def test_letzter_befehl_bleibt_sichtbar(
+        self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
+    ):
+        """Und zwar als Wunsch, nicht als Zustand.
+
+        Bei einer Entity mit Rückmeldung wird der Wunschzustand nach dem
+        Befehl aufgeräumt — dort sagt der echte Zustand mehr. Hier gibt es
+        keinen, und der Wunsch ist alles, was bleibt.
+        """
+        await submit(bus, "water.valve.black", "open")
+        gewuenscht = state.require("water.valve.black").requested
+        assert gewuenscht is not None
+        assert gewuenscht.value == "OPEN"
+
+        await submit(bus, "water.valve.black", "close")
+        gewuenscht = state.require("water.valve.black").requested
+        assert gewuenscht is not None
+        assert gewuenscht.value == "CLOSED"
+
+    async def test_mit_rueckmeldung_wird_weiterhin_aufgeraeumt(
+        self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
+    ):
+        """Die Ausnahme darf nicht zur Regel werden.
+
+        Am Ventil mit Rückmeldung muss der Wunschzustand nach dem Befehl
+        wieder verschwinden — sonst stünde überall dauerhaft „befohlen"
+        neben einem längst bestätigten Zustand.
+        """
+        await simulation.poll()
+        await submit(bus, "water.valve.grey", "open")
+        assert state.require("water.valve.grey").requested is None
+        assert state.require("water.valve.grey").state.value == "OPEN"
+
+    async def test_gescheiterter_befehl_hinterlaesst_keinen_wunsch(
+        self, bus: CommandBus, state: StateStore, simulation: SimulationAdapter
+    ):
+        """Was nie hinausging, wird auch nicht angezeigt.
+
+        Sonst stünde nach einem abgelehnten Befehl „Öffnen befohlen" auf dem
+        Bildschirm — für einen Befehl, den die Anlage nie gesehen hat.
+        """
+        simulation.inject("water.valve.black", Fault.SENSOR_ERROR)
+        result = await submit(bus, "water.valve.black", "open")
+
+        assert result.phase is CommandPhase.FAILED
+        assert state.require("water.valve.black").requested is None
+
+    async def test_simulation_meldet_nichts(self, simulation: SimulationAdapter, state):
+        """Die Simulation darf nicht mehr können als die Anlage.
+
+        Der Simulator kennt die Stellung intern — er hat sie ja gesetzt. Sie
+        zu veröffentlichen wäre bequem und würde die Oberfläche in der
+        Simulation vollständig aussehen lassen und im Fahrzeug leer.
+        """
+        for _ in range(3):
+            await simulation.poll()
+        assert state.require("water.valve.black").state.quality is Quality.UNKNOWN
+        # Die Gegenprobe: Mit Rückmeldung wird sehr wohl gemeldet.
+        assert state.require("water.valve.grey").state.quality is Quality.VALID
+
+
 class TestFehlerfaelle:
     async def test_timeout_wenn_hardware_nicht_bestaetigt(
         self, bus: CommandBus, simulation: SimulationAdapter

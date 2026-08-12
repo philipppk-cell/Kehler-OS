@@ -78,6 +78,7 @@ def _build_entity(config: EntityConfig) -> Entity:
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
         unverified=config.unverified,
+        feedback=config.feedback,
         kind=config.type,
         states=tuple(config.states),
         capacity_l=config.capacity_l,

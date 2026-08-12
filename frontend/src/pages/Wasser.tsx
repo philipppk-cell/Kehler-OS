@@ -237,9 +237,22 @@ function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
   }
 
   const verbs = new Set((definition.capabilities ?? []).map((c) => c.verb));
-  const value = online ? textOf(valve) : null;
-  const isOpen = value === "OPEN";
   const busy = pending.has(valveId);
+
+  // Die Ablassventile melden ihre Stellung nicht zurück (Punkt C4). Deshalb
+  // gibt es hier zwei verschiedene Quellen, und sie werden **nicht**
+  // vermischt:
+  //
+  //   value      was die Hardware meldet — bei diesen Ventilen nie etwas
+  //   befohlen   was zuletzt gesendet wurde — das Einzige, was bekannt ist
+  //
+  // Der befohlene Wert wird als Befehl beschriftet und nie als Stellung.
+  // „Offen" zu schreiben, wo nur „Öffnen befohlen" bekannt ist, wäre genau
+  // die Behauptung, die Kapitel 18 §37 verbietet.
+  const value = online ? textOf(valve) : null;
+  const befohlen = online && !definition.feedback ? valve?.requested : null;
+  const angezeigt = value ?? (befohlen?.value as string | undefined) ?? null;
+  const isOpen = angezeigt === "OPEN";
 
   function drive(verb: string) {
     // Ob eine Bestätigung nötig ist, steht in der Capability. Der Loader
@@ -260,8 +273,22 @@ function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
       <span className="valve__label">{t("water.drain")}</span>
 
       <span className="valve__state">
-        {value === null ? (
+        {angezeigt === null ? (
+          /* Weder gemeldet noch befohlen: Solange niemand etwas geschaltet
+             hat, weiß Kehler OS über dieses Ventil nichts — und sagt das. */
           <Status tone="unknown" label={t("state.unknown")} compact />
+        ) : befohlen ? (
+          <>
+            <Status
+              tone={isOpen ? "warn" : "neutral"}
+              label={isOpen ? t("water.valveOpenCommanded") : t("water.valveCloseCommanded")}
+              compact
+            />
+            {/* Der Zeitpunkt gehört dazu. Ohne ihn sieht ein Befehl von
+                gestern aus wie einer von eben — und ausgerechnet beim
+                Ablassen ist „wie lange schon" die eigentliche Frage. */}
+            <span className="valve__since">{seit(befohlen.since)}</span>
+          </>
         ) : (
           <Status
             tone={isOpen ? "warn" : "ok"}
@@ -385,12 +412,20 @@ function SupplyCard() {
  * hängt an offenen Hardwarefragen, nicht an der Software.
  */
 function NoteCard() {
+  // Der Hinweis auf die fehlende Rückmeldung steht nur da, wenn sie
+  // tatsächlich fehlt. Ihn fest einzutragen wäre bequem und würde beim Tag
+  // der Nachrüstung zur Falschaussage — dann stünde dort weiterhin, das
+  // System könne die Stellung nicht kennen, während es sie anzeigt.
+  const grau = useEntity("water.valve.grey");
+  const ohneRueckmeldung = grau?.definition?.feedback === false;
+
   return (
     <Card title={t("water.notesTitle")}>
       <ul className="wasser__notes">
         <li>{t("water.thresholdsSet")}</li>
         <li>{t("water.thresholdMarks")}</li>
         <li>{t("water.valveNote")}</li>
+        {ohneRueckmeldung && <li>{t("water.valveNoFeedback")}</li>}
       </ul>
       <Button variant="quiet" full disabled>
         {t("water.historyLater")}
@@ -402,4 +437,26 @@ function NoteCard() {
 function formatL(litres: number | null): string {
   if (litres === null) return "—";
   return `${Math.round(litres)} L`;
+}
+
+/**
+ * Wie lange ein Befehl her ist.
+ *
+ * Unter einer Minute steht „gerade eben" statt „vor 0 min": Eine Null ist
+ * hier keine Information, sondern eine Rundung, die wie eine Angabe aussieht.
+ *
+ * Ab einer Stunde die Uhrzeit statt der Dauer. „Vor 3 Std" zwingt zum
+ * Kopfrechnen, und wer wissen will, ob er das Ventil vor oder nach dem
+ * Mittagessen geöffnet hat, will die Uhrzeit.
+ */
+function seit(iso: string): string {
+  const zeitpunkt = new Date(iso);
+  const minuten = Math.floor((Date.now() - zeitpunkt.getTime()) / 60000);
+
+  if (!Number.isFinite(minuten) || minuten < 0) return "";
+  if (minuten < 1) return t("time.justNow");
+  if (minuten < 60) return t("time.minutesAgo", undefined, { n: String(minuten) });
+  return t("time.at", undefined, {
+    time: zeitpunkt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
+  });
 }

@@ -112,6 +112,30 @@ class EntityConfig(_Strict):
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt dann „Nicht konfiguriert“ (Kapitel 18 §101)."""
 
+    feedback: bool = True
+    """Ob die Hardware ihren Zustand zurückmeldet.
+
+    ``False`` heißt: Der Aktor lässt sich **ansteuern, aber nicht auslesen**.
+    Ein Ausgang ohne Endlagenschalter ist genau das — man schaltet ihn, und
+    ob er wirklich geschaltet hat, weiß niemand.
+
+    Das ist kein Randfall, sondern eine Eigenschaft der Anlage, die durch das
+    ganze System durchschlägt:
+
+    * Der Command Bus wartet **nicht** auf eine Bestätigung, die nie kommt.
+      Täte er es, endete jeder Befehl nach Ablauf der Zeit mit „keine
+      Rückmeldung" — die falsche Auskunft, denn fehlgeschlagen ist nichts.
+    * Der Zustand bleibt ``UNKNOWN``, und zwar dauerhaft. Das ist kein Mangel
+      der Software, sondern die Wahrheit über diese Hardware (Kapitel 18 §38).
+    * Der **Wunschzustand bleibt stehen**, statt nach dem Befehl gelöscht zu
+      werden. Er ist die einzige Information, die es über dieses Gerät gibt —
+      und er bleibt als Befehl gekennzeichnet, nicht als Messung
+      (Kapitel 13 §4, Kapitel 18 §37).
+
+    Die Ablassventile für Grau- und Schwarzwasser sind der erste Fall
+    (bestätigt 2026-08-12, Punkt C4).
+    """
+
     unverified: bool = False
     """``True`` heißt: Die Funktion ist am Gerät zu erwarten, aber es ist
     **nicht bestätigt**, dass sie über die Schnittstelle verfügbar ist.

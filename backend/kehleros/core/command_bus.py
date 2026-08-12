@@ -270,6 +270,21 @@ class CommandBus:
 
             command.phase = CommandPhase.ACKNOWLEDGED
 
+            if not entity.feedback:
+                # Ein Ausgang ohne Rückmeldung. Hier ist der Befehl fertig,
+                # sobald der Adapter ihn angenommen hat — auf eine Bestätigung
+                # zu warten hieße, auf etwas zu warten, das die Anlage gar
+                # nicht senden kann. Nach Ablauf der Zeit stünde dann „keine
+                # Rückmeldung", und das wäre die falsche Auskunft:
+                # fehlgeschlagen ist nichts, es gibt nur nichts zu melden.
+                #
+                # `COMPLETED` bezieht sich hier ausdrücklich auf den **Befehl**
+                # und nicht auf die Stellung des Geräts. Über die sagt Kehler
+                # OS weiterhin nichts — der Zustand bleibt UNKNOWN, und
+                # sichtbar bleibt der Wunschzustand (siehe `finally`).
+                command.complete()
+                return
+
             ended = await self._await_confirmation(
                 subscription, entity.id, spec, command, baseline
             )
@@ -300,7 +315,25 @@ class CommandBus:
                 )
         finally:
             self._state.unsubscribe(subscription)
-            self._state.set_requested(entity.id, None)
+            # Der Wunschzustand wird normalerweise aufgeräumt: Sobald die
+            # Hardware bestätigt hat, ist er überflüssig — der echte Zustand
+            # sagt mehr.
+            #
+            # Ohne Rückmeldung gibt es diesen echten Zustand nie. Dann ist der
+            # zuletzt gesendete Befehl die einzige Information, die über das
+            # Gerät existiert, und ihn zu löschen hieße, sie wegzuwerfen: Die
+            # Oberfläche zeigte danach nur noch „Unbekannt" und der Benutzer
+            # wüsste nicht einmal mehr, was er selbst zuletzt getan hat.
+            #
+            # Er bleibt dabei ausdrücklich ein **Wunschzustand** und wandert
+            # nicht in den Zustand. Die Trennung ist der ganze Grund, warum es
+            # beide gibt (Kapitel 13 §4, Kapitel 18 §37).
+            # Ein **gescheiterter** Befehl hinterlässt trotzdem nichts: Wenn
+            # der Adapter ihn abgelehnt hat, ist er nie hinausgegangen, und
+            # „Öffnen befohlen" stehen zu lassen wäre eine Behauptung über
+            # etwas, das nicht stattgefunden hat.
+            if entity.feedback or not command.phase.is_success:
+                self._state.set_requested(entity.id, None)
 
     async def _await_confirmation(
         self,

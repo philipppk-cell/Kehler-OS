@@ -255,7 +255,7 @@ und die Warnstufe würde nie sichtbar.
 
 ---
 
-### C4 · Ablassventile — `TEILWEISE` (2026-08-12) · `NICHT BLOCKIEREND`
+### C4 · Ablassventile — `GEKLÄRT` (2026-08-12)
 
 **Bestätigt am 2026-08-12:** Grau- und Schwarzwassertank haben **je ein
 Ablassventil**, insgesamt zwei. Sie kennen ausschließlich **öffnen und
@@ -267,17 +267,39 @@ und die Oberfläche zeigte eine Schaltfläche für eine Funktion, die die
 Hardware nicht hat. Von `switch` unterscheidet er sich im Vokabular — ein
 Ventil ist offen oder zu, nicht ein oder aus.
 
+**Bestätigt am 2026-08-12: Die Ventile haben KEINE Stellungsrückmeldung.**
+
+Sie lassen sich ansteuern, aber nicht auslesen. Das ist die folgenreichste
+Angabe zu diesen beiden Entities, und sie schlägt durch das ganze System
+durch. Dafür gibt es jetzt `feedback: false`:
+
+| | mit Rückmeldung | **ohne** (dieser Fall) |
+| --- | --- | --- |
+| Command Bus | wartet auf den Zielzustand | wartet **nicht** — der Befehl ist mit der Annahme durch die SPS fertig |
+| Zustand | `VALID`, echter Wert | dauerhaft `UNKNOWN` |
+| Wunschzustand | wird nach dem Befehl gelöscht | **bleibt stehen** — er ist das Einzige, was bekannt ist |
+| Oberfläche | „Offen" | „Öffnen befohlen", mit Zeitpunkt |
+
+Der erste Punkt ist der wichtigste: Ohne ihn liefe **jeder** Ventilbefehl in
+die Zeitgrenze und meldete danach „keine Rückmeldung" — für einen Vorgang,
+bei dem nichts fehlgeschlagen ist. Ein Test prüft deshalb ausdrücklich, dass
+der Befehl schnell fertig wird und nicht erst nach Ablauf der Wartezeit.
+
+Der letzte Punkt ist die Regel, um die es hier eigentlich geht: **Kehler OS
+sagt nicht, wo das Ventil steht, weil es das nicht weiß** (Kapitel 18 §37).
+Es sagt, was zuletzt befohlen wurde, und benennt es als Befehl. Das ist
+weniger, als man sich wünscht, und genau so viel, wie stimmt.
+
+Auch der Simulator meldet für diese Ventile nichts. Er *kennt* die Stellung
+intern — er hat sie ja gesetzt —, veröffentlicht sie aber nicht. Sonst sähe
+die Oberfläche in der Simulation vollständig aus und im Fahrzeug leer, und
+der Unterschied fiele erst am Entsorgungsplatz auf (Kapitel 18 §65).
+
 **Was noch fehlt:**
 
-- **Stellungsrückmeldung.** Melden die Ventile ihre Stellung zurück, oder
-  lassen sie sich nur ansteuern? Das ist die eine Frage, die den Unterschied
-  macht: Ohne Rückmeldung kann Kehler OS nie bestätigen, dass ein Ventil
-  wirklich zu ist. Die Anzeige bliebe bei „Unbekannt", der Befehl liefe in
-  einen Timeout, und sichtbar wäre nur der Wunschzustand. Das ist kein
-  Softwareproblem und keines, das sich softwareseitig lösen lässt — es ist
-  eine Frage der Verdrahtung.
 - **Stellzeit** für `timeout_ms`. Derzeit stehen 10 s; das ist großzügig
-  geschätzt und keine Angabe (VORLÄUFIG in der Konfiguration).
+  geschätzt und keine Angabe (VORLÄUFIG in der Konfiguration). Sie begrenzt
+  jetzt nur noch, wie lange auf die Annahme durch die SPS gewartet wird.
 - **Datenpunkte** in der SPS — Teil von A3.
 
 **Was ausdrücklich nicht angenommen wird:**
@@ -293,13 +315,15 @@ Das Schließen nicht: Es beendet den Zustand, den das Öffnen herbeiführt, und
 der Rückweg darf nie schwerer sein als der Hinweg. Die beiden Befehle werden
 im Loader getrennt eingestuft.
 
-> **Noch zu entscheiden:** Soll ein Ventil, das länger offen steht, an sich
-> erinnern? Der Fall ist real — man öffnet am Entsorgungsplatz und fährt
-> los, ohne zu schließen. Eine Meldung dafür braucht aber eine Zeitgrenze,
-> und die hat niemand festgelegt. Sie hier zu erfinden wäre dieselbe Art
-> Annahme, die dieses Dokument sonst verhindert (Kapitel 18 §98). Solange
-> keine Grenze genannt ist, zeigt die Wasserseite das offene Ventil
-> hervorgehoben an und meldet sonst nichts.
+**Keine Erinnerung an ein offenes Ventil** — entschieden am 2026-08-12 vom
+Fahrzeughalter. Es wird also nicht gemeldet, wenn ein Ventil länger offen
+befohlen ist. Die Wasserseite hebt den Zustand farblich hervor und nennt den
+Zeitpunkt des Befehls; darüber hinaus geschieht nichts.
+
+Das ist ohne Rückmeldung ohnehin die einzig ehrliche Möglichkeit: Eine
+Meldung „Ventil seit 40 Minuten offen" wäre in Wahrheit „vor 40 Minuten
+Öffnen befohlen" — das Ventil könnte längst zu sein, ohne dass es jemand
+weiß.
 
 ---
 
@@ -821,7 +845,6 @@ A5 vorhandene Sicherheitsverriegelungen · I3 Netztrennung
 
 **Danach, für den sinnvollen Alltagsbetrieb:**
 B1 Cerbo-Schnittstelle · C1 Tanksensorik ·
-C4 Stellungsrückmeldung der Ablassventile ·
 E1/E3 Garagen- und Verriegelungsrückmeldungen · I4 Display
 
 **Zuletzt und bewusst nicht zuerst:**

@@ -166,6 +166,16 @@
 
 .valve__state {
   display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Der Zeitpunkt des Befehls, zurückhaltend gesetzt: Er ergänzt die Aussage
+   daneben, er ist nicht selbst eine. */
+.valve__since {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+  white-space: nowrap;
 }
 
 /* Die Schaltflächen rücken nach rechts, solange Platz ist. Wird es eng,

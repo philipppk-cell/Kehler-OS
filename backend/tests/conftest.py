@@ -27,6 +27,7 @@ def make_entity(
     max_value: float | None = None,
     step: float | None = None,
     kind: str = "measurement",
+    feedback: bool = True,
 ) -> Entity:
     """``kind`` ist nicht kosmetisch.
 
@@ -48,6 +49,7 @@ def make_entity(
         max_value=max_value,
         step=step,
         kind=kind,
+        feedback=feedback,
     )
 
 
@@ -100,7 +102,15 @@ def registry() -> Registry:
                 "water.tank.fresh", unit="percent", expected_interval_s=1.0, deadband=0.5
             ),
             make_entity("vehicle.awning.main", commands=MOVABLE, configured=False),
+            # Zwei Ventile mit Absicht verschieden: Das graue meldet seine
+            # Stellung zurück, das schwarze nicht. Nur so lässt sich prüfen,
+            # dass beide Wege nebeneinander funktionieren — im Fahrzeug hat
+            # heute keines eine Rückmeldung, aber das kann sich ändern, und
+            # dann darf der bestätigende Pfad nicht verrottet sein.
             make_entity("water.valve.grey", commands=VALVE, kind="valve"),
+            make_entity(
+                "water.valve.black", commands=VALVE, kind="valve", feedback=False
+            ),
             make_entity(
                 "energy.shore.limit",
                 commands=SETPOINT,

@@ -39,6 +39,11 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
         "unit": entity.unit,
         "configured": entity.configured,
         "unverified": entity.unverified,
+        # Ohne diese Angabe könnte die Oberfläche „Unbekannt" nicht deuten:
+        # Bei einem Fühler wäre es ein Befund — bei einem Ausgang ohne
+        # Endlagenschalter der Dauerzustand, und dann muss sie den zuletzt
+        # gesendeten Befehl zeigen statt eines Fragezeichens.
+        "feedback": entity.feedback,
         # Ob überhaupt regelmäßige Aktualisierungen erwartet werden. Ohne
         # diese Angabe ließe sich ein stehender Zeitstempel nicht deuten:
         # Bei einem Fühler wäre er ein Befund, bei einem Garagentor, das

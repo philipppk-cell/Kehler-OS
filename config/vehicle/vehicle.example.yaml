@@ -104,11 +104,19 @@ entities:
   # `risk` wirkt hier nur auf das **Öffnen**. Schließen bleibt ohne Rückfrage:
   # Es beendet einen Zustand, statt einen herbeizuführen, und der Rückweg darf
   # nie schwerer sein als der Hinweg.
+  #
+  # `feedback: false` heißt: ansteuerbar, aber nicht auslesbar — ein Ausgang
+  # ohne Endlagenschalter. Dann wird auf keine Bestätigung gewartet (sie käme
+  # nie), der Zustand bleibt „Unbekannt", und sichtbar ist der zuletzt
+  # gesendete Befehl. Nicht mit `configured: false` zu verwechseln: Dort fehlt
+  # die Zuordnung, hier ist alles angeschlossen und es gibt nur nichts zu
+  # lesen.
   - id: water.valve.grey
     name_key: valve.grey
     type: valve
     area: tech
     risk: HIGH
+    feedback: false
     timeout_ms: 10000
 
   # Ein mehrwertiger Zustand. `states` ist das **interne Vokabular von

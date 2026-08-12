@@ -157,10 +157,17 @@ const de: Record<string, string> = {
   "water.valveOpen": "Ventil öffnen",
   "water.valveClose": "Ventil schließen",
   "water.valveRunning": "Läuft ab",
+  // „Befohlen" und nicht „offen": Die Ventile melden ihre Stellung nicht
+  // zurück. Was hier steht, ist der letzte gesendete Befehl — und das muss
+  // das Wort auch sagen (Kapitel 18 §37).
+  "water.valveOpenCommanded": "Öffnen befohlen",
+  "water.valveCloseCommanded": "Schließen befohlen",
   "water.confirmDrain":
     "{name} wirklich öffnen? Der Tank entleert sich dorthin, wo das Fahrzeug gerade steht.",
   "water.valveNote":
     "Das Öffnen verlangt eine Bestätigung, das Schließen nicht — der Rückweg darf nie schwerer sein als der Hinweg.",
+  "water.valveNoFeedback":
+    "Die Ablassventile melden ihre Stellung nicht zurück. Angezeigt wird der zuletzt gesendete Befehl, nicht die tatsächliche Stellung — Kehler OS kann sie nicht kennen.",
 
   "water.notesTitle": "Hinweise",
   "water.thresholdsSet":
@@ -168,6 +175,13 @@ const de: Record<string, string> = {
   "water.thresholdMarks":
     "Die beiden Markierungen im Balken zeigen, wo die Stufen liegen.",
   "water.historyLater": "Verlauf entsteht in einem späteren Schritt",
+
+  // Zeitangaben. Unter einer Minute keine Zahl — eine gerundete Null sähe
+  // aus wie eine Angabe. Ab einer Stunde die Uhrzeit statt der Dauer, damit
+  // niemand rechnen muss.
+  "time.justNow": "gerade eben",
+  "time.minutesAgo": "vor {n} min",
+  "time.at": "um {time}",
 
   // Sollwertverstellung. Der Name der Größe wird eingesetzt, damit die
   // Sprachausgabe nicht bei jedem Stepper im Fahrzeug „Plus" sagt.

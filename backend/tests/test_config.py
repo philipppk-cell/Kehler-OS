@@ -229,6 +229,33 @@ class TestMitgelieferteKonfiguration:
             assert ventil.spec_for("open").risk.needs_confirmation  # type: ignore[union-attr]
             assert not ventil.spec_for("close").risk.needs_confirmation  # type: ignore[union-attr]
 
+    def test_ablassventile_haben_keine_stellungsrueckmeldung(self):
+        """Bestätigt am 2026-08-12 (Punkt C4).
+
+        Der Test hält eine **Eigenschaft des Fahrzeugs** fest, keine
+        Einstellung. Stünde hier versehentlich wieder `feedback: true`, wartete
+        jeder Befehl zehn Sekunden auf eine Meldung, die die Anlage nicht
+        senden kann, und meldete danach „keine Rückmeldung" — für einen
+        Vorgang, bei dem nichts schiefgegangen ist.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        ventile = [e for e in build_entities(vehicle) if e.kind == "valve"]
+        assert ventile, "Es sind keine Ventile konfiguriert"
+        for ventil in ventile:
+            assert ventil.feedback is False, f"{ventil.id} erwartet eine Rückmeldung"
+
+    def test_nur_die_ventile_sind_ohne_rueckmeldung(self):
+        """Die Ausnahme bleibt eine Ausnahme.
+
+        Ein versehentliches `feedback: false` an einem Tanksensor wäre
+        besonders tückisch: Der Wert verschwände einfach, ohne dass irgendwo
+        eine Warnung entsteht — denn „meldet nichts" ist für diese Entities ja
+        der vorgesehene Zustand.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        ohne = {e.id for e in build_entities(vehicle) if not e.feedback}
+        assert ohne == {"water.valve.grey", "water.valve.black"}
+
     def test_warnschwellen_entsprechen_der_angabe(self):
         """Die Schwellen sind vom Fahrzeughalter genannt (Punkt C3).
 

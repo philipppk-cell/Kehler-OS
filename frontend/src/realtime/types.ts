@@ -64,6 +64,21 @@ export interface EntityDefinition {
   unverified: boolean;
 
   /**
+   * Ob die Hardware ihren Zustand zurückmeldet.
+   *
+   * `false` heißt: ansteuerbar, aber nicht auslesbar — ein Ausgang ohne
+   * Endlagenschalter. Der Zustand bleibt dann **dauerhaft** unbekannt, und
+   * das ist kein Fehler, sondern die Eigenschaft dieser Anlage.
+   *
+   * Erst mit dieser Angabe lässt sich „Unbekannt" deuten. Bei einem Fühler
+   * heißt es „hier stimmt etwas nicht", bei den Ablassventilen „hier war nie
+   * etwas zu holen". Die Oberfläche zeigt im zweiten Fall den zuletzt
+   * gesendeten Befehl statt eines Fragezeichens — und benennt ihn als
+   * Befehl.
+   */
+  feedback: boolean;
+
+  /**
    * Erwartetes Aktualisierungsintervall in Sekunden.
    *
    * `null` heißt: Es werden keine regelmäßigen Meldungen erwartet. Erst damit
@@ -99,7 +114,17 @@ export interface EntityView {
   link: Link;
   state: StateValue;
   attributes: Record<string, StateValue>;
-  /** Wunschzustand aus einem laufenden Befehl — getrennt vom tatsächlichen. */
+  /**
+   * Wunschzustand aus einem Befehl — getrennt vom tatsächlichen.
+   *
+   * Normalerweise nur während der Ausführung gesetzt: Sobald die Hardware
+   * bestätigt hat, sagt der echte Zustand mehr, und der Wunsch verschwindet.
+   *
+   * Bei `feedback: false` bleibt er **stehen**. Dort kommt nie eine
+   * Bestätigung, und der zuletzt gesendete Befehl ist damit die einzige
+   * Information, die es über das Gerät gibt. Er bleibt trotzdem ein Wunsch
+   * und wird nie als Zustand ausgegeben.
+   */
   requested: { value: unknown; command_id: string; since: string } | null;
   definition?: EntityDefinition;
 }
