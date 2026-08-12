@@ -578,11 +578,28 @@ Offen: Liste der Sensoren mit Einbauort, Typ und Anschluss.
 
 ## H – Kameras
 
-### H1 · Bestand — `OFFEN` · `NICHT BLOCKIEREND`
+### H1 · Bestand — `GEKLÄRT` (2026-08-12)
 
-Kapitel 12 §51 und Kapitel 18 §33: Es wird **keine** installierte Kamera
-angenommen. Sobald Kameras existieren, werden benötigt: Anzahl, Modell,
-Stream-URL/Protokoll (RTSP/ONVIF), Auflösung, Zugangsdaten, Einbauort.
+**Antwort: Das Fahrzeug hat keine Kameras.**
+
+Damit ist der Punkt nicht nur beantwortet, sondern erledigt. Was daraufhin
+entfallen ist:
+
+- der Reiter **„Kameras"** in der Hauptnavigation. Er führte auf eine
+  Platzhalterseite — ein Eintrag, der ein ganzes Themengebiet ankündigte und
+  dahinter nichts hatte;
+- das Kamerasymbol im Icon-Set;
+- die Domäne `camera` im Vokabular der Entity-IDs. Eine ID `camera.…` wird
+  jetzt beim Start abgewiesen, statt still angenommen zu werden.
+
+Der letzte Punkt folgt derselben Begründung, die bei der Beleuchtung schon
+steht (Punkt F1): Ein Namensraum ohne Gegenstand lädt nur dazu ein, ihn zu
+füllen. Was nicht angebunden ist, erscheint nicht (Kapitel 12 §55,
+Kapitel 13 §60, Kapitel 18 §33).
+
+Sollten später doch Kameras eingebaut werden, sind sie **kein Wiederherstellen
+des Alten**, sondern eine neue Funktion mit eigenen Angaben: Anzahl, Modell,
+Stream-URL und Protokoll (RTSP/ONVIF), Auflösung, Zugangsdaten, Einbauort.
 
 ---
 

@@ -104,12 +104,10 @@ export const IconVehicle = (p: IconProps) => (
   </Icon>
 );
 
-export const IconCamera = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="2.5" y="6.5" width="13" height="11" rx="2" />
-    <path d="M15.5 10.5 21.5 8v8l-6-2.5" />
-  </Icon>
-);
+/* `IconCamera` stand hier und ist entfallen: Das Fahrzeug hat keine Kameras
+   (BESTÄTIGT 2026-08-12). Ein Symbol vorzuhalten, für das es kein Gerät gibt,
+   hält die Möglichkeit offen, es „schnell mal" wieder einzuhängen — und genau
+   so entstand der leere Reiter, der eben entfernt wurde. */
 
 export const IconGarage = (p: IconProps) => (
   <Icon {...p}>

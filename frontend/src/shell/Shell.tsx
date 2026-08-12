@@ -12,7 +12,6 @@ import { useAppState } from "../realtime/hooks";
 import { t } from "../i18n/de";
 import { Status } from "../design/primitives";
 import {
-  IconCamera,
   IconCooling,
   IconDashboard,
   IconDiagnostics,
@@ -28,7 +27,7 @@ import "./shell.css";
 
 export type PageId =
   | "dashboard" | "energy" | "water" | "climate" | "heating"
-  | "leveling" | "vehicle" | "cameras" | "settings" | "diagnostics";
+  | "leveling" | "vehicle" | "settings" | "diagnostics";
 
 /* Klima und Heizung stehen als zwei Einträge nebeneinander, weil es zwei
    Systeme sind (BESTÄTIGT 2026-08-10). Ein Eintrag mit zwei Unterseiten
@@ -37,7 +36,13 @@ export type PageId =
    „Garage" stand hier ebenfalls und ist entfallen. Der Bereich enthielt genau
    eine Entity — das Garagentor —, und die steht mit allen Fahrbefehlen auf
    der Fahrzeugseite. Ein eigener Reiter dafür hätte einen Bereich behauptet,
-   wo eine Zeile ist. */
+   wo eine Zeile ist.
+
+   „Kameras" ebenso, und aus dem klarsten aller Gründe: **Das Fahrzeug hat
+   keine** (BESTÄTIGT 2026-08-12). Der Reiter führte auf eine Platzhalterseite
+   — ein Eintrag in der Hauptnavigation, der ein ganzes Themengebiet
+   ankündigte und dahinter nichts hatte. Was nicht angebunden ist, erscheint
+   nicht (Kapitel 12 §55, Kapitel 13 §60, Kapitel 18 §33). */
 const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "dashboard", icon: <IconDashboard /> },
   { id: "energy", icon: <IconEnergy /> },
@@ -46,7 +51,6 @@ const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "heating", icon: <IconHeating /> },
   { id: "leveling", icon: <IconLeveling /> },
   { id: "vehicle", icon: <IconVehicle /> },
-  { id: "cameras", icon: <IconCamera /> },
   { id: "settings", icon: <IconSettings /> },
   { id: "diagnostics", icon: <IconDiagnostics /> },
 ];

@@ -35,10 +35,12 @@ const de: Record<string, string> = {
   "nav.heating": "Heizung",
   "nav.leveling": "Nivellierung",
   "nav.vehicle": "Fahrzeug",
-  "nav.cameras": "Kameras",
   // „Garage" hatte einen eigenen Reiter. Er ist entfallen: Dahinter lag genau
   // ein Tor, und das steht vollständig auf der Fahrzeugseite. Ein Reiter, der
   // eine Zeile zeigt, verspricht einen Bereich, den es nicht gibt.
+  //
+  // „Kameras" ebenso, und noch eindeutiger: Das Fahrzeug hat keine
+  // (BESTÄTIGT 2026-08-12). Der Reiter führte auf eine leere Platzhalterseite.
   "nav.settings": "Einstellungen",
   "nav.diagnostics": "Diagnose",
 

@@ -22,8 +22,11 @@
 # Bewusst NICHT enthalten:
 #   - Warnschwellen   → offener Punkt C3, noch nicht festgelegt
 #   - Hardwareadressen → offener Punkt A3
-#   - RGB-Beleuchtung, Dachluken, Alarmanlage, Satellit, Kameras
+#   - RGB-Beleuchtung, Dachluken, Alarmanlage, Satellit
 #     (nicht bestätigte Hardware — Kapitel 18 §34)
+#   - Kameras: BESTÄTIGT (2026-08-12), dass keine vorhanden sind. Anders als
+#     die Zeile darüber ist das keine offene Frage, sondern eine Antwort —
+#     die Domäne `camera` existiert deshalb nicht mehr (Punkt H1).
 #
 # Die Nivellierung fehlt absichtlich: Hydraulik ist ausdrücklich nicht das
 # erste Testobjekt (Kapitel 18 §91).

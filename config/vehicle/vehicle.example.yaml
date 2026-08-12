@@ -140,4 +140,6 @@ entities:
 # * Beleuchtung — sie läuft über gewöhnliche Lichtschalter und ist nicht
 #   angebunden (Punkt F1)
 # * Nivellierung — ausdrücklich nach Version 1.0 (Kapitel 18 §91)
-# * Kameras — es wird keine angenommen (Punkt H1)
+# * Kameras — das Fahrzeug hat keine (Punkt H1, bestätigt 2026-08-12).
+#   Die Domäne `camera` gibt es deshalb gar nicht mehr; eine solche ID würde
+#   beim Start abgewiesen.

@@ -242,12 +242,15 @@ In dieser Reihenfolge, begründet abweichend von Kapitel 18 §90:
    über HTTPS. Über einfaches HTTP fehlt die Browser-Schnittstelle
    vollständig — ein Argument mehr für die ohnehin anstehende Netzarbeit.
 8. **Nivellierung** — bewusst spät, siehe unten
-9. **Kameras** — abhängig von realer Hardware
 
 > **Licht entfällt vollständig** (2026-08-10). Die Beleuchtung läuft über
 > gewöhnliche Lichtschalter und nicht über die SPS. Es gibt weder Entities
 > noch einen Reiter — was nicht angebunden ist, erscheint nicht. Punkt F1 ist
 > damit erledigt statt offen.
+>
+> **Kameras entfallen ebenso** (2026-08-12). Das Fahrzeug hat keine. Reiter,
+> Symbol und die Domäne `camera` im Vokabular der Entity-IDs sind entfernt.
+> Punkt H1 ist damit erledigt statt offen.
 
 > **Begründung der Abweichung** (Kapitel 18 §138): Kapitel 18 §90 beginnt mit
 > Licht — das entfällt hier ersatzlos, weil die Beleuchtung nicht auf der SPS
@@ -397,11 +400,12 @@ dadurch nicht, nur die Navigation.*
 nicht auf der SPS. Klima und Heizung stehen dafür einzeln, weil es zwei
 getrennte Systeme sind.*
 
-**Nach 1.0:** Nivellierung mit realer Hydraulik, Kameras, KI-Assistent,
-Fernzugriff, Predictive Maintenance, Wetterstation.
+**Nach 1.0:** Nivellierung mit realer Hydraulik, KI-Assistent, Fernzugriff,
+Predictive Maintenance, Wetterstation.
 
-**Gestrichen:** Szenen (W10) und Navigation (W1) — beides Entscheidungen des
-Projektverantwortlichen, nicht technische Einschränkungen.
+**Gestrichen:** Szenen (W10), Navigation (W1) und Kameras (H1) — die ersten
+beiden Entscheidungen des Projektverantwortlichen, die dritte eine Tatsache
+über das Fahrzeug: Es hat keine.
 
 ---
 
@@ -420,5 +424,4 @@ Wird ab M2 fortlaufend gepflegt.
 | alle Fachmodule | `PLANNED` |
 | SPS-Anbindung | `PLANNED` — blockiert |
 | Victron-Anbindung | `PLANNED` — blockiert |
-| Kameras | `PLANNED` — keine Hardware bestätigt |
 | KI-Assistent | `PLANNED` — letzte Ebene |

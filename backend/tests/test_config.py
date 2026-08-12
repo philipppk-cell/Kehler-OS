@@ -47,6 +47,20 @@ class TestNamenskonvention:
         with pytest.raises(InvalidEntityId):
             validate_entity_id(entity_id)
 
+    @pytest.mark.parametrize("entity_id", ["light.living.main", "camera.rear.main"])
+    def test_domaenen_ohne_gegenstand_gibt_es_nicht(self, entity_id: str):
+        """Beleuchtung (F1) und Kameras (H1) sind keine offenen Punkte mehr.
+
+        Die Beleuchtung läuft über gewöhnliche Lichtschalter, Kameras gibt es
+        im Fahrzeug keine. Beide Domänen sind deshalb aus dem Vokabular
+        entfernt — nicht als Aufräumarbeit, sondern damit ein Namensraum ohne
+        Gegenstand nicht dazu einlädt, ihn zu füllen. Eine solche ID fällt
+        beim Start auf und nicht erst, wenn ein Bedienelement ins Leere
+        zeigt.
+        """
+        with pytest.raises(InvalidEntityId, match="Unbekannte Domäne"):
+            validate_entity_id(entity_id)
+
 
 class TestFahrzeugkonfiguration:
     def test_doppelte_entity_faellt_auf(self):

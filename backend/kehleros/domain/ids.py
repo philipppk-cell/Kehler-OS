@@ -37,7 +37,16 @@ class Domain(StrEnum):
 
     VEHICLE = "vehicle"
     LEVELING = "leveling"
-    CAMERA = "camera"
+    """Nivellierung. Steht hier, obwohl noch nichts angebunden ist — sie ist
+    ausdrücklich für die Zeit nach Version 1.0 vorgesehen (Kapitel 18 §91),
+    also vertagt und nicht ausgeschlossen."""
+
+    # ``camera`` gab es hier ebenfalls und ist entfallen: Das Fahrzeug hat
+    # keine Kameras (BESTÄTIGT 2026-08-12, Punkt H1). Dieselbe Begründung wie
+    # bei ``light`` weiter oben — ein Namensraum ohne Gegenstand lädt nur dazu
+    # ein, ihn zu füllen. Eine Entity-ID `camera.…` wird jetzt beim Start
+    # abgewiesen, statt still angenommen zu werden.
+
     NETWORK = "network"
     SYSTEM = "system"
 
