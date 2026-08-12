@@ -130,17 +130,36 @@ function panel(w: number, h: number, d: number, material: Material): Mesh {
 
 /* ── Aufbau ────────────────────────────────────────────────────────────── */
 
-function buildBox(): Mesh {
+/**
+ * Der Aufbau **mitsamt der Nase über dem Fahrerhaus** — ein einziges Profil.
+ *
+ * Zuvor waren das drei Teile: ein Kasten mit gerader Abschrägung, ein
+ * aufgesetzter Dachspoiler und eine Blende dazwischen. Zusammen ergaben sie
+ * genau das, was die Fotos **nicht** zeigen: Stufen und Fugen zwischen
+ * Fahrerhaus und Aufbau. In Wirklichkeit ist es ein durchgehender Körper, der
+ * über das Fahrerhaus nach vorn kragt, auf dessen Dach aufsetzt und in einem
+ * weichen Bogen zum Dach ansteigt.
+ *
+ * Aus einem Profil gezogen gibt es diese Fugen gar nicht erst — die
+ * Verbindung ist keine Frage sorgfältigen Aneinanderlegens mehr, sondern
+ * folgt aus der Form.
+ */
+function buildHull(): Mesh {
   const { box, length, height, width } = V;
+  const { nose } = box;
   const s = new Shape();
 
+  // Aufbaufront, senkrecht bis zum Ansatz der Nase.
   s.moveTo(box.front, box.floor);
-  s.lineTo(box.front, box.chamferAt - 0.1);
-  // Abgeschrägte statt gerundeter Vorderkante — mit kleinen Verrundungen an
-  // beiden Enden der Schräge, damit keine scharfe Grate stehen bleiben.
-  s.quadraticCurveTo(box.front, box.chamferAt, box.front + 0.16, box.chamferAt + 0.22);
-  s.lineTo(box.front + box.chamferRun - 0.1, height - 0.14);
-  s.quadraticCurveTo(box.front + box.chamferRun, height, box.front + box.chamferRun + 0.16, height);
+  s.lineTo(box.front, nose.front);
+  // Unterseite der Nase: läuft nach vorn aus und setzt auf dem Kabinendach auf.
+  s.quadraticCurveTo(box.front, nose.tipTop - 0.14, box.front - 0.4, nose.tipTop - 0.12);
+  s.lineTo(nose.tip + 0.1, nose.tipTop - 0.12);
+  s.quadraticCurveTo(nose.tip, nose.tipTop - 0.12, nose.tip, nose.tipTop);
+  // Ansteigender Bogen von der Nasenspitze auf Dachhöhe. Das ist die Linie,
+  // die auf den Seitenaufnahmen den Übergang bildet.
+  s.quadraticCurveTo(nose.crest - 0.75, nose.tipTop + 0.5, nose.crest, height);
+  // Dach bis zur gerundeten Heckkante.
   s.lineTo(length - box.rearRadius, height);
   s.quadraticCurveTo(length, height, length, height - box.rearRadius);
   s.lineTo(length, box.floor);
@@ -195,18 +214,6 @@ function buildCab(): Mesh {
   return new Mesh(extrude(s, cab.width), MATERIALS.paint);
 }
 
-function buildDeflector(): Mesh {
-  const { cab, box } = V;
-  const s = new Shape();
-
-  s.moveTo(1.25, cab.roof - 0.03);
-  s.lineTo(box.front, cab.roof - 0.03);
-  s.lineTo(box.front, cab.deflector);
-  s.quadraticCurveTo(1.72, cab.deflector - 0.14, 1.25, cab.roof + 0.11);
-  s.closePath();
-
-  return new Mesh(extrude(s, cab.width - 0.16), MATERIALS.paint);
-}
 
 /**
  * Front des Fahrerhauses: Scheibe, Grill, Scheinwerfer, Spiegel.
@@ -258,6 +265,23 @@ function buildCabFront(): Group {
     const glass = panel(0.07, 0.56, 0.22, MATERIALS.trim);
     glass.position.set(0.5, 2.3, side * (cab.width / 2 + 0.2));
     g.add(glass);
+  }
+
+  // Seitenfenster der Fahrerhaustüren. Ohne sie ist das Fahrerhaus von der
+  // Seite ein Klotz — auf jeder Seitenaufnahme ist es das auffälligste
+  // Merkmal der Kabine.
+  for (const side of [-1, 1]) {
+    const pane = new Mesh(
+      extrude(roundedRect(1.02, 0.66, 0.1), 0.05, 0.012),
+      MATERIALS.glass,
+    );
+    pane.position.set(1.28, 2.34, side * (cab.width / 2 - 0.015));
+    g.add(pane);
+
+    // Türfuge, damit die Kabinentür als solche lesbar ist.
+    const seam = panel(0.03, 1.24, 0.03, MATERIALS.trim);
+    seam.position.set(1.86, 1.86, side * (cab.width / 2 - 0.01));
+    g.add(seam);
   }
 
   return g;
@@ -331,20 +355,26 @@ function buildUnderbody(): Mesh {
 /** Ein Fenster: x, Unterkante, Breite, Höhe. */
 type Window = readonly [number, number, number, number];
 
-/** Rechteck mit gerundeten Ecken, liegend in der XY-Ebene. */
-function roundedRect(w: number, h: number, r: number): Shape {
+/**
+ * Rechteck mit gerundeten Ecken, liegend in der XY-Ebene.
+ *
+ * `rTop` gilt für die beiden oberen Ecken. Fehlt `rBottom`, sind alle vier
+ * gleich — bei der Heckklappe sind die unteren aber deutlich runder als die
+ * oberen, und genau das macht ihre Form auf dem Heckfoto aus.
+ */
+function roundedRect(w: number, h: number, rTop: number, rBottom = rTop): Shape {
   const s = new Shape();
   const x = -w / 2;
   const y = -h / 2;
-  s.moveTo(x + r, y);
-  s.lineTo(x + w - r, y);
-  s.quadraticCurveTo(x + w, y, x + w, y + r);
-  s.lineTo(x + w, y + h - r);
-  s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  s.lineTo(x + r, y + h);
-  s.quadraticCurveTo(x, y + h, x, y + h - r);
-  s.lineTo(x, y + r);
-  s.quadraticCurveTo(x, y, x + r, y);
+  s.moveTo(x + rBottom, y);
+  s.lineTo(x + w - rBottom, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + rBottom);
+  s.lineTo(x + w, y + h - rTop);
+  s.quadraticCurveTo(x + w, y + h, x + w - rTop, y + h);
+  s.lineTo(x + rTop, y + h);
+  s.quadraticCurveTo(x, y + h, x, y + h - rTop);
+  s.lineTo(x, y + rBottom);
+  s.quadraticCurveTo(x, y, x + rBottom, y);
   return s;
 }
 
@@ -487,13 +517,13 @@ function makeMovable(object: Group, apply: (t: number) => void): Movable {
  */
 function buildGarageOpening(): Mesh {
   const { garage, length } = V;
-  const mesh = panel(
-    0.12,
-    garage.top - garage.bottom + 0.07,
-    garage.halfWidth * 2 + 0.07,
-    MATERIALS.trim,
-  );
-  mesh.position.set(length - 0.02, (garage.bottom + garage.top) / 2, 0);
+  const h = garage.top - garage.bottom;
+  const shape = roundedRect(garage.halfWidth * 2 + 0.07, h + 0.07, 0.36, 0.16);
+  const mesh = new Mesh(extrude(shape, 0.1, 0.012), MATERIALS.trim);
+  // Das Profil liegt in der XY-Ebene; für die Heckwand muss es hochkant in
+  // die YZ-Ebene gedreht werden.
+  mesh.rotation.y = Math.PI / 2;
+  mesh.position.set(length - 0.03, (garage.bottom + garage.top) / 2, 0);
   return mesh;
 }
 
@@ -514,7 +544,13 @@ function buildTailgate(): Movable {
   const hinge = new Group();
   hinge.position.set(length, garage.top, 0);
 
-  const leaf = panel(0.07, h, garage.halfWidth * 2, MATERIALS.paintDark);
+  // Die Klappe ist kein Rechteck: Das Heckfoto zeigt kräftig gerundete Ecken,
+  // unten deutlich stärker als oben.
+  const leaf = new Mesh(
+    extrude(roundedRect(garage.halfWidth * 2, h, 0.34, 0.14), 0.07, 0.014),
+    MATERIALS.paintDark,
+  );
+  leaf.rotation.y = Math.PI / 2;
   leaf.position.set(0.045, -h / 2, 0);
   hinge.add(leaf);
 
@@ -719,9 +755,8 @@ export function buildVehicle(): VehicleModel {
 
   body.add(buildUnderbody());
   body.add(buildSkirt());
-  body.add(buildBox());
   body.add(buildCab());
-  body.add(buildDeflector());
+  body.add(buildHull());
   body.add(buildCabFront());
   body.add(buildSeams());
   body.add(buildWheels());

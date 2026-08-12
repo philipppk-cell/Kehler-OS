@@ -112,8 +112,8 @@ export const V = {
     rear: 2.3,
     /** Oberkante Kabinendach ohne Spoiler. */
     roof: 2.98,
-    /** Oberkante des Dachspoilers, der zum Aufbau überleitet. */
-    deflector: 3.55,
+    /* Hier stand ein eigener Dachspoiler. Es gibt keinen: Der Aufbau selbst
+     * kragt über das Fahrerhaus und leitet über — siehe `box.nose`. */
     /** Unterkante Stoßfänger. */
     bottom: 0.95,
     /** Frontscheibe: Fußpunkt, Dachpunkt (in der Seitenansicht). */
@@ -135,12 +135,31 @@ export const V = {
      *  **Der Garagenboden nicht** — die Garage ist ein eigener Raum und hängt
      *  nicht am Wohnboden, siehe `garage`. */
     floor: 1.5,
-    /** Die Vorderkante ist oben **abgeschrägt**, nicht gerundet: Die Front
-     *  steht bis `chamferAt` senkrecht und läuft dann schräg zum Dach.
-     *  So zeigt es die Drohnenaufnahme. */
-    chamferAt: 3.2,
-    chamferRun: 0.6,
-    rearRadius: 0.18,
+    /**
+     * Die **Nase**: der Übergang vom Fahrerhausdach zum Aufbaudach.
+     *
+     * Hier stand zuvor eine gerade Abschrägung (`chamferAt`/`chamferRun`) und
+     * daneben ein eigenes Spoilerteil. Das war falsch. Die Fotos vom
+     * 2026-08-12 zeigen **einen durchgehenden Körper**: Der Aufbau kragt über
+     * das Fahrerhaus nach vorn, setzt auf dessen Dach auf und steigt in einem
+     * weichen Bogen zum Dach an. Keine Fuge, keine Kante, kein aufgesetzter
+     * Spoiler.
+     *
+     * Deshalb ist die Nase kein eigenes Bauteil mehr, sondern Teil desselben
+     * Seitenprofils wie der Aufbau — siehe `buildHull`.
+     */
+    nose: {
+      /** Vorderste Stelle, mit der der Aufbau auf dem Kabinendach aufsitzt. */
+      tip: 1.32,
+      /** Oberkante an der Nasenspitze, knapp über dem Kabinendach. */
+      tipTop: 3.12,
+      /** Höhe, bis zu der die Aufbaufront senkrecht steht, bevor sie nach
+       *  vorn auf das Kabinendach ausläuft. */
+      front: 2.62,
+      /** Stelle, an der die Nase die Dachhöhe erreicht. */
+      crest: 2.95,
+    },
+    rearRadius: 0.22,
   },
 
   /* ── Staukastenband ─────────────────────────────────────────────────── */
