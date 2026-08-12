@@ -40,7 +40,7 @@ import {
   type Material,
 } from "three";
 
-import { V } from "./dimensions";
+import { RIGHT, V } from "./dimensions";
 import type { Part } from "../vehicle/VehicleView";
 
 export interface VehicleState {
@@ -156,9 +156,10 @@ function buildHull(): Mesh {
   s.quadraticCurveTo(box.front, nose.tipTop - 0.14, box.front - 0.4, nose.tipTop - 0.12);
   s.lineTo(nose.tip + 0.1, nose.tipTop - 0.12);
   s.quadraticCurveTo(nose.tip, nose.tipTop - 0.12, nose.tip, nose.tipTop);
-  // Ansteigender Bogen von der Nasenspitze auf Dachhöhe. Das ist die Linie,
-  // die auf den Seitenaufnahmen den Übergang bildet.
-  s.quadraticCurveTo(nose.crest - 0.75, nose.tipTop + 0.5, nose.crest, height);
+  // Ansteigender Bogen von der Nasenspitze auf Dachhöhe. Der Steuerpunkt
+  // liegt auf der Dachlinie, damit die Kurve dort tangential ausläuft statt
+  // mit einem Knick anzusetzen.
+  s.quadraticCurveTo((nose.tip + nose.crest) / 2, height, nose.crest, height);
   // Dach bis zur gerundeten Heckkante.
   s.lineTo(length - box.rearRadius, height);
   s.quadraticCurveTo(length, height, length, height - box.rearRadius);
@@ -201,7 +202,9 @@ function buildCab(): Mesh {
   s.lineTo(sx, 1.42);
   s.lineTo(sx, sy);
   s.lineTo(tx, ty);
-  s.quadraticCurveTo(tx + 0.03, cab.roof, tx + 0.2, cab.roof);
+  // Über der Frontscheibe steigt das Hochdach an — nicht senkrecht, aber
+  // steil; das ist die Form, die die Frontaufnahme zeigt.
+  s.quadraticCurveTo(tx + 0.06, cab.roof, tx + 0.45, cab.roof);
   s.lineTo(cab.rear, cab.roof);
   s.lineTo(cab.rear, cab.bottom);
   // Zurück entlang der Unterkante, mit Radlauf über der Vorderachse.
@@ -415,8 +418,8 @@ function buildWindows(): Group {
     }
   };
 
-  add(V.windows.left, -1);
-  add(V.windows.right, 1);
+  add(V.windows.left, -RIGHT);
+  add(V.windows.right, RIGHT);
   return g;
 }
 
@@ -449,7 +452,7 @@ function buildRoof(): Group {
   cassette.position.set(
     (awning.from + awning.to) / 2,
     V.height - awning.drop / 2 + 0.06,
-    V.width / 2 - awning.depth / 2 + 0.02,
+    RIGHT * (V.width / 2 - awning.depth / 2 + 0.02),
   );
   g.add(cassette);
 
@@ -577,18 +580,18 @@ function buildEntryDoor(): Movable {
 
   // Scharnier vorn, das Blatt schwenkt nach außen.
   const hinge = new Group();
-  hinge.position.set(door.x, door.bottom + h / 2, width / 2);
+  hinge.position.set(door.x, door.bottom + h / 2, RIGHT * (width / 2));
 
   const leaf = panel(door.width, h, 0.06, MATERIALS.paintDark);
-  leaf.position.set(door.width / 2, 0, 0.03);
+  leaf.position.set(door.width / 2, 0, RIGHT * 0.03);
   hinge.add(leaf);
 
   const glass = panel(door.width - 0.26, h * 0.42, 0.03, MATERIALS.glass);
-  glass.position.set(door.width / 2, h * 0.24, 0.07);
+  glass.position.set(door.width / 2, h * 0.24, RIGHT * 0.07);
   hinge.add(glass);
 
   const handle = panel(0.05, 0.2, 0.05, MATERIALS.trim);
-  handle.position.set(door.width - 0.12, -0.08, 0.09);
+  handle.position.set(door.width - 0.12, -0.08, RIGHT * 0.09);
   hinge.add(handle);
 
   g.add(hinge);
@@ -631,7 +634,8 @@ function buildTerrace(): Movable {
   const carriage = new Group();
   g.add(carriage);
 
-  const z0 = width / 2;
+  const z0 = RIGHT * (width / 2);
+  const outward = RIGHT * terrace.depth;
   const R = terrace.archRadius;
 
   // Außenschürze mit den beiden Radbögen. Wie das Staukastenband ein
@@ -652,7 +656,7 @@ function buildTerrace(): Movable {
 
   const apronGeometry = extrude(s, 0.05, 0.012);
   const apron = new Mesh(apronGeometry, MATERIALS.paint);
-  apron.position.z = z0 + terrace.depth;
+  apron.position.z = z0 + outward;
   carriage.add(apron);
 
   // Der Holzbelag. Er liegt bündig auf der Schürzenkante über dem Tandem und
@@ -661,7 +665,7 @@ function buildTerrace(): Movable {
   deck.position.set(
     (terrace.from + terrace.to) / 2,
     terrace.deck - 0.03,
-    z0 + terrace.depth / 2,
+    z0 + outward / 2,
   );
   carriage.add(deck);
 
@@ -669,7 +673,7 @@ function buildTerrace(): Movable {
   // Kein Handlauf — ausdrücklich bestätigt.
   const { count, width: treadWidth, going } = terrace.stairs;
   const rise = terrace.deck / (count + 1);
-  const stairZ = z0 + terrace.depth - treadWidth / 2 - 0.08;
+  const stairZ = z0 + outward - RIGHT * (treadWidth / 2 + 0.08);
   for (let i = 1; i <= count; i += 1) {
     const tread = panel(going, 0.04, treadWidth, MATERIALS.alu);
     tread.position.set(terrace.from - (i - 0.5) * going, terrace.deck - i * rise, stairZ);
@@ -706,7 +710,7 @@ function buildTerrace(): Movable {
 
   let unknown = false;
   const movable = makeMovable(g, (t) => {
-    carriage.position.z = (t - 1) * terrace.depth;
+    carriage.position.z = (t - 1) * outward;
     carriage.visible = !unknown && t > 0.02;
     ghost.visible = unknown;
   });

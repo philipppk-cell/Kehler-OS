@@ -24,9 +24,25 @@
  * ── Koordinatensystem ─────────────────────────────────────────────────────
  *   X   0 an der Fahrzeugfront, wachsend nach hinten
  *   Y   0 auf dem Boden, wachsend nach oben
- *   Z   0 in der Fahrzeugmitte, **positiv zur rechten Fahrzeugseite**
- *       (Einstiegsseite mit Tür und Markise)
+ *   Z   0 in der Fahrzeugmitte
+ *
+ * **Achtung bei den Seiten.** X wächst nach hinten, also zeigt die
+ * Fahrtrichtung nach −X. Daraus folgt für ein rechtshändiges System:
+ * `rechts = vorwärts × oben = (−1,0,0) × (0,1,0) = (0,0,−1)`. Die **in
+ * Fahrtrichtung rechte Seite liegt also bei negativem Z**, die linke bei
+ * positivem.
+ *
+ * Das ist zweimal falsch herum gebaut worden — Tür, Terrasse und
+ * Markisenkassette saßen auf der linken Seite. Deshalb steht die Seite jetzt
+ * als `RIGHT` an einer Stelle, statt in jedem Bauteil neu hergeleitet zu
+ * werden.
  */
+
+/**
+ * Vorzeichen von Z für die **in Fahrtrichtung rechte** Fahrzeugseite — die
+ * Einstiegsseite mit Tür, Terrasse und Markisenkassette. Herleitung oben.
+ */
+export const RIGHT = -1;
 
 /**
  * Unterkante des Aufbaus — zwischen den Rädern und am Heck.
@@ -110,8 +126,17 @@ export const V = {
     /** Schmaler als der Aufbau — die Fotos zeigen den Überstand deutlich. */
     width: 2.35,
     rear: 2.3,
-    /** Oberkante Kabinendach ohne Spoiler. */
-    roof: 2.98,
+    /**
+     * Oberkante Kabinendach.
+     *
+     * Hier standen 2,98 m — die Höhe eines Fahrerhauses **ohne** Hochdach.
+     * Das war falsch: Auf der Frontaufnahme überragt der Aufbau das
+     * Fahrerhaus nicht, beide enden praktisch auf einer Höhe. Es ist ein
+     * Hochdach-Fahrerhaus, und der Aufbau schließt mit nur 28 cm Versatz
+     * darüber an. Damit wird aus dem langen Keil, den das Modell vorher
+     * hatte, der kurze Übergang, den die Seitenaufnahmen zeigen.
+     */
+    roof: 3.72,
     /* Hier stand ein eigener Dachspoiler. Es gibt keinen: Der Aufbau selbst
      * kragt über das Fahrerhaus und leitet über — siehe `box.nose`. */
     /** Unterkante Stoßfänger. */
@@ -150,14 +175,15 @@ export const V = {
      */
     nose: {
       /** Vorderste Stelle, mit der der Aufbau auf dem Kabinendach aufsitzt. */
-      tip: 1.32,
-      /** Oberkante an der Nasenspitze, knapp über dem Kabinendach. */
-      tipTop: 3.12,
+      tip: 1.5,
+      /** Oberkante an der Nasenspitze, knapp über dem Kabinendach (3,72 m). */
+      tipTop: 3.8,
       /** Höhe, bis zu der die Aufbaufront senkrecht steht, bevor sie nach
        *  vorn auf das Kabinendach ausläuft. */
-      front: 2.62,
-      /** Stelle, an der die Nase die Dachhöhe erreicht. */
-      crest: 2.95,
+      front: 3.4,
+      /** Stelle, an der die Nase die Dachhöhe erreicht. Nur gut 20 cm über
+       *  knapp einem Meter — der Übergang ist kurz, nicht keilförmig. */
+      crest: 2.45,
     },
     rearRadius: 0.22,
   },
