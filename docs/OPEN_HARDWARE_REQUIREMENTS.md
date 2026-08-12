@@ -705,10 +705,10 @@ Eine Modelldatei lässt sich später nur mit dem passenden Programm ändern.
 | Format | **glTF 2.0 binär (`.glb`)** |
 | Texturen | **eingebettet**, keine Nebendateien |
 | Maßstab | real, in **Metern** |
-| Achsen | Y oben, Z nach vorn (glTF-Standard) |
+| Achsen | **X** Längsachse, Front bei −X · **Y** oben, 0 = Fahrbahn · **+Z** rechte Fahrzeugseite (Tür, Stufe, Markise) |
 | Ursprung | Fahrzeugmitte auf Bodenhöhe |
 | Dreiecke | Richtwert **unter 50 000** |
-| Animationen | keine nötig |
+| Animationen | **vier, zwingend** — siehe unten |
 
 **Die eine Anforderung, an der es steht oder fällt** — und sie ist inzwischen
 gebaut und geprüft, nicht bloß gefordert:
@@ -736,6 +736,19 @@ da, greift die Code-Darstellung; das ist kein Fehlzustand.
 **Geprüft am 2026-08-11** mit einem eigens erzeugten Testmodell
 (`tools/model/make_test_glb.py`): Datei wird geladen, drei Teile bewegen sich,
 das absichtlich fehlende vierte wird als fehlend gemeldet.
+
+**Zwei Angaben in der Tabelle oben waren bis zum 2026-08-12 falsch** und sind
+hier festgehalten, weil beide einen bezahlten Auftrag hätten scheitern lassen:
+Die Achslage war mit „Z nach vorn" angegeben, obwohl die Oberfläche das
+geladene Modell **weder dreht noch verschiebt** — ein danach gebautes Fahrzeug
+hätte im Dashboard quer gestanden. Und „Animationen: keine nötig" stand im
+selben Kasten wie die Anforderung darunter, ohne die das Modell gar nicht
+verwendet wird.
+
+**Zur Weitergabe an einen Auftragnehmer:** `tools/model/MODELL-AUFTRAG.md`.
+Dort steht dasselbe als geschlossene Leistungsbeschreibung, einschließlich
+Abnahmekriterien und einer Liste dessen, wofür ausdrücklich kein Aufwand
+entstehen soll.
 
 `.glb` deshalb, weil three.js es ohne Umwege lädt und weil eine einzelne Datei
 mit eingebetteten Texturen zur Regel passt, dass ohne Internet nichts fehlen
