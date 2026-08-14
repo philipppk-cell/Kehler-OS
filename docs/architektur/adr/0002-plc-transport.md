@@ -1,8 +1,25 @@
 # ADR 0002 – Transportweg zur Siemens S7-1511-1 PN
 
-**Status:** angenommen · entschieden am 2026-08-09 durch den Projektverantwortlichen
+> **ERSETZT am 2026-08-12 durch [ADR 0010](0010-opc-ua-statt-put-get.md).**
+>
+> Auf der SPS ist inzwischen ein **OPC-UA-Server eingerichtet**. Damit entfällt
+> die Grundlage dieser Entscheidung: Sie war keine fachliche Vorliebe für
+> PUT/GET, sondern die Folge der Vorgabe, keine Lizenz zu beschaffen.
+>
+> **Nichts aus diesem Dokument ist mehr umzusetzen.** Insbesondere werden die
+> unten beschriebenen TIA-Einstellungen — PUT/GET-Freigabe und deaktivierter
+> optimierter Bausteinzugriff — **nicht** gebraucht. Sind sie bereits gesetzt,
+> gehören sie zurückgenommen: eine offene Hintertür neben einer verschlossenen
+> Vordertür.
+>
+> Das Dokument bleibt als Beleg der Abwägung stehen und wird nicht gelöscht.
+> Wer später wissen will, warum die Netztrennung einmal als einzige tragende
+> Maßnahme galt, findet die Begründung hier.
+
+**Status:** **ersetzt** (2026-08-12) · entschieden am 2026-08-09 durch den Projektverantwortlichen
 **Bezug:** Kapitel 5 §6, Kapitel 12 §4, Kapitel 15 §47, Kapitel 18 §10
 **Ersetzt:** die vorläufige Fassung, die OPC UA empfahl
+**Ersetzt durch:** [ADR 0010](0010-opc-ua-statt-put-get.md)
 
 ## Entscheidung
 

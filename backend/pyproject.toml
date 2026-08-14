@@ -21,7 +21,7 @@ dev = [
     "ruff>=0.5",
     "mypy>=1.10",
 ]
-# Die SPS-Anbindung kommt erst mit M8 dazu (python-snap7), die
+# Die SPS-Anbindung kommt erst mit M8 dazu (asyncua — OPC UA, ADR 0010), die
 # Victron-Anbindung mit M9 (aiomqtt). Beide werden erst aufgenommen, wenn die
 # offenen Hardwarepunkte geklärt sind – siehe docs/OPEN_HARDWARE_REQUIREMENTS.md.
 

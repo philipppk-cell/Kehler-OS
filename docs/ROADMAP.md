@@ -338,14 +338,21 @@ APIs.
 > keine Berechtigungen. Für ein Fahrzeug mit einem Besitzer verwaltet eine
 > Anmeldung nichts und steht im Weg.
 >
-> **Was daraus folgt, ist der wichtigste Satz dieser Roadmap:** Die Absicherung
-> liegt jetzt **vollständig** auf der Netztrennung (Punkt I3). Wer das Backend
-> über das Netz erreicht, darf alles, was Kehler OS kann.
+> **Was daraus folgt:** Wer das Backend über das Netz erreicht, darf alles, was
+> Kehler OS kann.
 >
-> Neu ist das nicht — für die S7-Kommunikation galt es schon immer, weil
-> PUT/GET weder Verschlüsselung noch Authentifizierung kennt (ADR 0002). Aber
-> I3 ist damit die einzige tragende Maßnahme und bleibt **blockierend für den
-> Produktivbetrieb**.
+> *Nachtrag 2026-08-12:* Dieser Absatz endete früher mit dem Satz, die
+> Absicherung liege damit **vollständig** auf der Netztrennung — weil auch die
+> S7-Kommunikation über PUT/GET weder Verschlüsselung noch Authentifizierung
+> kannte. Seit auf der SPS ein **OPC-UA-Server** läuft, stimmt das nicht mehr
+> ([ADR 0010](architektur/adr/0010-opc-ua-statt-put-get.md)): Der Weg zur
+> Steuerung ist jetzt signiert, verschlüsselt und authentifiziert.
+>
+> Offen bleibt die Kehler-OS-API selbst. Der Unterschied ist aber erheblich —
+> der Weg über Kehler OS geht durch Befehlsprüfung, Grenzwerte,
+> Risikoeinstufung und Protokollierung, der direkte Weg zur SPS ging an
+> alledem vorbei. **I3 ist deshalb nicht mehr blockierend, sondern eine
+> Abwägung darüber, wer ins Fahrzeug-WLAN kommt.**
 >
 > Der `Authorizer`-Haken im Command Bus bleibt bestehen. Er kostet nichts, und
 > Kapitel 18 §120 verbietet, erst zu bauen und später abzusichern: Käme je eine

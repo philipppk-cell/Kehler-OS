@@ -2,7 +2,9 @@
 
 **Status:** angenommen · Anlage benannt am 2026-08-10
 **Bezug:** Kapitel 2 §4, Kapitel 12 §33/§67, Kapitel 13 §60, Kapitel 18 §29/§98/§136
-**Bezug intern:** [ADR 0002](0002-plc-transport.md) (Transport zur SPS),
+**Bezug intern:** [ADR 0010](0010-opc-ua-statt-put-get.md) (Transport zur SPS;
+ersetzt ADR 0002 — die Datenkette bleibt dieselbe, nur das Protokoll auf dem
+letzten Stück ist ein anderes),
 Punkt G1 in [`OPEN_HARDWARE_REQUIREMENTS.md`](../../OPEN_HARDWARE_REQUIREMENTS.md)
 
 ## Entscheidung
@@ -18,7 +20,7 @@ SCHEER selection 10/17 kW / HeatMate V4.02
         │  Modbus (bzw. CAN)
         ▼
 Siemens S7-1511-1 PN
-        │  S7-Kommunikation (PUT/GET) über snap7 — ADR 0002
+        │  OPC UA über asyncua — ADR 0010 (ersetzt ADR 0002)
         ▼
 Kehler OS
 ```
@@ -73,8 +75,8 @@ Der Raspberry Pi könnte Modbus selbst sprechen. Dagegen sprechen drei Punkte:
 2. **Der Pi ist nicht die Verfügbarkeitsebene.** Fällt er aus, muss die Heizung
    weiterlaufen. Liegt die Anbindung an der SPS, ist das selbstverständlich;
    läge sie am Pi, wäre die Heizung von einem Linux-Rechner abhängig.
-3. **Ein Transportweg statt zwei.** Kehler OS spricht bereits S7 mit der SPS
-   (ADR 0002). Ein zweiter Weg mit eigener Fehlerbehandlung, eigenem
+3. **Ein Transportweg statt zwei.** Kehler OS spricht bereits OPC UA mit der
+   SPS (ADR 0010). Ein zweiter Weg mit eigener Fehlerbehandlung, eigenem
    Verbindungszustand und eigener Alterung wäre Aufwand ohne Nutzen.
 
 Der Preis: Die SPS-Projektierung muss die Modbus-Werte in Datenbausteine

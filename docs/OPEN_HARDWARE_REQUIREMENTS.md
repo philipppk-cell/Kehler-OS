@@ -25,20 +25,38 @@ sicherheitsrelevante Ansteuerung wird nicht aktiviert (Kapitel 18 §136).
 
 ## A – Siemens S7-1511-1 PN
 
-### A1 · Transportweg zur SPS — `GEKLÄRT` (2026-08-09)
+### A1 · Transportweg zur SPS — `GEKLÄRT` (2026-08-12, geändert)
 
-**Antwort:** Keine OPC-UA-Lizenz. Es wird die **S7-Kommunikation (PUT/GET)
-über snap7** verwendet. Details und Sicherheitsfolgen in
-[ADR 0002](architektur/adr/0002-plc-transport.md).
+**Antwort: OPC UA.** Der Fahrzeughalter hat am 2026-08-12 mitgeteilt, dass auf
+der SPS ein **OPC-UA-Server eingerichtet ist**. Details in
+[ADR 0010](architektur/adr/0010-opc-ua-statt-put-get.md).
 
-**Daraus folgt für die SPS-Projektierung (TIA Portal):**
-- „Zugriff über PUT/GET-Kommunikation durch entfernten Partner erlauben“ aktivieren
-- bei allen betroffenen Datenbausteinen den **optimierten Bausteinzugriff deaktivieren**
-- Verbindung über ISO-on-TCP, Port 102
+> Die frühere Antwort lautete PUT/GET über snap7 — sie beruhte auf der Vorgabe,
+> keine OPC-UA-Lizenz zu beschaffen. Diese Vorgabe besteht nicht mehr.
+> [ADR 0002](architektur/adr/0002-plc-transport.md) ist damit ersetzt. **Die
+> dort verlangten TIA-Einstellungen werden nicht mehr gebraucht** und sollten,
+> falls bereits gesetzt, zurückgenommen werden: PUT/GET-Freigabe und
+> deaktivierter optimierter Bausteinzugriff sind Lockerungen an der Steuerung,
+> die neben einem gesicherten OPC-UA-Server nichts mehr zu suchen haben.
 
-**Wichtige Folge:** Dieser Weg kennt keine Verschlüsselung. Die Absicherung
-liegt damit vollständig auf der Netztrennung — Punkt I3 ist dadurch
-aufgewertet und nicht mehr optional.
+**Was der Wechsel praktisch bringt** — über den Protokollnamen hinaus:
+
+| | OPC UA | PUT/GET |
+| --- | --- | --- |
+| Qualität eines Wertes | **StatusCode aus der Anlage** | vom Adapter angenommen |
+| Messzeitpunkt | **SourceTimestamp** | Lesezeit statt Messzeit |
+| Änderungen | **Server meldet von sich aus** | zyklisch abfragen |
+| Adressierung | benannte Knoten | `DB10.DBX4.2` |
+| Transport | signiert und verschlüsselt | ungeschützt |
+
+Die erste Zeile ist die wichtigste: Ein defekter Analogeingang meldet in der
+SPS einen schlechten StatusCode. Über PUT/GET wäre davon nur eine Zahl
+angekommen, und die Oberfläche hätte sie als gültigen Messwert angezeigt.
+
+**Verbindlich:** Sicherheitsrichtlinie `Basic256Sha256` oder stärker, Modus
+`SignAndEncrypt`, Anmeldung **nicht anonym**. Ein OPC-UA-Server ohne
+aktivierte Sicherheit ist so offen wie PUT/GET — mit dem Unterschied, dass er
+sicher aussieht.
 
 <details>
 <summary>Ursprüngliche Abwägung (historisch)</summary>
@@ -70,11 +88,32 @@ State Store oder UI davon berührt werden.
 
 </details>
 
-### A2 · Netzwerkparameter der SPS — `OFFEN` · `BLOCKIEREND` für Phase 9
+### A2 · Zugang zum OPC-UA-Server — `OFFEN` · `BLOCKIEREND` für Phase 9
 
-- IP-Adresse der CPU (PROFINET-Schnittstelle)
-- Subnetz / Gateway
-- Rack und Slot (üblicherweise Rack 0 / Slot 1 — bitte bestätigen)
+*Inhaltlich geändert am 2026-08-12: Rack und Slot sind nicht mehr nötig — die
+gehörten zu PUT/GET. Gebraucht wird jetzt der Zugang zum Server.*
+
+| Angabe | Beispiel / Hinweis |
+| --- | --- |
+| **Endpunkt-URL** | `opc.tcp://<IP der CPU>:4840` — Siemens-Vorgabe ist Port 4840 |
+| **Sicherheitsrichtlinie** | `Basic256Sha256` oder stärker |
+| **Nachrichtenmodus** | `SignAndEncrypt` |
+| **Anmeldeverfahren** | Benutzername/Passwort **oder** Zertifikat — nicht anonym |
+| **Zertifikatsweg** | erzeugt der Pi eines und die CPU vertraut ihm, oder wird eines gestellt? |
+
+**Zum Zertifikat, der einzige Punkt mit Reihenfolge:** Der übliche Weg ist,
+dass Kehler OS auf dem Pi ein Client-Zertifikat erzeugt, es einmal zur CPU
+gebracht und dort in die Liste der vertrauenswürdigen Zertifikate aufgenommen
+wird (TIA Portal, Sicherheitseinstellungen der CPU). Erst danach kommt eine
+Verbindung zustande.
+
+Ein während der Inbetriebnahme gesetztes „allen vertrauen" ist bequem und
+gehört danach **zurückgenommen** — sonst ist die Zertifikatsprüfung
+abgeschaltet und die Verschlüsselung schützt gegen Mitlesen, aber nicht mehr
+gegen einen fremden Client.
+
+**Zugangsdaten gehören nach `config/hardware/`** und werden nicht versioniert
+(Kapitel 15 §49/§50). Sie werden hier nicht genannt und nicht erfunden.
 
 ### A3 · Datenpunkt-Mapping — `OFFEN` · `BLOCKIEREND` für Phase 9
 
@@ -87,20 +126,29 @@ DI 16x24 V HF, DQ 8x24 V/2 A HF und DQ 16x24 V. Die Typenschlüssel stehen in
 > eine nötig (CM PtP); über Modbus TCP ginge es über die vorhandene
 > PROFINET-Schnittstelle. Siehe Punkt G1.
 
+**Deutlich kleiner geworden am 2026-08-12.** Mit OPC UA ist der Adressraum
+**durchsuchbar**: Die Knoten tragen Namen, Datentypen und Beschreibungen. Es
+braucht deshalb keine handgeschriebene Adressliste mehr — es braucht den
+Zugang aus A2, und dann lässt sich der Bestand auslesen und vorlegen.
+
 Für **jede** Funktion, die real angebunden werden soll, wird benötigt:
 
-| Feld | Beispielinhalt |
-| --- | --- |
-| logische Kehler-OS-ID | `vehicle.garage.door` |
-| Richtung | read / write / read+write |
-| SPS-Adresse | *(vom Projektverantwortlichen)* |
-| Datentyp | Bool / Int / Real / Word |
-| Bedeutung von TRUE/FALSE bzw. Wertebereich | z. B. TRUE = verriegelt |
-| Rückmeldeadresse (falls getrennt vom Befehl) | |
+| Feld | Beispielinhalt | woher |
+| --- | --- | --- |
+| logische Kehler-OS-ID | `vehicle.garage.door` | steht fest |
+| NodeId | `ns=3;s="DB_Kehler"."Garage"."Tor_Auf"` | **auslesbar** |
+| Datentyp | Bool / Int16 / Real | **auslesbar** |
+| Richtung | read / write / read+write | **auslesbar** (AccessLevel) |
+| Bedeutung von TRUE/FALSE bzw. Wertebereich | z. B. TRUE = verriegelt | **muss genannt werden** |
+| Rückmeldeknoten, falls getrennt vom Befehl | | **muss genannt werden** |
 
-Die Struktur dieser Tabelle ist bereits als leeres, kommentiertes
-Konfigurationsschema hinterlegt (siehe `config/hardware/`). Sie wird
-ausgefüllt, nicht neu erfunden.
+Die letzten beiden Zeilen bleiben Handarbeit, und das ist keine Lücke im
+Verfahren: Dass ein Bit `Tor_Auf` heißt, sagt nicht, ob `TRUE` „ist offen"
+oder „fahre auf" bedeutet. Diese Bedeutung steht im Kopf dessen, der das
+Programm geschrieben hat, und wird nicht geraten (Kapitel 18 §97).
+
+Die Struktur ist als leeres, kommentiertes Konfigurationsschema hinterlegt
+(siehe `config/hardware/`). Sie wird ausgefüllt, nicht neu erfunden.
 
 ### A4 · Ein-/Ausgangsbelegung — `OFFEN` · `NICHT BLOCKIEREND`
 
@@ -621,36 +669,41 @@ Installationsdokumentation, nicht blockierend.
 - Gibt es ein Signal „Versorgung fällt gleich aus“ für ein kontrolliertes
   Herunterfahren?
 
-### I3 · Netzwerk — `TEILWEISE` (2026-08-10) · `BLOCKIEREND` für den Produktivbetrieb
+### I3 · Netzwerk — `TEILWEISE` (2026-08-10) · `EMPFOHLEN`, seit 2026-08-12 nicht mehr blockierend
 
 **Beantwortet:** Ein **LTE-Router mit Gigabit-Switch** verbindet alle Geräte.
 Ein Netz, ein Segment, keine Trennung. Subnetz und Adressen stehen in
 `config/hardware/devices.yaml` (ungetrackt).
 
-#### Was daraus folgt — der wichtigste offene Punkt vor dem Produktivbetrieb
+#### Zurückgestuft am 2026-08-12 — und warum nur zum Teil
 
-Die S7-Kommunikation über PUT/GET kennt **weder Verschlüsselung noch
-Authentifizierung** (ADR 0002). Das war eine bewusste Entscheidung, aber sie
-kam mit einer Bedingung: Die Absicherung liegt vollständig auf der
-Netztrennung (Kapitel 15 §47).
+Dieser Punkt war blockierend, weil die S7-Kommunikation über PUT/GET **weder
+Verschlüsselung noch Authentifizierung** kannte. Die Absicherung lag damit
+vollständig auf der Netztrennung (Kapitel 15 §47), und sie war die einzige
+tragende Maßnahme.
 
-**Seit dem 2026-08-10 gilt das für das gesamte System und nicht nur für die
-SPS.** Der Fahrzeughalter möchte keine Benutzer und keine Berechtigungen
-(Beschluss W14). Damit ist auch die Kehler-OS-API ohne Anmeldung erreichbar:
-Wer im Netz ist, kann das Garagentor öffnen, die Markise ausfahren und den
-Wechselrichter schalten.
+**Mit dem OPC-UA-Server entfällt dieser Grund** (ADR 0010). Der Weg zur SPS ist
+jetzt signiert, verschlüsselt und authentifiziert. Wer im WLAN ist, kann die
+Steuerung nicht mehr ohne Zertifikat ansprechen.
 
-Die Sicherheitslage verschiebt sich dadurch nicht — sie war für die SPS
-ohnehin schon so. Aber dieser Punkt ist jetzt die **einzige** tragende
-Maßnahme, und er bleibt blockierend für den Produktivbetrieb.
+**Was bleibt, und es ist nicht wenig:** Die Kehler-OS-API selbst hat weiterhin
+keine Anmeldung — Benutzer und Berechtigungen sind ausdrücklich abbestellt
+(Beschluss W14). Wer im Netz ist, kann also weiterhin das Garagentor öffnen,
+die Markise ausfahren und den Wechselrichter schalten. Nur eben **über**
+Kehler OS und nicht mehr daran vorbei.
 
-Diese Trennung gibt es derzeit nicht. In einem flachen Netz hinter einem
-LTE-Router heißt das konkret: Wer im WLAN ist — ein Gast, ein kompromittiertes
-Gerät, ein vergessenes Handy —, kann die SPS ohne Passwort ansprechen. Nicht
-Kehler OS umgehen, sondern **direkt die Steuerung**.
+Das ist ein Unterschied, der zählt: Der Weg über Kehler OS geht durch
+Befehlsprüfung, Grenzwerte, Risikoeinstufung und Protokollierung. Der direkte
+Weg zur SPS ging an alledem vorbei.
 
-Solange nichts real angesteuert wird, ist das folgenlos. Vor dem
-Produktivbetrieb muss es gelöst sein.
+Der Punkt bleibt deshalb **empfohlen**: Eine Trennung schützt jetzt die
+Bedienoberfläche statt der Steuerung, und ob das nötig ist, hängt davon ab,
+wer ins Fahrzeug-WLAN kommt. Das ist eine Abwägung des Fahrzeughalters
+geworden und keine technische Notwendigkeit mehr.
+
+> **Ein Grund für die Netzarbeit besteht unabhängig davon fort:** „Bildschirm
+> wach halten" braucht HTTPS (siehe I4). Wer ohnehin ein Segment aufbaut, kann
+> dem Pi bei der Gelegenheit ein Zertifikat geben.
 
 **Zwei gangbare Wege:**
 
@@ -855,14 +908,16 @@ kann sich lohnen — aber es ist eine Entscheidung und kein reiner Zugewinn.
 ## Zusammenfassung nach Dringlichkeit
 
 **Für die erste reale Inbetriebnahme (Phase 9) zwingend:**
-A2 Netzwerkparameter · A3 Mapping der zuerst angebundenen Funktion ·
-A5 vorhandene Sicherheitsverriegelungen · I3 Netztrennung
+A2 Zugang zum OPC-UA-Server · A3 Bedeutung der zuerst angebundenen Funktion ·
+A5 vorhandene Sicherheitsverriegelungen
 
-*(A1 und I1 sind geklärt.)*
+*(A1 und I1 sind geklärt. **I3 ist seit dem 2026-08-12 nicht mehr blockierend**
+— der OPC-UA-Server sichert den Weg zur SPS selbst ab.)*
 
 **Danach, für den sinnvollen Alltagsbetrieb:**
 B1 Cerbo-Schnittstelle · C1 Tanksensorik ·
-E1/E3 Garagen- und Verriegelungsrückmeldungen · I4 Display
+E1/E3 Garagen- und Verriegelungsrückmeldungen · I4 Display ·
+I3 Netztrennung (jetzt eine Abwägung, keine Notwendigkeit)
 
 **Zuletzt und bewusst nicht zuerst:**
 D1/D2 Nivellierung und Hydraulik
