@@ -159,10 +159,13 @@ entities:
 
   # VORLÄUFIG: dass es eine schaltbare Wasserpumpe gibt, ist anzunehmen —
   # bestätigt ist es nicht.
+  # BESTÄTIGT (2026-08-12): keine Rückmeldung — wie bei allen schaltbaren
+  # Sachen an der SPS. Die Oberfläche zeigt den zuletzt gesendeten Befehl.
   - id: water.pump.main
     name_key: water.pump
     type: switch
     area: tech
+    feedback: false
     timeout_ms: 2000
 
   # ── Energie ───────────────────────────────────────────────────────────────
@@ -657,10 +660,17 @@ entities:
   # Eingangstür rechts, Markise auf der rechten Dachkante.
   # VORLÄUFIG: die Einstiegsstufe und sämtliche Laufzeiten.
 
+  # BESTÄTIGT (2026-08-12): Die Heckklappe lässt sich **nur öffnen**. Sie wird
+  # von Gasdruckdämpfern aufgedrückt wie eine Autoheckklappe und von Hand
+  # wieder zugedrückt. Es gibt keinen Schließbefehl und keinen Stopp.
+  #
+  # Deshalb `release` und nicht `movable`: Ein bewegliches Teil brächte drei
+  # Befehle mit, von denen zwei ins Leere gingen.
   - id: vehicle.garage.door
     name_key: vehicle.garage_door
-    type: movable
+    type: release
     area: garage
+    feedback: false
     timeout_ms: 20000
     risk: MEDIUM
 
@@ -668,6 +678,7 @@ entities:
     name_key: vehicle.step
     type: movable
     area: exterior
+    feedback: false
     timeout_ms: 12000
     risk: MEDIUM
 
@@ -685,4 +696,44 @@ entities:
     name_key: vehicle.awning
     type: movable
     area: exterior
+    feedback: false
     configured: false
+
+  # ── Schränke ──────────────────────────────────────────────────────────────
+  # BESTÄTIGT (2026-08-12): Die Schränke haben eine **Zentralverriegelung**,
+  # damit sie während der Fahrt nicht aufgehen. Es gibt **drei Gruppen**, und
+  # sie heißen genau so: Schrankgruppe 1, 2 und 3. Mehr Namen gibt es nicht,
+  # und es werden auch keine erfunden (Kapitel 7 §31).
+  #
+  # Sie können ausschließlich öffnen und schließen — deshalb `lock` und nicht
+  # `movable`. Keine Stellungsrückmeldung, wie bei allen beweglichen Teilen
+  # des Fahrzeugs.
+  #
+  # Kein `risk: HIGH`: Entriegeln geschieht bei jedem Halt und wäre mit einer
+  # Rückfrage nur lästig. Die Gefahr liegt im **Vergessen des Verriegelns** vor
+  # der Fahrt, und dagegen hilft keine Rückfrage beim Öffnen.
+  #
+  # Kehler OS verriegelt auch nicht selbsttätig bei Fahrtbeginn: Der Fahrmodus
+  # hat keine Datenquelle (Punkt J1), und eine Automatik, die nicht auslöst,
+  # ist schlimmer als keine — man verlässt sich auf sie.
+
+  - id: vehicle.cabinet.group1
+    name_key: cabinet.group1
+    type: lock
+    area: living
+    feedback: false
+    timeout_ms: 8000
+
+  - id: vehicle.cabinet.group2
+    name_key: cabinet.group2
+    type: lock
+    area: living
+    feedback: false
+    timeout_ms: 8000
+
+  - id: vehicle.cabinet.group3
+    name_key: cabinet.group3
+    type: lock
+    area: living
+    feedback: false
+    timeout_ms: 8000

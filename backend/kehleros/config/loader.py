@@ -146,11 +146,27 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
             CommandSpec(verb="stop", expects="STOPPED", preempts=True, **common),
         )
 
-    if config.type == "valve":
-        # Zwei Befehle, zwei Stellungen, kein Stopp — ein Absperrorgan hat
-        # nichts dazwischen.
+    if config.type == "release":
+        # Nur öffnen. Kein Schließen, kein Stopp — die Mechanik kann es nicht.
+        # Ein zweiter Knopf wäre hier kein Komfort, sondern eine Behauptung
+        # über das Fahrzeug (Kapitel 12 §55).
+        return (
+            CommandSpec(
+                verb="open",
+                expects="OPEN",
+                timeout_ms=config.timeout_ms,
+                risk=config.risk,
+            ),
+        )
+
+    if config.type in ("valve", "lock"):
+        # Zwei Befehle, zwei Stellungen, kein Stopp — ein Absperrorgan und
+        # eine Verriegelung haben beide nichts dazwischen. Sie teilen sich
+        # diesen Zweig, weil sie sich technisch nicht unterscheiden; getrennt
+        # sind sie nur im Namen, damit die Oberfläche das richtige Wort
+        # verwendet.
         #
-        # ── Warum die beiden verschieden eingestuft sind ──────────────────
+        # ── Warum die beiden Befehle verschieden eingestuft sind ──────────
         #
         # Das Risiko liegt **im Öffnen**. Ein offenes Ablassventil entleert
         # den Tank, und wo das geschieht, bestimmt nicht die Software.

@@ -15,7 +15,8 @@
 
 import { Button, Card, Row, StaleMark, Status, Toggle } from "../design/primitives";
 import { IconPump, IconValve } from "../design/icons";
-import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
+import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
+import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
@@ -208,10 +209,10 @@ function TankRow({
 /**
  * Ein Ablassventil: zwei Stellungen, zwei Schaltflächen, kein Stopp.
  *
- * Der fehlende Stopp ist keine Auslassung dieser Datei — die Entity bietet
- * ihn nicht an, weil die Hardware ihn nicht hat. Deshalb wird auch hier
- * nichts fest verdrahtet: Welche Schaltfläche erscheint, entscheidet die
- * Capability (Kapitel 12 §55).
+ * Zustandsanzeige und Bestätigungslogik kommen aus `control/actuator` und
+ * stehen nicht mehr hier. Sie gelten für Ventile, Schrankverriegelungen und
+ * die Heckklappe gleichermaßen — dreimal nebeneinander wären sie dreimal
+ * Gelegenheit, auseinanderzulaufen.
  *
  * **Ein offenes Ventil wird hervorgehoben, nicht nur benannt.** Es ist der
  * einzige Zustand auf dieser Seite, der von selbst nicht wieder weggeht und
@@ -219,102 +220,54 @@ function TankRow({
  * fährt ein offenes Ventil mit.
  */
 function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
-  const valve = useEntity(valveId);
-  const { pending } = useAppState();
-  const definition = valve?.definition;
-  const name = definition?.name_key ? t(definition.name_key) : valveId;
+  const aktor = useAktor(valveId);
+  const offen = aktor.zustand === "OPEN";
 
-  if (definition === undefined) return null;
-
-  if (definition.configured === false) {
-    return (
-      <div className="valve">
-        <span className="valve__icon"><IconValve size={16} /></span>
-        <span className="valve__label">{t("water.drain")}</span>
-        <Status tone="unknown" label={t("state.notConfigured")} compact />
-      </div>
-    );
-  }
-
-  const verbs = new Set((definition.capabilities ?? []).map((c) => c.verb));
-  const busy = pending.has(valveId);
-
-  // Die Ablassventile melden ihre Stellung nicht zurück (Punkt C4). Deshalb
-  // gibt es hier zwei verschiedene Quellen, und sie werden **nicht**
-  // vermischt:
-  //
-  //   value      was die Hardware meldet — bei diesen Ventilen nie etwas
-  //   befohlen   was zuletzt gesendet wurde — das Einzige, was bekannt ist
-  //
-  // Der befohlene Wert wird als Befehl beschriftet und nie als Stellung.
-  // „Offen" zu schreiben, wo nur „Öffnen befohlen" bekannt ist, wäre genau
-  // die Behauptung, die Kapitel 18 §37 verbietet.
-  const value = online ? textOf(valve) : null;
-  const befohlen = online && !definition.feedback ? valve?.requested : null;
-  const angezeigt = value ?? (befohlen?.value as string | undefined) ?? null;
-  const isOpen = angezeigt === "OPEN";
+  if (aktor.entity?.definition === undefined) return null;
 
   function drive(verb: string) {
-    // Ob eine Bestätigung nötig ist, steht in der Capability. Der Loader
-    // stuft `open` und `close` getrennt ein — die Oberfläche liest die
-    // Einstufung, sie erfindet sie nicht (Kapitel 15 §21).
-    const needed =
-      (definition!.capabilities ?? []).find((c) => c.verb === verb)
-        ?.needs_confirmation ?? false;
-    if (needed && !window.confirm(t("water.confirmDrain", undefined, { name }))) {
+    if (
+      brauchtBestaetigung(aktor.entity, verb) &&
+      !window.confirm(t("water.confirmDrain", undefined, { name: aktor.name }))
+    ) {
       return;
     }
     sendCommand(valveId, verb);
   }
 
   return (
-    <div className={`valve${isOpen ? " valve--open" : ""}`}>
+    <div className={`valve${offen ? " valve--open" : ""}`}>
       <span className="valve__icon"><IconValve size={16} /></span>
       <span className="valve__label">{t("water.drain")}</span>
 
       <span className="valve__state">
-        {angezeigt === null ? (
-          /* Weder gemeldet noch befohlen: Solange niemand etwas geschaltet
-             hat, weiß Kehler OS über dieses Ventil nichts — und sagt das. */
-          <Status tone="unknown" label={t("state.unknown")} compact />
-        ) : befohlen ? (
-          <>
-            <Status
-              tone={isOpen ? "warn" : "neutral"}
-              label={isOpen ? t("water.valveOpenCommanded") : t("water.valveCloseCommanded")}
-              compact
-            />
-            {/* Der Zeitpunkt gehört dazu. Ohne ihn sieht ein Befehl von
-                gestern aus wie einer von eben — und ausgerechnet beim
-                Ablassen ist „wie lange schon" die eigentliche Frage. */}
-            <span className="valve__since">{seit(befohlen.since)}</span>
-          </>
-        ) : (
-          <Status
-            tone={isOpen ? "warn" : "ok"}
-            label={isOpen ? t("water.valveRunning") : t("state.closed")}
-            compact
-          />
-        )}
+        <Stellung aktor={aktor} />
       </span>
 
       <span className="valve__controls">
-        <Button
-          disabled={!online || busy || !verbs.has("open")}
-          onClick={() => drive("open")}
-        >
-          {t("water.valveOpen")}
-        </Button>
-        {/* Schließen bleibt erreichbar, solange das Ventil offen ist — auch
-            während ein Befehl läuft wäre es das Falsche, es zu sperren. Es
-            ist die Handlung, die den Zustand beendet. */}
-        <Button
-          variant={isOpen ? "accent" : "default"}
-          disabled={!online || busy || !verbs.has("close")}
-          onClick={() => drive("close")}
-        >
-          {t("water.valveClose")}
-        </Button>
+        {aktor.konfiguriert && (
+          <>
+            {aktor.verben.has("open") && (
+              <Button
+                disabled={!online || aktor.laeuft}
+                onClick={() => drive("open")}
+              >
+                {t("water.valveOpen")}
+              </Button>
+            )}
+            {/* Schließen bleibt erreichbar, solange das Ventil offen ist —
+                es ist die Handlung, die den Zustand beendet. */}
+            {aktor.verben.has("close") && (
+              <Button
+                variant={offen ? "accent" : "default"}
+                disabled={!online || aktor.laeuft}
+                onClick={() => drive("close")}
+              >
+                {t("water.valveClose")}
+              </Button>
+            )}
+          </>
+        )}
       </span>
     </div>
   );
@@ -439,24 +392,3 @@ function formatL(litres: number | null): string {
   return `${Math.round(litres)} L`;
 }
 
-/**
- * Wie lange ein Befehl her ist.
- *
- * Unter einer Minute steht „gerade eben" statt „vor 0 min": Eine Null ist
- * hier keine Information, sondern eine Rundung, die wie eine Angabe aussieht.
- *
- * Ab einer Stunde die Uhrzeit statt der Dauer. „Vor 3 Std" zwingt zum
- * Kopfrechnen, und wer wissen will, ob er das Ventil vor oder nach dem
- * Mittagessen geöffnet hat, will die Uhrzeit.
- */
-function seit(iso: string): string {
-  const zeitpunkt = new Date(iso);
-  const minuten = Math.floor((Date.now() - zeitpunkt.getTime()) / 60000);
-
-  if (!Number.isFinite(minuten) || minuten < 0) return "";
-  if (minuten < 1) return t("time.justNow");
-  if (minuten < 60) return t("time.minutesAgo", undefined, { n: String(minuten) });
-  return t("time.at", undefined, {
-    time: zeitpunkt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
-  });
-}

@@ -208,7 +208,12 @@ class SimulationAdapter(Adapter):
         # Bedingung darunter, und das Ventil meldete `OPENING` — einen
         # Zustand, den es nicht hat. Die Oberfläche zeigte dann eine Fahrt,
         # die nirgends stattfindet.
-        if entity.kind == "valve":
+        # Ventil, Verriegelung und Entriegelung verhalten sich gleich: Sie
+        # schalten sofort und kennen keine Zwischenstellung. Sie stehen vor
+        # der Bewegungserkennung darunter, weil {open, close} auch auf ein
+        # bewegliches Teil zutrifft — ohne diesen Vorrang meldeten sie
+        # `OPENING`, einen Zustand, den sie nicht haben.
+        if entity.kind in ("valve", "lock", "release"):
             return _Device(entity=entity, kind="valve", value=Position.CLOSED.value)
 
         if {"open", "close"} <= caps:

@@ -1,0 +1,77 @@
+/* Schränke. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+
+.schraenke {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--space-4);
+  align-items: start;
+
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.schraenke__main,
+.schraenke__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ── Eine Gruppe ─────────────────────────────────────────────────────────
+   Name, Zustand, Bedienung. Die Zeilen sind bewusst großzügig hoch: Sie
+   werden im Fahrzeug im Stehen und oft in Bewegung getroffen. */
+
+.schrank {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.schrank:last-child {
+  border-bottom: none;
+}
+
+.schrank__icon {
+  display: inline-flex;
+  color: var(--text-tertiary);
+}
+
+.schrank__name {
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.schrank__state {
+  display: inline-flex;
+}
+
+/* Die Schaltflächen rücken nach rechts, solange Platz ist; wird es eng,
+   fallen sie in die nächste Zeile statt zu schrumpfen. */
+.schrank__controls {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* ── Hinweise ────────────────────────────────────────────────────────────── */
+
+.schraenke__notes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 1100px) {
+  .schraenke {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

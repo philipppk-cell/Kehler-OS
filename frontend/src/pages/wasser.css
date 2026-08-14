@@ -170,13 +170,8 @@
   gap: var(--space-2);
 }
 
-/* Der Zeitpunkt des Befehls, zurückhaltend gesetzt: Er ergänzt die Aussage
-   daneben, er ist nicht selbst eine. */
-.valve__since {
-  font-size: var(--text-caption);
-  color: var(--text-tertiary);
-  white-space: nowrap;
-}
+/* Der Zeitpunkt des Befehls steht jetzt im Designsystem (`.stellung__seit`),
+   weil ihn Wasser-, Fahrzeug- und Schrankseite gleichermaßen zeigen. */
 
 /* Die Schaltflächen rücken nach rechts, solange Platz ist. Wird es eng,
    fallen sie in die nächste Zeile, statt zu schrumpfen — eine gedrückte

@@ -112,8 +112,12 @@ class TestSimulationswerkzeuge:
         """
         entities = client.get(f"{API_PREFIX}/diagnostics/simulation").json()["entities"]
 
-        assert "BLOCKED" in entities["vehicle.garage.door"]["faults"]
+        # Die Einstiegsstufe ist das bewegliche Teil der Konfiguration. Die
+        # Heckklappe war es einmal — seit dem 2026-08-12 ist sie ein `release`
+        # mit nur einem Befehl (Gasdruckdämpfer, kein Schließantrieb).
+        assert "BLOCKED" in entities["vehicle.step.entry"]["faults"]
         assert "BLOCKED" not in entities["energy.battery.soc"]["faults"]
+        assert "BLOCKED" not in entities["vehicle.garage.door"]["faults"]
 
         # Alles außer BLOCKED wirkt überall: Ein Fühler kann unplausibel
         # werden, einen Defekt melden oder verstummen — ein Garagentor auch.
@@ -192,7 +196,7 @@ class TestEntities:
         entities = client.get(f"{API_PREFIX}/entities").json()
         assert entities
 
-        eintrag = next(e for e in entities if e["entity_id"] == "vehicle.garage.door")
+        eintrag = next(e for e in entities if e["entity_id"] == "vehicle.step.entry")
         assert eintrag["state"]["quality"] in {
             "UNKNOWN",
             "VALID",
@@ -202,6 +206,32 @@ class TestEntities:
         }
         verben = {c["verb"] for c in eintrag["definition"]["capabilities"]}
         assert verben == {"open", "close", "stop"}
+
+    def test_heckklappe_bietet_nur_oeffnen_an(self, client: TestClient):
+        """BESTÄTIGT (2026-08-12): Sie hat keinen Schließantrieb.
+
+        Gasdruckdämpfer drücken sie auf, zugedrückt wird sie von Hand. Bekäme
+        die Oberfläche hier `close` oder `stop` geliefert, entstünden zwei
+        Schaltflächen für Funktionen, die es am Fahrzeug nicht gibt.
+        """
+        eintrag = client.get(f"{API_PREFIX}/entities/vehicle.garage.door").json()
+        verben = {c["verb"] for c in eintrag["definition"]["capabilities"]}
+        assert verben == {"open"}
+
+    def test_schraenke_haben_drei_gruppen_mit_auf_und_zu(self, client: TestClient):
+        """BESTÄTIGT (2026-08-12): drei Gruppen, nur öffnen und schließen."""
+        entities = client.get(f"{API_PREFIX}/entities").json()
+        gruppen = {
+            e["entity_id"]: {c["verb"] for c in e["definition"]["capabilities"]}
+            for e in entities
+            if e["entity_id"].startswith("vehicle.cabinet.")
+        }
+        assert set(gruppen) == {
+            "vehicle.cabinet.group1",
+            "vehicle.cabinet.group2",
+            "vehicle.cabinet.group3",
+        }
+        assert all(v == {"open", "close"} for v in gruppen.values())
 
     def test_messwert_hat_keine_bedienelemente(self, client: TestClient):
         eintrag = client.get(f"{API_PREFIX}/entities/water.tank.fresh.large").json()
@@ -240,16 +270,22 @@ class TestBefehle:
         assert antwort.status_code == 409
         assert antwort.json()["rejection"] == "NOT_CONFIGURED"
 
-    def test_blockierte_mechanik_meldet_sofort_und_ohne_erfolg(
+    def test_ohne_rueckmeldung_wird_nicht_gewartet(
         self, client: TestClient, app: Application
     ):
-        """Blockierte Mechanik darf niemals 200 liefern — und nicht warten.
+        """Der Fall des realen Fahrzeugs seit dem 2026-08-12.
 
-        Früher lief dieser Befehl in den vollen Timeout (12 s) und meldete
-        dann „keine Rückmeldung". Das war doppelt falsch: Die Hardware hatte
-        geantwortet, nur eben `BLOCKED`, und der Benutzer stand zwölf Sekunden
-        vor einer klemmenden Stufe, um danach die falsche Auskunft zu
-        bekommen.
+        Hier stand ein Test, der eine blockierte Stufe prüfte: Der Befehl
+        musste sofort mit 502 scheitern statt zwölf Sekunden in den Timeout zu
+        laufen. Dieser Test ist entfallen, weil **das Fahrzeug keine
+        Rückmeldung liefert** — eine Blockade kann gar nicht mehr erkannt
+        werden. Der Mechanismus selbst bleibt geprüft, dort wo er greift:
+        `test_command_bus.py::TestStopp::test_blockierte_bewegung_meldet_sofort`.
+
+        Geprüft wird hier stattdessen, was am realen Fahrzeug geschieht: Der
+        Befehl gilt als erledigt, sobald er abgesetzt ist — und zwar sofort.
+        Würde auf eine Bestätigung gewartet, käme nach zwölf Sekunden „keine
+        Rückmeldung", obwohl nichts fehlgeschlagen ist.
         """
         simulation = app.adapters[0]
         simulation.inject("vehicle.step.entry", Fault.BLOCKED)
@@ -261,14 +297,28 @@ class TestBefehle:
         )
         gedauert = time.monotonic() - begonnen
 
-        assert antwort.status_code == 502
-        assert antwort.json()["success"] is False
-        assert antwort.json()["phase"] == "FAILED"
+        assert antwort.status_code == 200
+        assert antwort.json()["phase"] == "COMPLETED"
+        assert gedauert < 3.0, f"Antwort erst nach {gedauert:.1f} s — wird gewartet?"
 
-        # Der Zeitwert ist der eigentliche Gewinn. Die Grenze liegt weit unter
-        # dem Timeout der Entity (12 s) und weit über jeder realistischen
-        # Verarbeitungszeit.
-        assert gedauert < 3.0, f"Meldung erst nach {gedauert:.1f} s"
+    def test_ohne_rueckmeldung_bleibt_der_zustand_unbekannt(self, client: TestClient):
+        """Ein erfolgreicher Befehl macht aus nichts kein Wissen.
+
+        Das ist die Regel, an der die ganze Anzeige hängt: Kehler OS hat die
+        Stufe angesteuert und weiß trotzdem nicht, wo sie steht
+        (Kapitel 18 §38).
+        """
+        client.post(
+            f"{API_PREFIX}/commands",
+            json={"entity_id": "vehicle.step.entry", "verb": "open"},
+        )
+        eintrag = client.get(f"{API_PREFIX}/entities/vehicle.step.entry").json()
+
+        assert eintrag["state"]["quality"] == "UNKNOWN"
+        assert eintrag["state"]["value"] is None
+        # Sichtbar bleibt allein der letzte Befehl — als Wunsch, nicht als
+        # Zustand.
+        assert eintrag["requested"]["value"] == "OPEN"
 
 
 class TestRealtime:

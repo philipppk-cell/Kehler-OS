@@ -258,17 +258,63 @@ class TestMitgelieferteKonfiguration:
         for ventil in ventile:
             assert ventil.feedback is False, f"{ventil.id} erwartet eine Rückmeldung"
 
-    def test_nur_die_ventile_sind_ohne_rueckmeldung(self):
-        """Die Ausnahme bleibt eine Ausnahme.
+    def test_nur_aktoren_sind_ohne_rueckmeldung(self):
+        """BESTÄTIGT (2026-08-12): Kein bewegliches Teil meldet zurück.
 
-        Ein versehentliches `feedback: false` an einem Tanksensor wäre
-        besonders tückisch: Der Wert verschwände einfach, ohne dass irgendwo
-        eine Warnung entsteht — denn „meldet nichts" ist für diese Entities ja
-        der vorgesehene Zustand.
+        Messwerte dagegen kommen weiterhin — Tanks, Temperaturen, Victron.
+        Genau diese Grenze hält der Test fest. Ein versehentliches
+        `feedback: false` an einem Tanksensor wäre besonders tückisch: Der
+        Wert verschwände, ohne dass irgendwo eine Warnung entsteht, denn
+        „meldet nichts" ist für einen Aktor ja der vorgesehene Zustand.
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        ohne = {e.id for e in build_entities(vehicle) if not e.feedback}
-        assert ohne == {"water.valve.grey", "water.valve.black"}
+        entities = build_entities(vehicle)
+
+        ohne = {e.id for e in entities if not e.feedback}
+        assert ohne == {
+            "water.valve.grey",
+            "water.valve.black",
+            "water.pump.main",
+            "vehicle.garage.door",
+            "vehicle.step.entry",
+            "vehicle.awning.main",
+            "vehicle.cabinet.group1",
+            "vehicle.cabinet.group2",
+            "vehicle.cabinet.group3",
+        }
+
+        # Die Gegenprobe ist die eigentliche Aussage: Alles ohne Rückmeldung
+        # ist etwas, das man schaltet. Kein einziger Messwert ist dabei.
+        assert all(e.commands for e in entities if not e.feedback)
+
+    def test_heckklappe_kennt_nur_oeffnen(self):
+        """BESTÄTIGT (2026-08-12): Gasdruckdämpfer, kein Schließantrieb.
+
+        Sie war einmal ein `movable` mit drei Befehlen. Zwei davon gingen ins
+        Leere — und die Oberfläche hätte sie als Schaltflächen gezeigt.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        klappe = next(e for e in build_entities(vehicle) if e.id == "vehicle.garage.door")
+        assert klappe.kind == "release"
+        assert set(klappe.capabilities) == {"open"}
+
+    def test_drei_schrankgruppen_mit_auf_und_zu(self):
+        """BESTÄTIGT (2026-08-12): drei Gruppen, und sie heißen auch nur so.
+
+        Der Test hält die **Anzahl** fest. Eine vierte Gruppe wäre eine
+        Erfindung über das Fahrzeug, und ausgerechnet an einer Stelle, an der
+        jemand vor der Abfahrt prüft, ob alles zu ist.
+        """
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        gruppen = [e for e in build_entities(vehicle) if e.kind == "lock"]
+
+        assert {e.id for e in gruppen} == {
+            "vehicle.cabinet.group1",
+            "vehicle.cabinet.group2",
+            "vehicle.cabinet.group3",
+        }
+        for gruppe in gruppen:
+            assert set(gruppe.capabilities) == {"open", "close"}
 
     def test_warnschwellen_entsprechen_der_angabe(self):
         """Die Schwellen sind vom Fahrzeughalter genannt (Punkt C3).

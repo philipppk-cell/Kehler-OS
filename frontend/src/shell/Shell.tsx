@@ -12,6 +12,7 @@ import { useAppState } from "../realtime/hooks";
 import { t } from "../i18n/de";
 import { Status } from "../design/primitives";
 import {
+  IconCabinet,
   IconCooling,
   IconDashboard,
   IconDiagnostics,
@@ -27,7 +28,7 @@ import "./shell.css";
 
 export type PageId =
   | "dashboard" | "energy" | "water" | "climate" | "heating"
-  | "leveling" | "vehicle" | "settings" | "diagnostics";
+  | "leveling" | "vehicle" | "cabinets" | "settings" | "diagnostics";
 
 /* Klima und Heizung stehen als zwei Einträge nebeneinander, weil es zwei
    Systeme sind (BESTÄTIGT 2026-08-10). Ein Eintrag mit zwei Unterseiten
@@ -51,6 +52,7 @@ const NAV: { id: PageId; icon: ReactNode }[] = [
   { id: "heating", icon: <IconHeating /> },
   { id: "leveling", icon: <IconLeveling /> },
   { id: "vehicle", icon: <IconVehicle /> },
+  { id: "cabinets", icon: <IconCabinet /> },
   { id: "settings", icon: <IconSettings /> },
   { id: "diagnostics", icon: <IconDiagnostics /> },
 ];

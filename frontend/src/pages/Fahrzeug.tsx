@@ -30,13 +30,13 @@
  * zusammenfassende Ja/Nein-Aussage gibt es nicht.
  */
 
-import { Button, Card, Row, Status, type Tone } from "../design/primitives";
+import { Button, Card, Row, Status } from "../design/primitives";
 import { IconAwning, IconDoor, IconGarage, IconStep } from "../design/icons";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { useVehicleState } from "../vehicle3d/useVehicleState";
+import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { textOf, useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
-import type { EntityView } from "../realtime/types";
 import { t } from "../i18n/de";
 import "./fahrzeug.css";
 
@@ -110,25 +110,17 @@ function PartRow({
   icon: JSX.Element;
   online: boolean;
 }) {
-  const entity = useEntity(entityId);
-  const { pending } = useAppState();
-  const definition = entity?.definition;
-  const name = definition?.name_key ? t(definition.name_key) : entityId;
-
-  const verbs = new Set((definition?.capabilities ?? []).map((c) => c.verb));
-  const value = online ? textOf(entity) : null;
-  const moving = value !== null && MOVING.includes(value);
-  const busy = pending.has(entityId);
-
-  const confirmNeeded = (verb: string) =>
-    (definition?.capabilities ?? []).find((c) => c.verb === verb)?.needs_confirmation ??
-    false;
+  const aktor = useAktor(entityId);
+  const faehrt = aktor.zustand !== null && MOVING.includes(aktor.zustand);
 
   function drive(verb: string) {
     // Ob eine Bestätigung nötig ist, steht in der Capability und nicht hier.
     // Die Oberfläche liest die Einstufung, sie erfindet sie nicht
     // (Kapitel 15 §21).
-    if (confirmNeeded(verb) && !window.confirm(t("vehicle.confirmMove", undefined, { name }))) {
+    if (
+      brauchtBestaetigung(aktor.entity, verb) &&
+      !window.confirm(t("vehicle.confirmMove", undefined, { name: aktor.name }))
+    ) {
       return;
     }
     sendCommand(entityId, verb);
@@ -138,77 +130,54 @@ function PartRow({
     <div className="part">
       <span className="part__icon">{icon}</span>
 
-      <span className="part__name">{name}</span>
+      <span className="part__name">{aktor.name}</span>
 
       <span className="part__state">
-        <PartState entity={entity} online={online} />
+        <Stellung aktor={aktor} />
       </span>
 
       <span className="part__controls">
-        {definition?.configured === false ? null : (
+        {aktor.konfiguriert && (
           <>
-            {/* Während einer Fahrt sind weitere Fahrbefehle gesperrt — der
-                Command Bus weist sie ohnehin ab (Kapitel 13 §21). Sie hier
-                anzubieten hieße, eine Fehlermeldung anzubieten. */}
-            <Button
-              disabled={!online || busy || moving || !verbs.has("open")}
-              onClick={() => drive("open")}
-            >
-              {t("vehicle.open")}
-            </Button>
-            <Button
-              disabled={!online || busy || moving || !verbs.has("close")}
-              onClick={() => drive("close")}
-            >
-              {t("vehicle.close")}
-            </Button>
+            {/* Nur Schaltflächen für Befehle, die es gibt.
+                Die Heckklappe kennt seit dem 2026-08-12 nur `open` — sie wird
+                von Gasdruckdämpfern aufgedrückt und von Hand zugedrückt. Eine
+                ausgegraute Schaltfläche „Schließen" wäre die Behauptung, das
+                ginge grundsätzlich schon und sei nur gerade gesperrt
+                (Kapitel 12 §55). */}
+            {aktor.verben.has("open") && (
+              <Button
+                disabled={!online || aktor.laeuft || faehrt}
+                onClick={() => drive("open")}
+              >
+                {t("vehicle.open")}
+              </Button>
+            )}
+            {aktor.verben.has("close") && (
+              <Button
+                disabled={!online || aktor.laeuft || faehrt}
+                onClick={() => drive("close")}
+              >
+                {t("vehicle.close")}
+              </Button>
+            )}
             {/* Der Stopp ist **nicht** deshalb gesperrt, weil eine Bewegung
                 läuft — das ist genau der Moment, in dem er gebraucht wird.
                 Solange etwas fährt, hebt er sich zusätzlich ab. */}
-            <Button
-              variant={moving ? "accent" : "default"}
-              disabled={!online || !verbs.has("stop")}
-              onClick={() => sendCommand(entityId, "stop")}
-            >
-              {t("vehicle.stop")}
-            </Button>
+            {aktor.verben.has("stop") && (
+              <Button
+                variant={faehrt ? "accent" : "default"}
+                disabled={!online}
+                onClick={() => sendCommand(entityId, "stop")}
+              >
+                {t("vehicle.stop")}
+              </Button>
+            )}
           </>
         )}
       </span>
     </div>
   );
-}
-
-/**
- * Der Zustand eines beweglichen Teils.
- *
- * Sechs Zustände, sechs Antworten. Insbesondere wird eine laufende Bewegung
- * als Bewegung gezeigt und nicht als erreichte Endlage.
- */
-function PartState({
-  entity,
-  online,
-}: {
-  entity: EntityView | undefined;
-  online: boolean;
-}) {
-  if (entity?.definition?.configured === false) {
-    return <Status tone="unknown" label={t("state.notConfigured")} compact />;
-  }
-
-  const value = online ? textOf(entity) : null;
-  if (value === null) {
-    return <Status tone="unknown" label={t("state.unknown")} compact />;
-  }
-
-  const tone: Tone =
-    value === "BLOCKED" ? "error"
-    : MOVING.includes(value) ? "accent"
-    : value === "OPEN" ? "warn"
-    : value === "STOPPED" ? "neutral"
-    : "ok";
-
-  return <Status tone={tone} label={t(`state.${value.toLowerCase()}`, value)} compact />;
 }
 
 /* ── Ein Kontakt ─────────────────────────────────────────────────────────── */

@@ -26,7 +26,15 @@ class _Strict(BaseModel):
 
 
 EntityType = Literal[
-    "measurement", "contact", "status", "switch", "movable", "valve", "setpoint"
+    "measurement",
+    "contact",
+    "status",
+    "switch",
+    "movable",
+    "valve",
+    "lock",
+    "release",
+    "setpoint",
 ]
 """Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.
 
@@ -56,6 +64,20 @@ Halt dazwischen. Eine Stopp-Schaltfläche wäre ein Bedienelement für eine
 Funktion, die die Hardware nicht hat — genau das, was das Capability-Prinzip
 verhindern soll (Kapitel 12 §55). Ebenso entfielen ``OPENING``/``CLOSING``:
 Zwischenzustände einer Bewegung, die es hier nicht gibt.
+
+Ein ``lock`` ist eine Verriegelung: auf und zu, sonst nichts. Technisch
+dasselbe Befehlspaar wie beim ``valve``, aber mit eigenem Namen, weil die
+Oberfläche und die Diagnose den Typ anzeigen — und eine Schrankverriegelung
+ist kein Absperrventil. Dieselbe Überlegung wie oben: Der richtige Name ist
+kein Schmuck, er verhindert Fehlgriffe.
+
+Ein ``release`` kennt **nur Öffnen**. Es gibt Mechanik, die sich elektrisch
+entriegeln, aber nicht elektrisch schließen lässt — die Heckklappe des
+Fahrzeugs wird von Gasdruckdämpfern aufgedrückt und von Hand wieder
+zugedrückt (BESTÄTIGT 2026-08-12). Ein ``movable`` hätte dafür drei Befehle zu
+viel; selbst ein ``valve`` hätte einen zu viel. Die Oberfläche zeigt deshalb
+genau eine Schaltfläche, und der Benutzer sucht nicht nach einer zweiten, die
+es nie gab.
 
 Ein ``setpoint`` ist ein einstellbarer Zahlenwert mit Grenzen — die
 Eingangsstrombegrenzung des Landstroms ebenso wie eine Solltemperatur. Es gab

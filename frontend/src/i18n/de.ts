@@ -35,6 +35,7 @@ const de: Record<string, string> = {
   "nav.heating": "Heizung",
   "nav.leveling": "Nivellierung",
   "nav.vehicle": "Fahrzeug",
+  "nav.cabinets": "Schränke",
   // „Garage" hatte einen eigenen Reiter. Er ist entfallen: Dahinter lag genau
   // ein Tor, und das steht vollständig auf der Fahrzeugseite. Ein Reiter, der
   // eine Zeile zeigt, verspricht einen Bereich, den es nicht gibt.
@@ -158,12 +159,10 @@ const de: Record<string, string> = {
   "water.drain": "Ablassen",
   "water.valveOpen": "Ventil öffnen",
   "water.valveClose": "Ventil schließen",
-  "water.valveRunning": "Läuft ab",
-  // „Befohlen" und nicht „offen": Die Ventile melden ihre Stellung nicht
-  // zurück. Was hier steht, ist der letzte gesendete Befehl — und das muss
-  // das Wort auch sagen (Kapitel 18 §37).
-  "water.valveOpenCommanded": "Öffnen befohlen",
-  "water.valveCloseCommanded": "Schließen befohlen",
+  // „Läuft ab" und die beiden „…befohlen"-Schlüssel standen hier. Sie sind
+  // nach `actuator.*` gewandert: Dieselbe Aussage gilt für Ventile,
+  // Schrankverriegelungen und die Heckklappe, und dreimal nebeneinander
+  // wären es drei Gelegenheiten auseinanderzulaufen.
   "water.confirmDrain":
     "{name} wirklich öffnen? Der Tank entleert sich dorthin, wo das Fahrzeug gerade steht.",
   "water.valveNote":
@@ -177,6 +176,27 @@ const de: Record<string, string> = {
   "water.thresholdMarks":
     "Die beiden Markierungen im Balken zeigen, wo die Stufen liegen.",
   "water.historyLater": "Verlauf entsteht in einem späteren Schritt",
+
+  // Aktoren ohne Rückmeldung. „Befohlen" und nicht „offen": Kehler OS kennt
+  // die Stellung nicht, es kennt nur den letzten Befehl (Kapitel 18 §37).
+  "actuator.openCommanded": "Öffnen befohlen",
+  "actuator.closeCommanded": "Schließen befohlen",
+
+  // Schränke
+  "cabinet.group1": "Schrankgruppe 1",
+  "cabinet.group2": "Schrankgruppe 2",
+  "cabinet.group3": "Schrankgruppe 3",
+  "cabinet.title": "Zentralverriegelung",
+  "cabinet.unlock": "Öffnen",
+  "cabinet.lock": "Verriegeln",
+  "cabinet.confirm": "{name} wirklich öffnen?",
+  "cabinet.notesTitle": "Hinweise",
+  "cabinet.notePurpose":
+    "Die Verriegelung hält die Schränke während der Fahrt zu. Vor dem Losfahren verriegeln.",
+  "cabinet.noteNoFeedback":
+    "Die Verriegelung meldet ihre Stellung nicht zurück. Angezeigt wird der zuletzt gesendete Befehl, nicht der tatsächliche Zustand.",
+  "cabinet.noteNoAuto":
+    "Es wird nicht selbsttätig verriegelt. Kehler OS erkennt den Fahrtbeginn nicht, und eine Automatik, die nicht auslöst, ist schlimmer als keine.",
 
   // Zeitangaben. Unter einer Minute keine Zahl — eine gerundete Null sähe
   // aus wie eine Angabe. Ab einer Stunde die Uhrzeit statt der Dauer, damit

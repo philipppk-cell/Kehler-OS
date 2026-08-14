@@ -109,6 +109,16 @@ export const IconVehicle = (p: IconProps) => (
    hält die Möglichkeit offen, es „schnell mal" wieder einzuhängen — und genau
    so entstand der leere Reiter, der eben entfernt wurde. */
 
+/** Ein Schrank mit zwei Türen und Griffen — nicht ein Schloss.
+ *  Der Reiter heißt „Schränke"; das Schloss ist nur, was daran hängt. */
+export const IconCabinet = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
+    <path d="M12 3.5v17" />
+    <path d="M9.5 10.5v3M14.5 10.5v3" />
+  </Icon>
+);
+
 export const IconGarage = (p: IconProps) => (
   <Icon {...p}>
     <path d="M3 20V9l9-5 9 5v11" />

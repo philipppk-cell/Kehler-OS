@@ -6,6 +6,7 @@ import { Energie } from "./pages/Energie";
 import { Klima } from "./pages/Klima";
 import { Heizung } from "./pages/Heizung";
 import { Fahrzeug } from "./pages/Fahrzeug";
+import { Schraenke } from "./pages/Schraenke";
 import { Diagnose } from "./pages/Diagnose";
 import { Einstellungen } from "./pages/Einstellungen";
 import { Placeholder } from "./pages/Placeholder";
@@ -54,6 +55,8 @@ export function App() {
           <Heizung />
         ) : page === "vehicle" ? (
           <Fahrzeug />
+        ) : page === "cabinets" ? (
+          <Schraenke />
         ) : page === "diagnostics" ? (
           <Diagnose />
         ) : page === "settings" ? (
