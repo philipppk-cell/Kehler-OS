@@ -56,6 +56,14 @@ frontend/dist-demo/
 tools/demo/recording.json
 tools/demo/kehler-os-demo.fragment.html
 
+# Der Erkundungsbericht des OPC-UA-Servers. Er enthält Bausteinnamen, die
+# Struktur der Anlage und aktuelle Messwerte — das gehört zum Fahrzeug wie die
+# Hardwareadressen (Kapitel 17 §48). Das Werkzeug selbst ist versioniert, sein
+# Ergebnis nicht. Ebenso die Client-Zertifikate für die OPC-UA-Verbindung.
+tools/opcua/opcua-bericht.txt
+tools/opcua/*.der
+tools/opcua/*.pem
+
 # Das 3D-Modell des Fahrzeugs. Es gehört zum Fahrzeug wie die Hardwareadressen
 # und wird deshalb nicht versioniert: eine große Binärdatei, die je nach
 # Fahrzeug eine andere ist. Ohne sie greift die aus Code gebaute Darstellung
