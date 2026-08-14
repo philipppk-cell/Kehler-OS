@@ -16,7 +16,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .adapters.base import Adapter
+from .adapters.opcua_plc import OpcUaPlcAdapter
 from .adapters.simulation import SimulationAdapter
+from .config.hardware import load_plc_device, load_plc_read_points
 from .config.loader import build_entities, load_settings, load_vehicle
 from .config.models import Settings, VehicleConfig
 from .core.alerts import derive_alerts
@@ -56,6 +58,7 @@ class Application:
         vehicle: VehicleConfig,
         *,
         vehicle_dir: Path | None = None,
+        hardware_dir: Path | None = None,
     ) -> None:
         from . import __version__
 
@@ -64,6 +67,7 @@ class Application:
         self.vehicle = vehicle
 
         self.vehicle_dir = vehicle_dir
+        self.hardware_dir = hardware_dir
         """Verzeichnis der Fahrzeugkonfiguration.
 
         Nur dafür da, das 3D-Modell daneben zu finden. Ein eigener
@@ -105,7 +109,12 @@ class Application:
     ) -> Application:
         settings = load_settings(settings_path)
         vehicle = load_vehicle(vehicle_path)
-        return cls(settings, vehicle, vehicle_dir=vehicle_path.parent)
+        return cls(
+            settings,
+            vehicle,
+            vehicle_dir=vehicle_path.parent,
+            hardware_dir=vehicle_path.parent.parent / "hardware",
+        )
 
     def _build_adapters(self) -> list[Adapter]:
         """Wählt die Adapter anhand der Betriebsart.
@@ -116,11 +125,25 @@ class Application:
         (Kapitel 18 §97).
         """
         if self.settings.environment is Environment.PRODUCTION:
-            log.warning(
-                "Produktionsbetrieb: Es sind noch keine realen Adapter "
-                "konfiguriert. Siehe docs/OPEN_HARDWARE_REQUIREMENTS.md (A2, A3)."
-            )
-            return []
+            if self.hardware_dir is None:
+                log.warning(
+                    "Produktionsbetrieb ohne Hardwarekonfiguration: "
+                    "Es werden keine realen Adapter gestartet."
+                )
+                return []
+
+            device = load_plc_device(self.hardware_dir / "devices.yaml")
+            points = load_plc_read_points(self.hardware_dir / "mapping.yaml")
+
+            return [
+                OpcUaPlcAdapter(
+                    self.state,
+                    self.events,
+                    self.registry,
+                    device,
+                    points,
+                )
+            ]
 
         return [
             SimulationAdapter(

@@ -69,3 +69,6 @@ tools/opcua/*.pem
 # Fahrzeug eine andere ist. Ohne sie greift die aus Code gebaute Darstellung
 # (ADR 0008) — siehe Punkt K2.
 config/vehicle/model.glb
+
+# Python-Paket-Metadaten
+*.egg-info/
