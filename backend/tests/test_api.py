@@ -265,7 +265,11 @@ class TestBefehle:
     def test_nicht_konfiguriert_ergibt_konflikt(self, client: TestClient):
         antwort = client.post(
             f"{API_PREFIX}/commands",
-            json={"entity_id": "vehicle.awning.main", "verb": "open"},
+            json={
+                "entity_id": "climate.cooling.state",
+                "verb": "set_state",
+                "params": {"state": "ON"},
+            },
         )
         assert antwort.status_code == 409
         assert antwort.json()["rejection"] == "NOT_CONFIGURED"

@@ -30,13 +30,15 @@
  * zusammenfassende Ja/Nein-Aussage gibt es nicht.
  */
 
+import { useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button, Card, Row, Status } from "../design/primitives";
 import { IconAwning, IconDoor, IconGarage, IconStep } from "../design/icons";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { useVehicleState } from "../vehicle3d/useVehicleState";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { textOf, useAppState, useEntity } from "../realtime/hooks";
-import { sendCommand } from "../api/client";
+import { renewHold, sendCommand } from "../api/client";
 import { t } from "../i18n/de";
 import "./fahrzeug.css";
 
@@ -67,7 +69,7 @@ export function Fahrzeug() {
             icon={<IconStep size={20} />}
             online={online}
           />
-          <PartRow
+          <HoldPartRow
             entityId="vehicle.awning.main"
             icon={<IconAwning size={20} />}
             online={online}
@@ -188,6 +190,201 @@ function PartRow({
   );
 }
 
+
+
+/* ── Totmann-Bedienung der Markise ─────────────────────────────────────── */
+
+const HOLD_HEARTBEAT_MS = 250;
+
+function HoldPartRow({
+  entityId,
+  icon,
+  online,
+}: {
+  entityId: string;
+  icon: JSX.Element;
+  online: boolean;
+}) {
+  const aktor = useAktor(entityId);
+  const [pressed, setPressed] = useState<string | null>(null);
+
+  const pressedRef = useRef<string | null>(null);
+  const releasedRef = useRef(false);
+  const stoppingRef = useRef(false);
+  const generationRef = useRef(0);
+  const heartbeatRef = useRef<number | null>(null);
+  const startRef = useRef<Promise<unknown> | null>(null);
+
+  function clearHeartbeat() {
+    if (heartbeatRef.current !== null) {
+      window.clearTimeout(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+  }
+
+  function clearPressed() {
+    pressedRef.current = null;
+    setPressed(null);
+  }
+
+  function scheduleHeartbeat(verb: string, generation: number) {
+    clearHeartbeat();
+
+    heartbeatRef.current = window.setTimeout(async () => {
+      if (
+        releasedRef.current ||
+        generationRef.current !== generation ||
+        pressedRef.current !== verb
+      ) {
+        return;
+      }
+
+      const ok = await renewHold(entityId, verb);
+
+      if (!ok) {
+        // Keine weitere Bewegung anfordern. Der Backend-Watchdog setzt den
+        // Ausgang zusätzlich selbst zurück, falls dieser Stop-Aufruf wegen
+        // derselben Verbindungsstörung nicht mehr ankommt.
+        releasedRef.current = true;
+        generationRef.current += 1;
+        clearHeartbeat();
+        clearPressed();
+        await sendCommand(entityId, "stop");
+        return;
+      }
+
+      scheduleHeartbeat(verb, generation);
+    }, HOLD_HEARTBEAT_MS);
+  }
+
+  async function startHold(
+    verb: "open" | "close",
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) {
+    if (!online || pressedRef.current !== null || stoppingRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer Capture ist Komfort, nicht Sicherheitsfunktion.
+      // Der Backend-Watchdog bleibt unabhängig davon aktiv.
+    }
+
+    const generation = generationRef.current + 1;
+    generationRef.current = generation;
+    releasedRef.current = false;
+    pressedRef.current = verb;
+    setPressed(verb);
+
+    const start = sendCommand(entityId, verb);
+    startRef.current = start;
+
+    const result = await start;
+
+    if (startRef.current === start) {
+      startRef.current = null;
+    }
+
+    if (
+      releasedRef.current ||
+      generationRef.current !== generation ||
+      pressedRef.current !== verb
+    ) {
+      return;
+    }
+
+    if (!result?.success) {
+      releasedRef.current = true;
+      clearPressed();
+      return;
+    }
+
+    scheduleHeartbeat(verb, generation);
+  }
+
+  async function stopHold() {
+    if (
+      stoppingRef.current ||
+      (pressedRef.current === null && startRef.current === null)
+    ) {
+      return;
+    }
+
+    stoppingRef.current = true;
+    releasedRef.current = true;
+    generationRef.current += 1;
+    clearHeartbeat();
+
+    try {
+      // Falls der Finger extrem kurz auflag, darf STOP nicht vor dem noch
+      // laufenden START am Server ankommen. Erst Start beenden, dann Stop.
+      const start = startRef.current;
+      if (start !== null) {
+        await start;
+      }
+
+      await sendCommand(entityId, "stop");
+    } finally {
+      startRef.current = null;
+      clearPressed();
+      stoppingRef.current = false;
+    }
+  }
+
+  const status =
+    pressed === "open"
+      ? t("vehicle.awningExtending")
+      : pressed === "close"
+        ? t("vehicle.awningRetracting")
+        : t("vehicle.awningHoldIdle");
+
+  return (
+    <div className="part part--hold">
+      <span className="part__icon">{icon}</span>
+      <span className="part__name">{aktor.name}</span>
+
+      <span className="part__state">
+        <Status
+          tone={pressed !== null ? "accent" : "unknown"}
+          label={status}
+          compact
+        />
+      </span>
+
+      <span className="part__controls">
+        {aktor.konfiguriert && (
+          <>
+            <Button
+              variant={pressed === "open" ? "accent" : "default"}
+              disabled={!online || pressed === "close"}
+              onPointerDown={(event) => void startHold("open", event)}
+              onPointerUp={() => void stopHold()}
+              onPointerCancel={() => void stopHold()}
+              onLostPointerCapture={() => void stopHold()}
+            >
+              {t("vehicle.extend")}
+            </Button>
+
+            <Button
+              variant={pressed === "close" ? "accent" : "default"}
+              disabled={!online || pressed === "open"}
+              onPointerDown={(event) => void startHold("close", event)}
+              onPointerUp={() => void stopHold()}
+              onPointerCancel={() => void stopHold()}
+              onLostPointerCapture={() => void stopHold()}
+            >
+              {t("vehicle.retract")}
+            </Button>
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
 
 /* ── Eine Verriegelung ohne Stellungsrückmeldung ─────────────────────────── */
 

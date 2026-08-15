@@ -73,6 +73,29 @@ export async function sendCommand(
  * Der Rohtext aus `detail` bleibt der Diagnose vorbehalten und erscheint
  * nicht in der normalen Oberfläche (Kapitel 7 §43, Kapitel 17 §22).
  */
+/**
+ * Verlängert einen bereits laufenden Hold-to-run-Befehl.
+ *
+ * Dieser Aufruf kann selbst keine Bewegung starten. Bleibt er aus, beendet
+ * der Backend-Watchdog den SPS-Eingang automatisch.
+ */
+export async function renewHold(
+  entityId: string,
+  verb: string,
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${BASE}/holds/heartbeat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity_id: entityId, verb }),
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 function explain(result: CommandResult): string {
   if (result.rejection) {
     return t(`cmd.rejected.${result.rejection}`, t("cmd.failed"));

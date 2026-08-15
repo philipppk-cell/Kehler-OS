@@ -52,6 +52,13 @@ class CommandRequest(BaseModel):
     client: str | None = None
 
 
+class HoldHeartbeatRequest(BaseModel):
+    """Erneuert die Lease eines bereits laufenden Totmann-Befehls."""
+
+    entity_id: str
+    verb: str
+
+
 class FaultRequest(BaseModel):
     """Ein gezielt ausgelöstes Fehlerbild — nur in der Simulation."""
 
@@ -432,6 +439,42 @@ def create_app(application: Application) -> FastAPI:
         return JSONResponse(
             status_code=_status_for(command.phase),
             content=ser.command_result(command),
+        )
+
+    @router.post("/holds/heartbeat")
+    async def hold_heartbeat(request: HoldHeartbeatRequest) -> dict[str, bool]:
+        """Verlängert ausschließlich einen bereits aktiven Hold.
+
+        Start und Stopp bleiben normale CommandBus-Befehle. Der Heartbeat
+        verändert keine Fahrtrichtung und kann selbst keinen Ausgang starten.
+        """
+        entity = application.registry.get(request.entity_id)
+
+        if entity is None:
+            raise HTTPException(status_code=404, detail="Unbekannte Entity")
+
+        if entity.spec_for(request.verb) is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Befehl für diese Entity nicht erlaubt",
+            )
+
+        for adapter in application.adapters:
+            renew = getattr(adapter, "renew_hold", None)
+
+            if renew is None or request.entity_id not in adapter.entity_ids:
+                continue
+
+            try:
+                await renew(request.entity_id, request.verb)
+            except RuntimeError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+            return {"ok": True}
+
+        raise HTTPException(
+            status_code=404,
+            detail="Kein Hold-Adapter für diese Entity",
         )
 
     # ── Realtime ────────────────────────────────────────────────────────────

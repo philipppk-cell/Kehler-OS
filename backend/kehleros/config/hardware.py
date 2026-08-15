@@ -94,8 +94,11 @@ class OpcUaWritePointConfig(_Strict):
     verb: str
     type: Literal["bool"] = "bool"
     ref: str
-    mode: Literal["pulse"] = "pulse"
+    mode: Literal["pulse", "hold"] = "pulse"
     pulse_ms: int = Field(default=100, ge=50, le=500)
+    # Bei hold muss Kehler OS den Befehl regelmäßig erneuern.
+    # Bleibt die Erneuerung aus, wird der Eingang automatisch zurückgesetzt.
+    hold_timeout_ms: int = Field(default=800, ge=300, le=5000)
 
     @field_validator("id")
     @classmethod

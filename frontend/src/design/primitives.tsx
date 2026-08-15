@@ -6,7 +6,7 @@
  * eigene Buttons oder Karten.
  */
 
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, PointerEventHandler, ReactNode } from "react";
 import { Quality, type EntityView } from "../realtime/types";
 import { useAppState } from "../realtime/hooks";
 import { t } from "../i18n/de";
@@ -347,12 +347,20 @@ export function Row({
 export function Button({
   children,
   onClick,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
+  onLostPointerCapture,
   variant = "default",
   disabled,
   full,
 }: {
   children: ReactNode;
   onClick?: () => void;
+  onPointerDown?: PointerEventHandler<HTMLButtonElement>;
+  onPointerUp?: PointerEventHandler<HTMLButtonElement>;
+  onPointerCancel?: PointerEventHandler<HTMLButtonElement>;
+  onLostPointerCapture?: PointerEventHandler<HTMLButtonElement>;
   variant?: "default" | "accent" | "quiet";
   disabled?: boolean;
   full?: boolean;
@@ -362,6 +370,10 @@ export function Button({
       type="button"
       className={`btn btn--${variant}${full ? " btn--full" : ""}`}
       onClick={onClick}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onLostPointerCapture}
       disabled={disabled}
     >
       {children}

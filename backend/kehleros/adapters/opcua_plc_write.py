@@ -1,10 +1,11 @@
 """Explizit freigegebene OPC-UA-Schreibbefehle für die Siemens-SPS.
 
-Dieser Adapter kennt keine beliebigen SPS-Adressen. Er kann ausschließlich
-die im lokalen Hardware-Mapping freigegebenen Entity/Verb-Kombinationen
-ausführen.
+Es können ausschließlich die im lokalen Hardware-Mapping freigegebenen
+Entity/Verb-Kombinationen ausgeführt werden.
 
-Aktuell unterstützt er nur getestete Boolean-Impulse auf HMI-Eingänge.
+Unterstützt:
+- pulse: kurzer TRUE/FALSE-Impuls
+- hold: TRUE solange regelmäßig erneuert; Watchdog setzt automatisch FALSE
 """
 
 from __future__ import annotations
@@ -26,6 +27,10 @@ from ..domain.models import Command, CommandSpec
 from .base import Adapter
 
 log = logging.getLogger(__name__)
+
+
+def _bool_value(value: bool) -> ua.DataValue:
+    return ua.DataValue(ua.Variant(value, ua.VariantType.Boolean))
 
 
 class OpcUaPlcWriteAdapter(Adapter):
@@ -62,6 +67,12 @@ class OpcUaPlcWriteAdapter(Adapter):
             for point in points
         }
         self._nodes: dict[tuple[str, str], Any] = {}
+
+        # Welche Hold-Richtung Kehler OS selbst gerade aktiviert hat.
+        self._hold_active: dict[str, str] = {}
+
+        # Pro Entity genau ein Watchdog.
+        self._hold_watchdogs: dict[str, asyncio.Task[None]] = {}
 
         if len(self._points) != len(points):
             raise ValueError("Doppeltes OPC-UA-Schreibmapping")
@@ -115,12 +126,29 @@ class OpcUaPlcWriteAdapter(Adapter):
         }
 
         log.info(
-            "OPC-UA-Schreibadapter verbunden: %s (%d Befehle)",
+            "OPC-UA-Schreibadapter verbunden: %s (%d Schreibpunkte)",
             connection.endpoint,
             len(self._nodes),
         )
 
     async def disconnect(self) -> None:
+        # Alles, was Kehler OS selbst gehalten hat, vor dem Trennen freigeben.
+        for entity_id in list(self._hold_active):
+            try:
+                await self._release_hold(entity_id)
+            except Exception:
+                log.critical(
+                    "Hold-Eingang konnte beim Trennen nicht sicher "
+                    "zurückgesetzt werden: %s",
+                    entity_id,
+                    exc_info=True,
+                )
+
+        for task in self._hold_watchdogs.values():
+            task.cancel()
+        self._hold_watchdogs.clear()
+        self._hold_active.clear()
+
         client = self._client
         self._client = None
         self._nodes.clear()
@@ -144,8 +172,15 @@ class OpcUaPlcWriteAdapter(Adapter):
                     f"{entity_id}.{verb}={value!r}"
                 )
 
-            if value:
-                entity_id, verb = key
+            entity_id, verb = key
+            point = self._points[key]
+
+            expected_hold = (
+                point.mode == "hold"
+                and self._hold_active.get(entity_id) == verb
+            )
+
+            if value and not expected_hold:
                 log.warning(
                     "HMI-Eingang steht außerhalb eines Kehler-OS-Befehls "
                     "auf TRUE: %s.%s",
@@ -160,6 +195,18 @@ class OpcUaPlcWriteAdapter(Adapter):
     ) -> None:
         del spec
 
+        # Hold-Entities besitzen keinen eigenen SPS-Node für STOP.
+        # Stop bedeutet: alle von Kehler OS gehaltenen Richtungen FALSE.
+        if command.verb == "stop":
+            hold_points = self._hold_points(command.entity_id)
+            if hold_points:
+                await self._release_hold(command.entity_id)
+                log.info(
+                    "OPC-UA-Haltebefehl gestoppt: %s",
+                    command.entity_id,
+                )
+                return
+
         key = (command.entity_id, command.verb)
         point = self._points.get(key)
 
@@ -173,32 +220,33 @@ class OpcUaPlcWriteAdapter(Adapter):
         if node is None:
             raise RuntimeError("OPC-UA-Schreibadapter ist nicht verbunden")
 
+        if point.mode == "hold":
+            await self._execute_hold(command, point, node)
+            return
+
+        await self._execute_pulse(command, point, node)
+
+    async def _execute_pulse(
+        self,
+        command: Command,
+        point: OpcUaWritePointConfig,
+        node: Any,
+    ) -> None:
         current = await node.read_value()
 
-        # Kein vorhandenes TRUE überschreiben. Das könnte beispielsweise ein
-        # gleichzeitig gedrückter Taster des normalen HMIs sein.
+        # Einen vorhandenen Tastendruck des normalen HMIs nicht überschreiben.
         if current is not False:
             raise RuntimeError(
                 "HMI-Eingang ist vor dem Befehl nicht FALSE: "
                 f"{command.entity_id}.{command.verb}"
             )
 
-        active = ua.DataValue(
-            ua.Variant(True, ua.VariantType.Boolean)
-        )
-        inactive = ua.DataValue(
-            ua.Variant(False, ua.VariantType.Boolean)
-        )
-
-        # Das Zurücksetzen liegt absichtlich im finally: Auch wenn der Task
-        # während des Impulses abgebrochen wird, darf der HMI-Eingang nicht
-        # absichtlich auf TRUE stehen bleiben.
         try:
-            await node.write_value(active)
+            await node.write_value(_bool_value(True))
             await asyncio.sleep(point.pulse_ms / 1000.0)
         finally:
             try:
-                await node.write_value(inactive)
+                await node.write_value(_bool_value(False))
             except Exception as exc:
                 log.critical(
                     "HMI-Eingang konnte nicht auf FALSE zurückgesetzt werden: "
@@ -223,3 +271,194 @@ class OpcUaPlcWriteAdapter(Adapter):
             command.verb,
             point.pulse_ms,
         )
+
+    async def _execute_hold(
+        self,
+        command: Command,
+        point: OpcUaWritePointConfig,
+        node: Any,
+    ) -> None:
+        entity_id = command.entity_id
+        verb = command.verb
+        active_verb = self._hold_active.get(entity_id)
+
+        siblings = self._hold_points(entity_id)
+
+        if active_verb is None:
+            # Vor dem ersten TRUE müssen BEIDE Richtungen FALSE sein.
+            # So überschreiben wir keinen Tastendruck des normalen HMIs.
+            for sibling_verb, _, sibling_node in siblings:
+                value = await sibling_node.read_value()
+                if value is not False:
+                    raise RuntimeError(
+                        "HMI-Eingang ist vor Hold nicht FALSE: "
+                        f"{entity_id}.{sibling_verb}"
+                    )
+
+            await node.write_value(_bool_value(True))
+            self._hold_active[entity_id] = verb
+
+            log.info(
+                "OPC-UA-Haltebefehl gestartet: %s.%s",
+                entity_id,
+                verb,
+            )
+
+        elif active_verb == verb:
+            # Heartbeat für dieselbe Richtung.
+            if await node.read_value() is not True:
+                raise RuntimeError(
+                    "Aktiver Hold-Eingang ist unerwartet nicht TRUE: "
+                    f"{entity_id}.{verb}"
+                )
+
+            # Gegenrichtung muss währenddessen sicher FALSE bleiben.
+            for sibling_verb, _, sibling_node in siblings:
+                if sibling_verb == verb:
+                    continue
+                if await sibling_node.read_value() is not False:
+                    raise RuntimeError(
+                        "Gegenrichtung ist während Hold aktiv: "
+                        f"{entity_id}.{sibling_verb}"
+                    )
+
+        else:
+            raise RuntimeError(
+                "Gegenrichtung bereits aktiv: "
+                f"{entity_id}.{active_verb}"
+            )
+
+        self._arm_watchdog(entity_id, point.hold_timeout_ms)
+
+    async def renew_hold(self, entity_id: str, verb: str) -> None:
+        """Verlängert ausschließlich einen bereits aktiven Hold.
+
+        Diese Methode kann keinen neuen HMI-Eingang einschalten. Der Start
+        muss vorher als normaler, validierter CommandBus-Befehl erfolgt sein.
+        """
+        point = self._points.get((entity_id, verb))
+
+        if point is None or point.mode != "hold":
+            raise RuntimeError(
+                f"Kein Hold-Schreibpunkt für {entity_id}.{verb}"
+            )
+
+        if self._hold_active.get(entity_id) != verb:
+            raise RuntimeError(
+                f"Hold ist nicht aktiv: {entity_id}.{verb}"
+            )
+
+        node = self._nodes.get((entity_id, verb))
+        if node is None:
+            raise RuntimeError(
+                "OPC-UA-Schreibadapter ist nicht verbunden"
+            )
+
+        if await node.read_value() is not True:
+            raise RuntimeError(
+                f"Aktiver Hold-Eingang ist nicht TRUE: {entity_id}.{verb}"
+            )
+
+        for sibling_verb, _, sibling_node in self._hold_points(entity_id):
+            if sibling_verb == verb:
+                continue
+
+            if await sibling_node.read_value() is not False:
+                raise RuntimeError(
+                    "Gegenrichtung ist während Hold aktiv: "
+                    f"{entity_id}.{sibling_verb}"
+                )
+
+        self._arm_watchdog(entity_id, point.hold_timeout_ms)
+
+    async def _release_hold(self, entity_id: str) -> None:
+        points = self._hold_points(entity_id)
+        active_verb = self._hold_active.get(entity_id)
+
+        if not points:
+            raise RuntimeError(
+                f"Keine Hold-Schreibpunkte für {entity_id}"
+            )
+
+        if active_verb is None:
+            # STOP darf fremde/physische HMI-Tastendrücke nicht überschreiben.
+            for verb, _, node in points:
+                if await node.read_value() is not False:
+                    raise RuntimeError(
+                        "Hold-Eingang ist TRUE, wurde aber nicht von "
+                        f"Kehler OS aktiviert: {entity_id}.{verb}"
+                    )
+            return
+
+        # Beide Richtungen sicher FALSE setzen.
+        for _, _, node in points:
+            await node.write_value(_bool_value(False))
+
+        for verb, _, node in points:
+            if await node.read_value() is not False:
+                raise RuntimeError(
+                    "Hold-Eingang konnte nicht sicher zurückgesetzt werden: "
+                    f"{entity_id}.{verb}"
+                )
+
+        self._hold_active.pop(entity_id, None)
+        self._cancel_watchdog(entity_id)
+
+    def _hold_points(
+        self,
+        entity_id: str,
+    ) -> list[tuple[str, OpcUaWritePointConfig, Any]]:
+        result: list[tuple[str, OpcUaWritePointConfig, Any]] = []
+
+        for (point_entity, verb), point in self._points.items():
+            if point_entity != entity_id or point.mode != "hold":
+                continue
+
+            node = self._nodes.get((point_entity, verb))
+            if node is not None:
+                result.append((verb, point, node))
+
+        return result
+
+    def _arm_watchdog(self, entity_id: str, timeout_ms: int) -> None:
+        self._cancel_watchdog(entity_id)
+
+        self._hold_watchdogs[entity_id] = asyncio.create_task(
+            self._hold_watchdog(entity_id, timeout_ms)
+        )
+
+    def _cancel_watchdog(self, entity_id: str) -> None:
+        task = self._hold_watchdogs.pop(entity_id, None)
+
+        if (
+            task is not None
+            and task is not asyncio.current_task()
+            and not task.done()
+        ):
+            task.cancel()
+
+    async def _hold_watchdog(
+        self,
+        entity_id: str,
+        timeout_ms: int,
+    ) -> None:
+        try:
+            await asyncio.sleep(timeout_ms / 1000.0)
+            await self._release_hold(entity_id)
+
+            log.warning(
+                "OPC-UA-Haltebefehl automatisch beendet "
+                "(Heartbeat ausgeblieben): %s",
+                entity_id,
+            )
+
+        except asyncio.CancelledError:
+            return
+
+        except Exception:
+            log.critical(
+                "OPC-UA-Haltebefehl konnte vom Watchdog nicht sicher "
+                "beendet werden: %s",
+                entity_id,
+                exc_info=True,
+            )

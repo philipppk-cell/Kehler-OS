@@ -299,6 +299,20 @@ class TestMitgelieferteKonfiguration:
         assert klappe.kind == "release"
         assert set(klappe.capabilities) == {"open"}
 
+    def test_markise_ist_bestaetigt_und_bedienbar(self):
+        """BESTÄTIGT 2026-08-15: Hold-to-run in beiden Richtungen."""
+
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        markise = next(
+            e
+            for e in build_entities(vehicle)
+            if e.id == "vehicle.awning.main"
+        )
+
+        assert markise.configured is True
+        assert markise.feedback is False
+        assert set(markise.capabilities) == {"open", "close", "stop"}
+
     def test_drei_schrankgruppen_mit_auf_und_zu(self):
         """BESTÄTIGT (2026-08-12): drei Gruppen, und sie heißen auch nur so.
 

@@ -701,16 +701,22 @@ entities:
     feedback: false
     timeout_ms: 8000
 
-  # Beispiel für eine vorgesehene, aber noch nicht zugeordnete Funktion.
-  # Die Oberfläche zeigt „Nicht konfiguriert“ und bietet keine Bedienung an
-  # (Kapitel 18 §101). Genau so werden später alle Funktionen aussehen,
-  # deren Mapping noch fehlt.
+  # BESTÄTIGT (2026-08-15): Die Markise wird als echter Taster bedient.
+  # Sie fährt ausschließlich so lange, wie Ausfahren bzw. Einfahren gedrückt
+  # gehalten wird. Das Verhalten wurde am vorhandenen HMI beobachtet und
+  # anschließend in beiden Richtungen per OPC UA am realen Fahrzeug geprüft.
+  #
+  # Es gibt keine Stellungsrückmeldung. Kehler OS darf deshalb weder eine
+  # vollständig ausgefahrene noch eine vollständig eingefahrene Position
+  # behaupten.
   - id: vehicle.awning.main
     name_key: vehicle.awning
     type: movable
     area: exterior
     feedback: false
-    configured: false
+    configured: true
+    timeout_ms: 5000
+    risk: MEDIUM
 
   # ── Schränke ──────────────────────────────────────────────────────────────
   # BESTÄTIGT (2026-08-12): Die Schränke haben eine **Zentralverriegelung**,
