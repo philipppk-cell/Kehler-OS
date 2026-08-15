@@ -17,8 +17,13 @@ from pathlib import Path
 
 from .adapters.base import Adapter
 from .adapters.opcua_plc import OpcUaPlcAdapter
+from .adapters.opcua_plc_write import OpcUaPlcWriteAdapter
 from .adapters.simulation import SimulationAdapter
-from .config.hardware import load_plc_device, load_plc_read_points
+from .config.hardware import (
+    load_plc_device,
+    load_plc_read_points,
+    load_plc_write_points,
+)
 from .config.loader import build_entities, load_settings, load_vehicle
 from .config.models import Settings, VehicleConfig
 from .core.alerts import derive_alerts
@@ -133,17 +138,35 @@ class Application:
                 return []
 
             device = load_plc_device(self.hardware_dir / "devices.yaml")
-            points = load_plc_read_points(self.hardware_dir / "mapping.yaml")
+            read_points = load_plc_read_points(
+                self.hardware_dir / "mapping.yaml"
+            )
+            write_points = load_plc_write_points(
+                self.hardware_dir / "mapping.yaml"
+            )
 
-            return [
+            adapters: list[Adapter] = [
                 OpcUaPlcAdapter(
                     self.state,
                     self.events,
                     self.registry,
                     device,
-                    points,
+                    read_points,
                 )
             ]
+
+            if write_points:
+                adapters.append(
+                    OpcUaPlcWriteAdapter(
+                        self.state,
+                        self.events,
+                        self.registry,
+                        device,
+                        write_points,
+                    )
+                )
+
+            return adapters
 
         return [
             SimulationAdapter(

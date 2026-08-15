@@ -80,6 +80,47 @@ class OpcUaReadPointConfig(_Strict):
         return value
 
 
+class OpcUaWritePointConfig(_Strict):
+    """Explizit freigegebener OPC-UA-Schreibbefehl.
+
+    Kehler OS kann damit nicht beliebige NodeIds beschreiben. Jede erlaubte
+    Kombination aus Entity und Verb muss einzeln im lokalen Hardware-Mapping
+    hinterlegt sein.
+    """
+
+    id: str
+    device: Literal["plc"] = "plc"
+    direction: Literal["write"] = "write"
+    verb: str
+    type: Literal["bool"] = "bool"
+    ref: str
+    mode: Literal["pulse"] = "pulse"
+    pulse_ms: int = Field(default=100, ge=50, le=500)
+
+    @field_validator("id")
+    @classmethod
+    def _valid_entity_id(cls, value: str) -> str:
+        return validate_entity_id(value)
+
+    @field_validator("verb")
+    @classmethod
+    def _valid_verb(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Schreibverb fehlt")
+        return value
+
+    @field_validator("ref")
+    @classmethod
+    def _real_reference(cls, value: str) -> str:
+        value = value.strip()
+        if not value or "<TODO" in value.upper():
+            raise ValueError("OPC-UA-NodeId fehlt")
+        if not value.startswith("ns="):
+            raise ValueError("OPC-UA-NodeId muss mit 'ns=' beginnen")
+        return value
+
+
 def load_plc_device(path: Path) -> OpcUaPlcDeviceConfig:
     data = load_yaml(path)
     devices = data.get("devices")
@@ -151,5 +192,45 @@ def load_plc_read_points(path: Path) -> list[OpcUaReadPointConfig]:
         raise ConfigError(
             f"{path}: kein lesender SPS-Datenpunkt konfiguriert"
         )
+
+    return result
+
+
+
+def load_plc_write_points(path: Path) -> list[OpcUaWritePointConfig]:
+    """Lädt ausschließlich explizit freigegebene SPS-Schreibbefehle."""
+
+    data = load_yaml(path)
+    datapoints = data.get("datapoints")
+    if not isinstance(datapoints, list):
+        raise ConfigError(f"{path}: 'datapoints' muss eine Liste sein")
+
+    result: list[OpcUaWritePointConfig] = []
+    seen: set[tuple[str, str]] = set()
+
+    for raw in datapoints:
+        if not isinstance(raw, dict):
+            raise ConfigError(
+                f"{path}: jeder Datenpunkt muss eine Zuordnung sein"
+            )
+
+        if raw.get("device") != "plc" or raw.get("direction") != "write":
+            continue
+
+        try:
+            point = OpcUaWritePointConfig.model_validate(raw)
+        except ValidationError as exc:
+            raise ConfigError(
+                f"Ungültiger SPS-Schreibpunkt in {path}:\n{exc}"
+            ) from exc
+
+        key = (point.id, point.verb)
+        if key in seen:
+            raise ConfigError(
+                f"{path}: Schreibpunkt '{point.id}.{point.verb}' ist doppelt"
+            )
+
+        seen.add(key)
+        result.append(point)
 
     return result
