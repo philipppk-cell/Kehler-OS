@@ -276,7 +276,7 @@ class TestMitgelieferteKonfiguration:
             "water.valve.black",
             "water.pump.main",
             "vehicle.garage.door",
-            "vehicle.step.entry",
+            "vehicle.terrace.main",
             "vehicle.awning.main",
             "vehicle.cabinet.group1",
             "vehicle.cabinet.group2",
@@ -298,6 +298,20 @@ class TestMitgelieferteKonfiguration:
         klappe = next(e for e in build_entities(vehicle) if e.id == "vehicle.garage.door")
         assert klappe.kind == "release"
         assert set(klappe.capabilities) == {"open"}
+
+    def test_terrasse_ist_bestaetigt_und_bedienbar(self):
+        """BESTÄTIGT 2026-08-15: Hold-to-run in beiden Richtungen."""
+
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        terrasse = next(
+            e
+            for e in build_entities(vehicle)
+            if e.id == "vehicle.terrace.main"
+        )
+
+        assert terrasse.configured is True
+        assert terrasse.feedback is False
+        assert set(terrasse.capabilities) == {"open", "close", "stop"}
 
     def test_markise_ist_bestaetigt_und_bedienbar(self):
         """BESTÄTIGT 2026-08-15: Hold-to-run in beiden Richtungen."""

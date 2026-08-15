@@ -341,9 +341,9 @@ const de: Record<string, string> = {
   "vehicle.notesTitle": "Hinweise",
   "vehicle.extend": "Ausfahren",
   "vehicle.retract": "Einfahren",
-  "vehicle.awningHoldIdle": "Nur solange gedrückt",
-  "vehicle.awningExtending": "Fährt aus",
-  "vehicle.awningRetracting": "Fährt ein",
+  "vehicle.holdIdle": "Nur solange gedrückt",
+  "vehicle.extending": "Fährt aus",
+  "vehicle.retracting": "Fährt ein",
   "vehicle.open": "Öffnen",
   "vehicle.close": "Schließen",
   "vehicle.stop": "Stopp",
@@ -358,7 +358,7 @@ const de: Record<string, string> = {
 
   // Fahrzeug
   "vehicle.garage_door": "Garage",
-  "vehicle.step": "Stufen",
+  "vehicle.terrace": "Terrasse",
   "vehicle.awning": "Markise",
   "vehicle.door_main": "Eingangstür",
   "vehicle.doors": "Türen",

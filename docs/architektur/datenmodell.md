@@ -24,7 +24,7 @@ Kleinbuchstaben, `snake_case` innerhalb eines Segments, Punkt als Trenner.
 | `water` | Wassersystem | `water.tank.fresh`, `water.tank.grey`, `water.tank.black`, `water.pump.main` |
 | `climate` | Klima | `climate.zone.living`, `climate.heater.main`, `climate.vent.roof` |
 | `light` | Beleuchtung | `light.interior.living`, `light.exterior.entry`, `light.garage.main` |
-| `vehicle` | Aufbaufunktionen | `vehicle.door.main`, `vehicle.garage.door`, `vehicle.step.entry`, `vehicle.awning.main`, `vehicle.lock.central` |
+| `vehicle` | Aufbaufunktionen | `vehicle.door.main`, `vehicle.garage.door`, `vehicle.terrace.main`, `vehicle.awning.main`, `vehicle.lock.central` |
 | `leveling` | Nivellierung | `leveling.jack.front_left`, `leveling.tilt.pitch`, `leveling.tilt.roll` |
 | `camera` | Kameras | `camera.rear`, `camera.garage` |
 | `network` | Netzwerk und Verbindungen | `network.plc`, `network.victron`, `network.internet` |

@@ -73,7 +73,7 @@ function VehicleStatusCard() {
   const rows: { id: string; icon: JSX.Element; label: string }[] = [
     { id: "vehicle.door.main", icon: <IconDoor size={18} />, label: t("vehicle.door_main") },
     { id: "vehicle.garage.door", icon: <IconGarage size={18} />, label: t("vehicle.garage_door") },
-    { id: "vehicle.step.entry", icon: <IconStep size={18} />, label: t("vehicle.step") },
+    { id: "vehicle.terrace.main", icon: <IconStep size={18} />, label: t("vehicle.step") },
     { id: "vehicle.awning.main", icon: <IconAwning size={18} />, label: t("vehicle.awning") },
   ];
 
@@ -214,7 +214,7 @@ function QuickAccessCard() {
       <div className="quickgrid">
         <SwitchTile entityId="water.pump.main" icon={<IconPump />} label={t("water.pump")} />
         <MoveTile entityId="vehicle.garage.door" icon={<IconGarage />} label={t("vehicle.garage_door")} />
-        <MoveTile entityId="vehicle.step.entry" icon={<IconStep />} label={t("vehicle.step")} />
+        <MoveTile entityId="vehicle.terrace.main" icon={<IconStep />} label={t("vehicle.step")} />
         <MoveTile entityId="vehicle.awning.main" icon={<IconAwning />} label={t("vehicle.awning")} />
       </div>
     </Card>

@@ -27,7 +27,6 @@ export interface VehicleParts {
 export function useVehicleState(): VehicleParts {
   const garage = useEntity("vehicle.garage.door");
   const door = useEntity("vehicle.door.main");
-  const step = useEntity("vehicle.step.entry");
   const awning = useEntity("vehicle.awning.main");
   const { connection } = useAppState();
 
@@ -39,7 +38,7 @@ export function useVehicleState(): VehicleParts {
   return {
     garage: toPart(garage, live),
     door: toPart(door, live),
-    step: toPart(step, live),
+    step: "absent",
     awning: toPart(awning, live),
   };
 }

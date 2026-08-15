@@ -115,7 +115,7 @@ class TestSimulationswerkzeuge:
         # Die Einstiegsstufe ist das bewegliche Teil der Konfiguration. Die
         # Heckklappe war es einmal — seit dem 2026-08-12 ist sie ein `release`
         # mit nur einem Befehl (Gasdruckdämpfer, kein Schließantrieb).
-        assert "BLOCKED" in entities["vehicle.step.entry"]["faults"]
+        assert "BLOCKED" in entities["vehicle.terrace.main"]["faults"]
         assert "BLOCKED" not in entities["energy.battery.soc"]["faults"]
         assert "BLOCKED" not in entities["vehicle.garage.door"]["faults"]
 
@@ -196,7 +196,7 @@ class TestEntities:
         entities = client.get(f"{API_PREFIX}/entities").json()
         assert entities
 
-        eintrag = next(e for e in entities if e["entity_id"] == "vehicle.step.entry")
+        eintrag = next(e for e in entities if e["entity_id"] == "vehicle.terrace.main")
         assert eintrag["state"]["quality"] in {
             "UNKNOWN",
             "VALID",
@@ -292,12 +292,12 @@ class TestBefehle:
         Rückmeldung", obwohl nichts fehlgeschlagen ist.
         """
         simulation = app.adapters[0]
-        simulation.inject("vehicle.step.entry", Fault.BLOCKED)
+        simulation.inject("vehicle.terrace.main", Fault.BLOCKED)
 
         begonnen = time.monotonic()
         antwort = client.post(
             f"{API_PREFIX}/commands",
-            json={"entity_id": "vehicle.step.entry", "verb": "open"},
+            json={"entity_id": "vehicle.terrace.main", "verb": "open"},
         )
         gedauert = time.monotonic() - begonnen
 
@@ -314,9 +314,9 @@ class TestBefehle:
         """
         client.post(
             f"{API_PREFIX}/commands",
-            json={"entity_id": "vehicle.step.entry", "verb": "open"},
+            json={"entity_id": "vehicle.terrace.main", "verb": "open"},
         )
-        eintrag = client.get(f"{API_PREFIX}/entities/vehicle.step.entry").json()
+        eintrag = client.get(f"{API_PREFIX}/entities/vehicle.terrace.main").json()
 
         assert eintrag["state"]["quality"] == "UNKNOWN"
         assert eintrag["state"]["value"] is None

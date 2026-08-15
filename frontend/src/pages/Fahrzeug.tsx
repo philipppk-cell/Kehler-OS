@@ -1,7 +1,7 @@
 /**
  * Fahrzeug — alles, was sich am Aufbau bewegt.
  *
- * Garagentor, Einstiegsstufe, Markise, Eingangstür. Das ist die einzige
+ * Garagentor, Terrasse, Markise, Eingangstür. Das ist die einzige
  * Seite, auf der Kehler OS **Mechanik in Bewegung setzt**, und sie ist
  * entsprechend gebaut.
  *
@@ -64,8 +64,8 @@ export function Fahrzeug() {
             icon={<IconGarage size={20} />}
             online={online}
           />
-          <PartRow
-            entityId="vehicle.step.entry"
+          <HoldPartRow
+            entityId="vehicle.terrace.main"
             icon={<IconStep size={20} />}
             online={online}
           />
@@ -192,7 +192,7 @@ function PartRow({
 
 
 
-/* ── Totmann-Bedienung der Markise ─────────────────────────────────────── */
+/* ── Totmann-Bedienung für Hold-to-run-Aktoren ─────────────────────────────────────── */
 
 const HOLD_HEARTBEAT_MS = 250;
 
@@ -337,10 +337,10 @@ function HoldPartRow({
 
   const status =
     pressed === "open"
-      ? t("vehicle.awningExtending")
+      ? t("vehicle.extending")
       : pressed === "close"
-        ? t("vehicle.awningRetracting")
-        : t("vehicle.awningHoldIdle");
+        ? t("vehicle.retracting")
+        : t("vehicle.holdIdle");
 
   return (
     <div className="part part--hold">

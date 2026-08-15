@@ -674,12 +674,21 @@ entities:
     timeout_ms: 20000
     risk: MEDIUM
 
-  - id: vehicle.step.entry
-    name_key: vehicle.step
+  # BESTÄTIGT (2026-08-15): Die Terrasse besitzt zwei echte Taster:
+  # Ausfahren und Einfahren. Sie bewegt sich ausschließlich, solange der
+  # jeweilige Taster gedrückt gehalten wird.
+  #
+  # Beide Richtungen wurden zunächst am vorhandenen HMI beobachtet und danach
+  # per OPC UA direkt am realen Fahrzeug geprüft.
+  #
+  # Keine Stellungsrückmeldung: Kehler OS kennt keine Endposition.
+  - id: vehicle.terrace.main
+    name_key: vehicle.terrace
     type: movable
     area: exterior
     feedback: false
-    timeout_ms: 12000
+    configured: true
+    timeout_ms: 5000
     risk: MEDIUM
 
   - id: vehicle.door.main
