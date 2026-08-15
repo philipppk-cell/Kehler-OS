@@ -182,6 +182,15 @@
   margin-left: auto;
 }
 
+/* Hold-to-run darf auf dem iPad nicht versehentlich die Seite scrollen oder
+   Text markieren. Die eigentliche Sicherheitsgrenze bleibt der Backend-
+   Watchdog; dies ist ausschließlich die Bedienoberfläche. */
+.valve__hold .btn {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* ── Hinweise ────────────────────────────────────────────────────────────── */
 
 .wasser__notes {

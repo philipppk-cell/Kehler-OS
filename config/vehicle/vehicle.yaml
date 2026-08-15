@@ -147,6 +147,7 @@ entities:
     area: tech
     risk: HIGH
     feedback: false
+    hold_to_run_open: true
     timeout_ms: 10000
 
   - id: water.valve.black

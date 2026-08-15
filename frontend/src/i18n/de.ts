@@ -157,6 +157,8 @@ const de: Record<string, string> = {
   "water.drain": "Ablassen",
   "water.valveOpen": "Ventil öffnen",
   "water.valveClose": "Ventil schließen",
+  "water.valveHoldReady": "Gedrückt halten zum Öffnen",
+  "water.valveHoldOpening": "Öffnet – zum Stoppen loslassen",
   // „Läuft ab" und die beiden „…befohlen"-Schlüssel standen hier. Sie sind
   // nach `actuator.*` gewandert: Dieselbe Aussage gilt für Ventile,
   // Schrankverriegelungen und die Heckklappe, und dreimal nebeneinander
@@ -164,7 +166,7 @@ const de: Record<string, string> = {
   "water.confirmDrain":
     "{name} wirklich öffnen? Der Tank entleert sich dorthin, wo das Fahrzeug gerade steht.",
   "water.valveNote":
-    "Das Öffnen verlangt eine Bestätigung, das Schließen nicht — der Rückweg darf nie schwerer sein als der Hinweg.",
+    "Grauwasser öffnet nur solange der Knopf gehalten wird; dadurch sind Teilöffnungen möglich. Schwarzwasser öffnet nach einem kurzen Befehl vollständig. Öffnen verlangt eine Bestätigung, Schließen nicht.",
   "water.valveNoFeedback":
     "Die Ablassventile melden ihre Stellung nicht zurück. Angezeigt wird der zuletzt gesendete Befehl, nicht die tatsächliche Stellung — Kehler OS kann sie nicht kennen.",
 

@@ -199,6 +199,9 @@ class CommandSpec:
     params: tuple[str, ...] = ()
     """Erlaubte Parameternamen. Alles andere wird abgewiesen."""
 
+    hold_to_run: bool = False
+    """Ob dieser Befehl nur solange aktiv bleiben darf, wie der Benutzer hält."""
+
     preempts: bool = False
     """Ob dieser Befehl einen laufenden unterbrechen darf.
 

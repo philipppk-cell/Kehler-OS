@@ -14,7 +14,7 @@ from kehleros.config.hardware import (
 from kehleros.core.event_bus import EventBus
 from kehleros.core.registry import Registry
 from kehleros.core.state_store import StateStore
-from kehleros.domain.models import Command
+from kehleros.domain.models import Command, CommandSpec
 from tests.conftest import VALVE, make_entity
 
 ENTITY = "vehicle.cabinet.group1"
@@ -153,3 +153,97 @@ async def test_bereits_aktiver_hmi_eingang_wird_nicht_ueberschrieben() -> None:
         )
 
     assert client.nodes[REF].writes == []
+
+
+async def test_pulse_wird_waehrend_hold_derselben_entity_abgewiesen() -> None:
+    entity_id = "water.valve.grey"
+    open_ref = 'ns=3;s="HMI Eingänge"."Ventil Grauwasser Öffnen"'
+    close_ref = 'ns=3;s="HMI Eingänge"."Ventil Grauwasser Schließen"'
+
+    registry = Registry()
+    registry.register_all(
+        [
+            make_entity(
+                entity_id,
+                commands=(
+                    CommandSpec(verb="open", hold_to_run=True),
+                    CommandSpec(verb="close"),
+                    CommandSpec(verb="stop", preempts=True),
+                ),
+                kind="valve",
+                feedback=False,
+            )
+        ]
+    )
+
+    state = StateStore(registry)
+    events = EventBus()
+    client = FakeClient()
+
+    points = [
+        OpcUaWritePointConfig.model_validate(
+            {
+                "id": entity_id,
+                "device": "plc",
+                "direction": "write",
+                "verb": "open",
+                "type": "bool",
+                "ref": open_ref,
+                "mode": "hold",
+                "hold_timeout_ms": 5000,
+            }
+        ),
+        OpcUaWritePointConfig.model_validate(
+            {
+                "id": entity_id,
+                "device": "plc",
+                "direction": "write",
+                "verb": "close",
+                "type": "bool",
+                "ref": close_ref,
+                "mode": "pulse",
+                "pulse_ms": 50,
+            }
+        ),
+    ]
+
+    adapter = OpcUaPlcWriteAdapter(
+        state,
+        events,
+        registry,
+        device(),
+        points,
+        client_factory=lambda **_: client,
+    )
+    await adapter.connect()
+
+    open_spec = registry.require(entity_id).spec_for("open")
+    assert open_spec is not None
+    await adapter.execute(
+        Command(entity_id=entity_id, verb="open"),
+        open_spec,
+    )
+
+    assert client.nodes[open_ref].value is True
+
+    close_spec = registry.require(entity_id).spec_for("close")
+    assert close_spec is not None
+
+    with pytest.raises(RuntimeError, match="Hold-Richtung bereits aktiv"):
+        await adapter.execute(
+            Command(entity_id=entity_id, verb="close"),
+            close_spec,
+        )
+
+    assert client.nodes[close_ref].writes == []
+
+    stop_spec = registry.require(entity_id).spec_for("stop")
+    assert stop_spec is not None
+
+    await adapter.execute(
+        Command(entity_id=entity_id, verb="stop"),
+        stop_spec,
+    )
+
+    assert client.nodes[open_ref].value is False
+    await adapter.disconnect()

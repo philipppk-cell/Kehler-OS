@@ -239,6 +239,28 @@ class TestMitgelieferteKonfiguration:
         ventile = {e.id for e in vehicle.entities if e.type == "valve"}
         assert ventile == {"water.valve.grey", "water.valve.black"}
 
+    def test_grauwasser_oeffnen_ist_hold_to_run(self):
+        """BESTÄTIGT 2026-08-15 am realen Siemens-HMI und über OPC UA."""
+
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        entities = {e.id: e for e in build_entities(vehicle)}
+
+        grau = entities["water.valve.grey"]
+        schwarz = entities["water.valve.black"]
+
+        grau_open = grau.spec_for("open")
+        assert grau_open is not None
+        assert grau_open.hold_to_run is True
+
+        grau_stop = grau.spec_for("stop")
+        assert grau_stop is not None
+        assert grau_stop.preempts is True
+
+        schwarz_open = schwarz.spec_for("open")
+        assert schwarz_open is not None
+        assert schwarz_open.hold_to_run is False
+        assert schwarz.spec_for("stop") is None
+
     def test_ablassventile_verlangen_bestaetigung_zum_oeffnen(self):
         """Am realen Fahrzeug, nicht nur im Modell.
 

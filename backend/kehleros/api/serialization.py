@@ -65,6 +65,7 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
                 "params": list(spec.params),
                 "risk": spec.risk.value,
                 "needs_confirmation": spec.risk.needs_confirmation,
+                "hold_to_run": spec.hold_to_run,
                 "timeout_ms": spec.timeout_ms,
             }
             for spec in entity.commands

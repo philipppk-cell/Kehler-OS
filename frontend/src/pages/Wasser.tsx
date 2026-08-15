@@ -13,11 +13,13 @@
  * dass es keine Summe gibt, wenn ein Tank keinen belastbaren Wert liefert.
  */
 
+import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button, Card, StaleMark } from "../design/primitives";
 import { IconValve } from "../design/icons";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { useAppState, useEntity } from "../realtime/hooks";
-import { sendCommand } from "../api/client";
+import { renewHold, sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
 import { HistoryCard } from "../history/HistoryCard";
@@ -218,21 +220,229 @@ function TankRow({
  * dessen Vergessen etwas kostet — der Tank läuft leer, und beim Losfahren
  * fährt ein offenes Ventil mit.
  */
+const VALVE_HOLD_HEARTBEAT_MS = 250;
+const VALVE_HOLD_ARM_MS = 8000;
+
 function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
   const aktor = useAktor(valveId);
   const offen = aktor.zustand === "OPEN";
 
+  const openCapability = aktor.entity?.definition?.capabilities.find(
+    (capability) => capability.verb === "open",
+  );
+  const openHold = openCapability?.hold_to_run ?? false;
+
+  const [holdArmed, setHoldArmed] = useState(false);
+  const [holdPressed, setHoldPressed] = useState(false);
+
+  const armedRef = useRef(false);
+  const pressedRef = useRef(false);
+  const releasedRef = useRef(false);
+  const stoppingRef = useRef(false);
+  const generationRef = useRef(0);
+  const heartbeatRef = useRef<number | null>(null);
+  const armTimerRef = useRef<number | null>(null);
+  const startRef = useRef<ReturnType<typeof sendCommand> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (heartbeatRef.current !== null) {
+        window.clearTimeout(heartbeatRef.current);
+      }
+      if (armTimerRef.current !== null) {
+        window.clearTimeout(armTimerRef.current);
+      }
+    };
+  }, []);
+
   if (aktor.entity?.definition === undefined) return null;
 
+  function clearHeartbeat() {
+    if (heartbeatRef.current !== null) {
+      window.clearTimeout(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+  }
+
+  function clearArmTimer() {
+    if (armTimerRef.current !== null) {
+      window.clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+    }
+  }
+
+  function disarmHold() {
+    clearArmTimer();
+    armedRef.current = false;
+    setHoldArmed(false);
+  }
+
+  function clearPressed() {
+    pressedRef.current = false;
+    setHoldPressed(false);
+  }
+
+  function armHold() {
+    armedRef.current = true;
+    setHoldArmed(true);
+
+    clearArmTimer();
+    armTimerRef.current = window.setTimeout(() => {
+      if (!pressedRef.current) {
+        disarmHold();
+      }
+    }, VALVE_HOLD_ARM_MS);
+  }
+
   function drive(verb: string) {
+    disarmHold();
+
     if (
       brauchtBestaetigung(aktor.entity, verb) &&
       !window.confirm(t("water.confirmDrain", undefined, { name: aktor.name }))
     ) {
       return;
     }
-    sendCommand(valveId, verb);
+
+    void sendCommand(valveId, verb);
   }
+
+  function scheduleHeartbeat(generation: number) {
+    clearHeartbeat();
+
+    heartbeatRef.current = window.setTimeout(async () => {
+      if (
+        releasedRef.current ||
+        generationRef.current !== generation ||
+        !pressedRef.current
+      ) {
+        return;
+      }
+
+      const ok = await renewHold(valveId, "open");
+
+      if (!ok) {
+        releasedRef.current = true;
+        generationRef.current += 1;
+        clearHeartbeat();
+        clearPressed();
+        disarmHold();
+        await sendCommand(valveId, "stop");
+        return;
+      }
+
+      scheduleHeartbeat(generation);
+    }, VALVE_HOLD_HEARTBEAT_MS);
+  }
+
+  async function holdPointerDown(
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) {
+    if (
+      !openHold ||
+      !online ||
+      pressedRef.current ||
+      stoppingRef.current
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    // Erster Druck: nur Sicherheitsfreigabe. Es wird dabei noch kein
+    // SPS-Eingang gesetzt. Erst der nächste Druck startet den Hold.
+    if (!armedRef.current) {
+      if (
+        brauchtBestaetigung(aktor.entity, "open") &&
+        !window.confirm(
+          t("water.confirmDrain", undefined, { name: aktor.name }),
+        )
+      ) {
+        return;
+      }
+
+      armHold();
+      return;
+    }
+
+    clearArmTimer();
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Der Backend-Watchdog bleibt unabhängig von Pointer Capture aktiv.
+    }
+
+    const generation = generationRef.current + 1;
+    generationRef.current = generation;
+    releasedRef.current = false;
+    pressedRef.current = true;
+    setHoldPressed(true);
+
+    const start = sendCommand(valveId, "open");
+    startRef.current = start;
+
+    const result = await start;
+
+    if (startRef.current === start) {
+      startRef.current = null;
+    }
+
+    if (
+      releasedRef.current ||
+      generationRef.current !== generation ||
+      !pressedRef.current
+    ) {
+      return;
+    }
+
+    if (!result?.success) {
+      releasedRef.current = true;
+      clearPressed();
+      disarmHold();
+      return;
+    }
+
+    scheduleHeartbeat(generation);
+  }
+
+  async function stopHold() {
+    if (
+      stoppingRef.current ||
+      (!pressedRef.current && startRef.current === null)
+    ) {
+      return;
+    }
+
+    stoppingRef.current = true;
+    releasedRef.current = true;
+    generationRef.current += 1;
+
+    clearHeartbeat();
+    clearArmTimer();
+
+    try {
+      // Bei extrem kurzem Antippen darf STOP nicht vor START am Backend
+      // eintreffen.
+      const start = startRef.current;
+      if (start !== null) {
+        await start;
+      }
+
+      await sendCommand(valveId, "stop");
+    } finally {
+      startRef.current = null;
+      clearPressed();
+      disarmHold();
+      stoppingRef.current = false;
+    }
+  }
+
+  const holdLabel = holdPressed
+    ? t("water.valveHoldOpening")
+    : holdArmed
+      ? t("water.valveHoldReady")
+      : t("water.valveOpen");
 
   return (
     <div className={`valve${offen ? " valve--open" : ""}`}>
@@ -247,19 +457,36 @@ function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
         {aktor.konfiguriert && (
           <>
             {aktor.verben.has("open") && (
-              <Button
-                disabled={!online || aktor.laeuft}
-                onClick={() => drive("open")}
-              >
-                {t("water.valveOpen")}
-              </Button>
+              openHold ? (
+                <span className="valve__hold">
+                  <Button
+                    variant={holdArmed || holdPressed ? "accent" : "default"}
+                    disabled={
+                      !online ||
+                      (!holdPressed && aktor.laeuft)
+                    }
+                    onPointerDown={(event) => void holdPointerDown(event)}
+                    onPointerUp={() => void stopHold()}
+                    onPointerCancel={() => void stopHold()}
+                    onLostPointerCapture={() => void stopHold()}
+                  >
+                    {holdLabel}
+                  </Button>
+                </span>
+              ) : (
+                <Button
+                  disabled={!online || aktor.laeuft}
+                  onClick={() => drive("open")}
+                >
+                  {t("water.valveOpen")}
+                </Button>
+              )
             )}
-            {/* Schließen bleibt erreichbar, solange das Ventil offen ist —
-                es ist die Handlung, die den Zustand beendet. */}
+
             {aktor.verben.has("close") && (
               <Button
                 variant={offen ? "accent" : "default"}
-                disabled={!online || aktor.laeuft}
+                disabled={!online || aktor.laeuft || holdPressed}
                 onClick={() => drive("close")}
               >
                 {t("water.valveClose")}

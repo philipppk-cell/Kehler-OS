@@ -457,6 +457,11 @@ class SimulationAdapter(Adapter):
         if device.kind == "motion":
             self._start_motion(device, command.verb)
         elif device.kind == "valve":
+            if command.verb == "stop":
+                # Interne Freigabe einer Hold-to-run-Bedienung. Daraus folgt
+                # keine bekannte Ventilstellung.
+                return
+
             # Ein Ventil schaltet, es fährt nicht: kein Zwischenzustand, kein
             # Fortschritt, keine Laufzeit.
             #

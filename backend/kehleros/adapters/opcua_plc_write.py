@@ -232,14 +232,26 @@ class OpcUaPlcWriteAdapter(Adapter):
         point: OpcUaWritePointConfig,
         node: Any,
     ) -> None:
-        current = await node.read_value()
-
-        # Einen vorhandenen Tastendruck des normalen HMIs nicht überschreiben.
-        if current is not False:
+        # Ein Pulse darf niemals parallel zu einem von Kehler OS gehaltenen
+        # Eingang derselben Entity starten.
+        active_verb = self._hold_active.get(command.entity_id)
+        if active_verb is not None:
             raise RuntimeError(
-                "HMI-Eingang ist vor dem Befehl nicht FALSE: "
-                f"{command.entity_id}.{command.verb}"
+                "Hold-Richtung bereits aktiv: "
+                f"{command.entity_id}.{active_verb}"
             )
+
+        # Auch physische HMI-Tastendrücke berücksichtigen. Vor dem Schreiben
+        # müssen ALLE Richtungen dieser Entity FALSE sein.
+        for sibling_verb, _, sibling_node in self._entity_points(
+            command.entity_id
+        ):
+            value = await sibling_node.read_value()
+            if value is not False:
+                raise RuntimeError(
+                    "HMI-Eingang ist vor dem Befehl nicht FALSE: "
+                    f"{command.entity_id}.{sibling_verb}"
+                )
 
         try:
             await node.write_value(_bool_value(True))
@@ -282,7 +294,7 @@ class OpcUaPlcWriteAdapter(Adapter):
         verb = command.verb
         active_verb = self._hold_active.get(entity_id)
 
-        siblings = self._hold_points(entity_id)
+        siblings = self._entity_points(entity_id)
 
         if active_verb is None:
             # Vor dem ersten TRUE müssen BEIDE Richtungen FALSE sein.
@@ -359,7 +371,7 @@ class OpcUaPlcWriteAdapter(Adapter):
                 f"Aktiver Hold-Eingang ist nicht TRUE: {entity_id}.{verb}"
             )
 
-        for sibling_verb, _, sibling_node in self._hold_points(entity_id):
+        for sibling_verb, _, sibling_node in self._entity_points(entity_id):
             if sibling_verb == verb:
                 continue
 
@@ -403,6 +415,24 @@ class OpcUaPlcWriteAdapter(Adapter):
 
         self._hold_active.pop(entity_id, None)
         self._cancel_watchdog(entity_id)
+
+    def _entity_points(
+        self,
+        entity_id: str,
+    ) -> list[tuple[str, OpcUaWritePointConfig, Any]]:
+        """Alle freigegebenen Schreibpunkte einer Entity mit Node."""
+
+        result: list[tuple[str, OpcUaWritePointConfig, Any]] = []
+
+        for (point_entity, verb), point in self._points.items():
+            if point_entity != entity_id:
+                continue
+
+            node = self._nodes.get((point_entity, verb))
+            if node is not None:
+                result.append((verb, point, node))
+
+        return result
 
     def _hold_points(
         self,

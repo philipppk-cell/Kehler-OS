@@ -160,37 +160,25 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
         )
 
     if config.type in ("valve", "lock"):
-        # Zwei Befehle, zwei Stellungen, kein Stopp — ein Absperrorgan und
-        # eine Verriegelung haben beide nichts dazwischen. Sie teilen sich
-        # diesen Zweig, weil sie sich technisch nicht unterscheiden; getrennt
-        # sind sie nur im Namen, damit die Oberfläche das richtige Wort
-        # verwendet.
+        # Öffnen und Schließen sind die beiden sichtbaren Bedienfunktionen.
         #
-        # ── Warum die beiden Befehle verschieden eingestuft sind ──────────
-        #
-        # Das Risiko liegt **im Öffnen**. Ein offenes Ablassventil entleert
-        # den Tank, und wo das geschieht, bestimmt nicht die Software.
-        # Deshalb trägt `open` die konfigurierte Einstufung und verlangt ab
-        # HIGH eine Bestätigung.
-        #
-        # `close` bleibt ausdrücklich LOW, und das ist kein Versehen:
-        # Schließen ist die Handlung, mit der man einen unerwünschten
-        # Zustand **beendet**. Sie hinter eine Rückfrage zu stellen hieße,
-        # den Rückweg schwerer zu machen als den Hinweg — dieselbe
-        # Überlegung, aus der die Strombegrenzung trotz Schreibzugriff nur
-        # MEDIUM trägt: Eine Bestätigung ohne Schutzwirkung ist reine
-        # Reibung (Kapitel 15 §21).
-        #
-        # Möglich ist das, weil `risk` seit jeher am einzelnen Befehl hängt
-        # und nicht an der Entity. Bisher hat nur niemand davon Gebrauch
-        # gemacht; die Oberfläche liest die Einstufung ohnehin je Verb
-        # (`needs_confirmation` in serialization.py).
-        return (
+        # Beim Grauwasser-Ventil ist Öffnen jedoch als Totmann-Bedienung
+        # bestätigt: Es fährt nur solange der Taster gehalten wird. Dafür
+        # bekommt ausschließlich ein entsprechend konfiguriertes Ventil einen
+        # internen `stop`-Befehl. Die Oberfläche benutzt ihn beim Loslassen;
+        # eine sichtbare dritte Schaltfläche entsteht daraus nicht.
+        if config.hold_to_run_open and config.type != "valve":
+            raise ConfigError(
+                f"hold_to_run_open ist nur bei Ventilen erlaubt: {config.id}"
+            )
+
+        commands = [
             CommandSpec(
                 verb="open",
                 expects="OPEN",
                 timeout_ms=config.timeout_ms,
                 risk=config.risk,
+                hold_to_run=config.hold_to_run_open,
             ),
             CommandSpec(
                 verb="close",
@@ -198,7 +186,19 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
                 timeout_ms=config.timeout_ms,
                 risk=Risk.LOW,
             ),
-        )
+        ]
+
+        if config.type == "valve" and config.hold_to_run_open:
+            commands.append(
+                CommandSpec(
+                    verb="stop",
+                    timeout_ms=config.timeout_ms,
+                    risk=Risk.LOW,
+                    preempts=True,
+                )
+            )
+
+        return tuple(commands)
 
     if config.type == "action":
         # Einmalige Aktion ohne Zielzustand: auslösen und fertig.

@@ -159,6 +159,14 @@ class EntityConfig(_Strict):
     (bestätigt 2026-08-12, Punkt C4).
     """
 
+    hold_to_run_open: bool = False
+    """Ob ``open`` kontinuierlich gehalten werden muss.
+
+    Das beschreibt die reale Bediensemantik und nicht den Transport:
+    Beim Grauwasser-Ablassventil fährt der Antrieb nur, solange Öffnen
+    gedrückt bleibt. Dadurch sind Teilöffnungen möglich.
+    """
+
     unverified: bool = False
     """``True`` heißt: Die Funktion ist am Gerät zu erwarten, aber es ist
     **nicht bestätigt**, dass sie über die Schnittstelle verfügbar ist.

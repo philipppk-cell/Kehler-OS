@@ -40,6 +40,7 @@ export interface Capability {
   params: string[];
   risk: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   needs_confirmation: boolean;
+  hold_to_run: boolean;
   timeout_ms: number;
 }
 
