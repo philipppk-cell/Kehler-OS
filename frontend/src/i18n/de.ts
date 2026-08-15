@@ -183,6 +183,11 @@ const de: Record<string, string> = {
   "actuator.closeCommanded": "Schließen befohlen",
 
   // Schränke
+  "vehicle.door_main_lock": "Terrassentür Zentralverriegelung",
+  "vehicle.locks": "Verriegelungen",
+  "vehicle.unlock": "Öffnen",
+  "vehicle.lock": "Verriegeln",
+
   "cabinet.group1": "Schrankgruppe 1",
   "cabinet.group2": "Schrankgruppe 2",
   "cabinet.group3": "Schrankgruppe 3",

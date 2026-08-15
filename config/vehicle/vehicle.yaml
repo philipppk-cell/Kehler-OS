@@ -688,6 +688,19 @@ entities:
     area: exterior
     expected_interval_s: 5
 
+  # BESTÄTIGT (2026-08-15): Die Terrassentür besitzt eine separate
+  # Zentralverriegelung. Öffnen und Schließen werden über zwei vorhandene
+  # HMI-Eingänge der SPS als kurze Boolean-Impulse ausgelöst.
+  #
+  # Die Verriegelung meldet ihre tatsächliche Stellung nicht zurück.
+  # Deshalb bleibt sie getrennt vom Türkontakt oben und trägt feedback:false.
+  - id: vehicle.door.main.lock
+    name_key: vehicle.door_main_lock
+    type: lock
+    area: exterior
+    feedback: false
+    timeout_ms: 8000
+
   # Beispiel für eine vorgesehene, aber noch nicht zugeordnete Funktion.
   # Die Oberfläche zeigt „Nicht konfiguriert“ und bietet keine Bedienung an
   # (Kapitel 18 §101). Genau so werden später alle Funktionen aussehen,

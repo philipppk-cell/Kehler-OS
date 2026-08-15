@@ -73,6 +73,14 @@ export function Fahrzeug() {
             online={online}
           />
         </Card>
+
+        <Card title={t("vehicle.locks")}>
+          <LockRow
+            entityId="vehicle.door.main.lock"
+            icon={<IconDoor size={20} />}
+            online={online}
+          />
+        </Card>
       </div>
 
       <aside className="fahrzeug__side">
@@ -171,6 +179,69 @@ function PartRow({
                 onClick={() => sendCommand(entityId, "stop")}
               >
                 {t("vehicle.stop")}
+              </Button>
+            )}
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
+
+
+/* ── Eine Verriegelung ohne Stellungsrückmeldung ─────────────────────────── */
+
+function LockRow({
+  entityId,
+  icon,
+  online,
+}: {
+  entityId: string;
+  icon: JSX.Element;
+  online: boolean;
+}) {
+  const aktor = useAktor(entityId);
+
+  function schalten(verb: string) {
+    if (
+      brauchtBestaetigung(aktor.entity, verb) &&
+      !window.confirm(
+        t("vehicle.confirmMove", undefined, { name: aktor.name }),
+      )
+    ) {
+      return;
+    }
+
+    sendCommand(entityId, verb);
+  }
+
+  return (
+    <div className="part">
+      <span className="part__icon">{icon}</span>
+      <span className="part__name">{aktor.name}</span>
+
+      <span className="part__state">
+        <Stellung aktor={aktor} offenTon="neutral" />
+      </span>
+
+      <span className="part__controls">
+        {aktor.konfiguriert && (
+          <>
+            {aktor.verben.has("open") && (
+              <Button
+                disabled={!online || aktor.laeuft}
+                onClick={() => schalten("open")}
+              >
+                {t("vehicle.unlock")}
+              </Button>
+            )}
+
+            {aktor.verben.has("close") && (
+              <Button
+                disabled={!online || aktor.laeuft}
+                onClick={() => schalten("close")}
+              >
+                {t("vehicle.lock")}
               </Button>
             )}
           </>

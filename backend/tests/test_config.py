@@ -281,6 +281,7 @@ class TestMitgelieferteKonfiguration:
             "vehicle.cabinet.group1",
             "vehicle.cabinet.group2",
             "vehicle.cabinet.group3",
+            "vehicle.door.main.lock",
         }
 
         # Die Gegenprobe ist die eigentliche Aussage: Alles ohne Rückmeldung
@@ -306,7 +307,11 @@ class TestMitgelieferteKonfiguration:
         jemand vor der Abfahrt prüft, ob alles zu ist.
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        gruppen = [e for e in build_entities(vehicle) if e.kind == "lock"]
+        gruppen = [
+            e
+            for e in build_entities(vehicle)
+            if e.id.startswith("vehicle.cabinet.")
+        ]
 
         assert {e.id for e in gruppen} == {
             "vehicle.cabinet.group1",
