@@ -200,6 +200,18 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
             ),
         )
 
+    if config.type == "action":
+        # Einmalige Aktion ohne Zielzustand: auslösen und fertig.
+        # Beispiele: Sensorik neu starten. Es gibt danach keinen Zustand
+        # OPEN/ON/etc., den Kehler OS behaupten könnte.
+        return (
+            CommandSpec(
+                verb="trigger",
+                timeout_ms=config.timeout_ms,
+                risk=config.risk,
+            ),
+        )
+
     if config.type == "setpoint":
         # Ohne bekannte Obergrenze gibt es keinen Befehl — und damit in der
         # Oberfläche kein Bedienelement. Der Wert bleibt sichtbar.

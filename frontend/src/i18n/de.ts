@@ -396,6 +396,14 @@ const de: Record<string, string> = {
   // (Kapitel 7 §43). Sie werden trotzdem übersetzt: „Nicht erreichbar" ist
   // auch für den, der die Anlage baut, verständlicher als „OFFLINE" — und
   // die Kennung steht ohnehin daneben.
+  "diag.maintenance": "Wartung",
+  "diag.sensorRestart": "Sensoren neu starten",
+  "diag.sensorRestartRunning": "Sensoren werden neu gestartet …",
+  "diag.sensorRestartHint":
+    "Startet die angeschlossene Sensorik neu. Messwerte können währenddessen kurzzeitig nicht verfügbar sein.",
+  "diag.sensorRestartConfirm":
+    "Sensoren wirklich neu starten? Messwerte können während des Neustarts kurzzeitig ausfallen.",
+
   "diag.system": "System",
   "diag.version": "Version",
   "diag.environment": "Betriebsart",

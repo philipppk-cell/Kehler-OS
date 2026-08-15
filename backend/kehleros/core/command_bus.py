@@ -252,10 +252,15 @@ class CommandBus:
         subscription = self._state.subscribe()
         baseline = self._state.require(entity.id).seq
 
-        self._state.set_requested(
-            entity.id,
-            RequestedState(value=spec.expected_value(command), command_id=command.id),
-        )
+        expected = spec.expected_value(command)
+
+        # Ein Befehl ohne Zielzustand ist eine einmalige Aktion. Dafür gibt es
+        # keinen Wunschzustand, der dauerhaft angezeigt werden könnte.
+        if expected is not None:
+            self._state.set_requested(
+                entity.id,
+                RequestedState(value=expected, command_id=command.id),
+            )
 
         try:
             command.phase = CommandPhase.SENT
@@ -332,7 +337,7 @@ class CommandBus:
             # der Adapter ihn abgelehnt hat, ist er nie hinausgegangen, und
             # „Öffnen befohlen" stehen zu lassen wäre eine Behauptung über
             # etwas, das nicht stattgefunden hat.
-            if entity.feedback or not command.phase.is_success:
+            if expected is None or entity.feedback or not command.phase.is_success:
                 self._state.set_requested(entity.id, None)
 
     async def _await_confirmation(

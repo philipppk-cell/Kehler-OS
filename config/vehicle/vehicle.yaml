@@ -160,6 +160,21 @@ entities:
   # BESTÄTIGT (2026-08-15): Die Frischwasserpumpe arbeitet selbstständig.
   # Sie besitzt keine Bedienfunktion in Kehler OS und deshalb auch keine Entity.
 
+  # BESTÄTIGT (2026-08-15): Die SPS besitzt die Aktion
+  # „Sensoren Neustarten“. Das vorhandene Siemens-HMI erzeugt dabei einen
+  # kurzen Boolean-Impuls. Derselbe 100-ms-Impuls wurde anschließend direkt
+  # über OPC UA am realen Fahrzeug erfolgreich geprüft.
+  #
+  # Die Aktion hat keinen Zustand und keine Rückmeldung. Während des Neustarts
+  # können Messwerte kurzzeitig fehlen bzw. unbekannt werden.
+  - id: vehicle.sensors.restart
+    name_key: vehicle.sensors_restart
+    type: action
+    area: tech
+    feedback: false
+    timeout_ms: 2000
+    risk: HIGH
+
   # ── Energie ───────────────────────────────────────────────────────────────
   # BESTÄTIGT: Victron-Anlage, 24-V-Lithiumsystem, Solar auf dem Dach
   # (zehn Module, auf den Fotos sichtbar), Landstromanschluss.

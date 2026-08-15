@@ -34,6 +34,7 @@ EntityType = Literal[
     "valve",
     "lock",
     "release",
+    "action",
     "setpoint",
 ]
 """Ein ``contact`` ist ein binärer Sensor — Tür, Fenster, Endschalter.

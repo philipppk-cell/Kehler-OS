@@ -285,6 +285,7 @@ class TestMitgelieferteKonfiguration:
             "water.valve.grey",
             "water.valve.black",
             "vehicle.garage.door",
+            "vehicle.sensors.restart",
             "vehicle.terrace.main",
             "vehicle.awning.main",
             "vehicle.cabinet.group1",
@@ -296,6 +297,25 @@ class TestMitgelieferteKonfiguration:
         # Die Gegenprobe ist die eigentliche Aussage: Alles ohne Rückmeldung
         # ist etwas, das man schaltet. Kein einziger Messwert ist dabei.
         assert all(e.commands for e in entities if not e.feedback)
+
+    def test_sensor_neustart_ist_einmalige_aktion(self):
+        """BESTÄTIGT 2026-08-15: 100-ms-Impuls über OPC UA."""
+
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        restart = next(
+            e
+            for e in build_entities(vehicle)
+            if e.id == "vehicle.sensors.restart"
+        )
+
+        assert restart.kind == "action"
+        assert restart.feedback is False
+        assert set(restart.capabilities) == {"trigger"}
+
+        spec = restart.spec_for("trigger")
+        assert spec is not None
+        assert spec.expects is None
+        assert spec.risk.needs_confirmation
 
     def test_heckklappe_kennt_nur_oeffnen(self):
         """BESTÄTIGT (2026-08-12): Gasdruckdämpfer, kein Schließantrieb.

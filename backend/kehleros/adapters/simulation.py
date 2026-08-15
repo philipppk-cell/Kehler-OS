@@ -202,6 +202,9 @@ class SimulationAdapter(Adapter):
         """
         caps = set(entity.capabilities)
 
+        if entity.kind == "action":
+            return _Device(entity=entity, kind="action")
+
         # Das Ventil steht **vor** der Bewegung, und das ist kein Stilfrage:
         # Ein Absperrorgan hat ebenfalls `open` und `close`, unterscheidet
         # sich aber genau im fehlenden `stop`. Ohne diesen Vorrang griffe die
@@ -447,6 +450,10 @@ class SimulationAdapter(Adapter):
         # und die Oberfläche ihren Zwischenzustand tatsächlich zeigt.
         await asyncio.sleep(0.05)
 
+        if device.kind == "action":
+            # Eine Aktion hat keinen Zustand, der anschließend veröffentlicht
+            # werden könnte. Die erfolgreiche Annahme ist das Ergebnis.
+            return
         if device.kind == "motion":
             self._start_motion(device, command.verb)
         elif device.kind == "valve":
