@@ -246,9 +246,8 @@ class TestBefehle:
         antwort = client.post(
             f"{API_PREFIX}/commands",
             json={
-                "entity_id": "water.pump.main",
-                "verb": "set_state",
-                "params": {"state": "ON"},
+                "entity_id": "vehicle.garage.door",
+                "verb": "open",
             },
         )
         assert antwort.status_code == 200
@@ -342,12 +341,12 @@ class TestRealtime:
         with client.websocket_connect(f"{API_PREFIX}/realtime") as ws:
             ws.receive_json()  # Snapshot
 
-            app.adapters[0].set_value("water.pump.main", "ON")
+            app.adapters[0].set_value("water.tank.fresh.large", 42.0)
 
             nachricht = ws.receive_json()
             assert nachricht["type"] == "delta"
-            assert nachricht["entity"]["entity_id"] == "water.pump.main"
-            assert nachricht["entity"]["state"]["value"] == "ON"
+            assert nachricht["entity"]["entity_id"] == "water.tank.fresh.large"
+            assert nachricht["entity"]["state"]["value"] == 42.0
 
     def test_unbekannter_wert_kommt_ohne_zahl_an(
         self, client: TestClient, app: Application

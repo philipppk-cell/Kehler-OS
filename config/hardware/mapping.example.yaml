@@ -73,16 +73,6 @@ datapoints:
   # ── Schreibend: ungefährliche Ausgänge ───────────────────────────────────
   # Erst nach erfolgreichem Lesetest aktivieren.
 
-  - id: water.pump.main
-    device: plc
-    direction: write
-    type: bool
-    ref: "<TODO>"
-    # Getrennte Rückmeldeadresse, falls vorhanden. Ohne Rückmeldung bleibt der
-    # Zustand nach dem Schalten UNKNOWN (Kapitel 18 §37).
-    feedback_ref: "<TODO oder null>"
-    command_timeout_ms: 2000
-
   # ── Schreibend: Aktoren mit Bewegung ─────────────────────────────────────
   # Zuletzt integrieren. Hydraulik ausdrücklich nicht zuerst (Kapitel 18 §91).
 
@@ -112,9 +102,5 @@ datapoints:
 failsafe:
   vehicle.garage.door:
     on_plc_comm_loss: unknown      # hold | stop | close | open | unknown
-    on_pi_failure:    unknown
-    on_power_loss:    unknown
-  water.pump.main:
-    on_plc_comm_loss: unknown
     on_pi_failure:    unknown
     on_power_loss:    unknown

@@ -21,7 +21,7 @@ Kleinbuchstaben, `snake_case` innerhalb eines Segments, Punkt als Trenner.
 | Domäne | Zweck | Beispiele |
 | --- | --- | --- |
 | `energy` | Energiesystem | `energy.battery.main`, `energy.solar.array`, `energy.shore_power` |
-| `water` | Wassersystem | `water.tank.fresh`, `water.tank.grey`, `water.tank.black`, `water.pump.main` |
+| `water` | Wassersystem | `water.tank.fresh`, `water.tank.grey`, `water.tank.black` |
 | `climate` | Klima | `climate.zone.living`, `climate.heater.main`, `climate.vent.roof` |
 | `light` | Beleuchtung | `light.interior.living`, `light.exterior.entry`, `light.garage.main` |
 | `vehicle` | Aufbaufunktionen | `vehicle.door.main`, `vehicle.garage.door`, `vehicle.terrace.main`, `vehicle.awning.main`, `vehicle.lock.central` |

@@ -13,10 +13,10 @@
  * dass es keine Summe gibt, wenn ein Tank keinen belastbaren Wert liefert.
  */
 
-import { Button, Card, Row, StaleMark, Status, Toggle } from "../design/primitives";
-import { IconPump, IconValve } from "../design/icons";
+import { Button, Card, StaleMark } from "../design/primitives";
+import { IconValve } from "../design/icons";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
-import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
+import { useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
@@ -68,7 +68,6 @@ export function Wasser() {
       </div>
 
       <aside className="wasser__side">
-        <SupplyCard />
         <NoteCard />
       </aside>
     </div>
@@ -326,37 +325,6 @@ const FILL: Record<Level, string> = {
   warn: "warn",
   critical: "error",
 };
-
-/* ── Versorgung ──────────────────────────────────────────────────────────── */
-
-function SupplyCard() {
-  const pump = useEntity("water.pump.main");
-  const { pending, connection } = useAppState();
-  const online = connection === "online";
-  const configured = pump?.definition?.configured ?? false;
-  const unknown = isUnknown(pump) || !online;
-
-  return (
-    <Card title={t("water.supply")}>
-      <Row icon={<IconPump size={18} />} label={t("water.pump")}>
-        {configured ? (
-          <Toggle
-            on={isOn(pump)}
-            unknown={unknown}
-            pending={pending.has("water.pump.main")}
-            disabled={!online}
-            label={t("water.pump")}
-            onChange={(next) =>
-              sendCommand("water.pump.main", "set_state", { state: next ? "ON" : "OFF" })
-            }
-          />
-        ) : (
-          <Status tone="unknown" label={t("state.notConfigured")} compact />
-        )}
-      </Row>
-    </Card>
-  );
-}
 
 /**
  * Was diese Seite (noch) nicht kann.

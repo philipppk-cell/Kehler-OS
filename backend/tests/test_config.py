@@ -217,6 +217,16 @@ class TestMitgelieferteKonfiguration:
             "water.tank.black": 370,
         }
 
+    def test_wasserpumpe_ist_keine_bedienfunktion(self):
+        """BESTÄTIGT 2026-08-15: Die Pumpe arbeitet selbstständig."""
+
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+
+        assert all(
+            entity.id != "water.pump.main"
+            for entity in vehicle.entities
+        )
+
     def test_genau_zwei_ablassventile(self):
         """Zwei Ventile, für Grau- und Schwarzwasser (bestätigt 2026-08-12).
 
@@ -274,7 +284,6 @@ class TestMitgelieferteKonfiguration:
         assert ohne == {
             "water.valve.grey",
             "water.valve.black",
-            "water.pump.main",
             "vehicle.garage.door",
             "vehicle.terrace.main",
             "vehicle.awning.main",

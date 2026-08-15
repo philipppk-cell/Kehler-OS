@@ -16,14 +16,13 @@ import {
   IconDoor,
   IconGarage,
   IconPlug,
-  IconPump,
   IconSolar,
   IconStep,
   IconWarning,
 } from "../design/icons";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { useVehicleState } from "../vehicle3d/useVehicleState";
-import { isOn, isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
+import { isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
 import { Quality } from "../realtime/types";
 import { useWater, type Level, type TankView as WaterTank } from "../water/useWater";
 import { sendCommand } from "../api/client";
@@ -73,7 +72,7 @@ function VehicleStatusCard() {
   const rows: { id: string; icon: JSX.Element; label: string }[] = [
     { id: "vehicle.door.main", icon: <IconDoor size={18} />, label: t("vehicle.door_main") },
     { id: "vehicle.garage.door", icon: <IconGarage size={18} />, label: t("vehicle.garage_door") },
-    { id: "vehicle.terrace.main", icon: <IconStep size={18} />, label: t("vehicle.step") },
+    { id: "vehicle.terrace.main", icon: <IconStep size={18} />, label: t("vehicle.terrace") },
     { id: "vehicle.awning.main", icon: <IconAwning size={18} />, label: t("vehicle.awning") },
   ];
 
@@ -212,40 +211,9 @@ function QuickAccessCard() {
   return (
     <Card title={t("dash.quickAccess")}>
       <div className="quickgrid">
-        <SwitchTile entityId="water.pump.main" icon={<IconPump />} label={t("water.pump")} />
         <MoveTile entityId="vehicle.garage.door" icon={<IconGarage />} label={t("vehicle.garage_door")} />
-        <MoveTile entityId="vehicle.terrace.main" icon={<IconStep />} label={t("vehicle.step")} />
-        <MoveTile entityId="vehicle.awning.main" icon={<IconAwning />} label={t("vehicle.awning")} />
       </div>
     </Card>
-  );
-}
-
-function SwitchTile({
-  entityId,
-  icon,
-  label,
-}: {
-  entityId: string;
-  icon: JSX.Element;
-  label: string;
-}) {
-  const entity = useEntity(entityId);
-  const { pending, connection } = useAppState();
-  const on = isOn(entity);
-  const configured = entity?.definition?.configured ?? false;
-
-  return (
-    <QuickTile
-      icon={icon}
-      label={label}
-      active={on && connection === "online"}
-      pending={pending.has(entityId)}
-      // Ohne Verbindung erreicht kein Befehl das Fahrzeug. Ein bedienbarer
-      // Schalter würde Handlungsfähigkeit vortäuschen (Kapitel 8 §12).
-      disabled={!configured || connection !== "online"}
-      onClick={() => sendCommand(entityId, "set_state", { state: on ? "OFF" : "ON" })}
-    />
   );
 }
 

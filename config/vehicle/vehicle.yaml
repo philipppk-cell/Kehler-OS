@@ -157,16 +157,8 @@ entities:
     feedback: false
     timeout_ms: 10000
 
-  # VORLÄUFIG: dass es eine schaltbare Wasserpumpe gibt, ist anzunehmen —
-  # bestätigt ist es nicht.
-  # BESTÄTIGT (2026-08-12): keine Rückmeldung — wie bei allen schaltbaren
-  # Sachen an der SPS. Die Oberfläche zeigt den zuletzt gesendeten Befehl.
-  - id: water.pump.main
-    name_key: water.pump
-    type: switch
-    area: tech
-    feedback: false
-    timeout_ms: 2000
+  # BESTÄTIGT (2026-08-15): Die Frischwasserpumpe arbeitet selbstständig.
+  # Sie besitzt keine Bedienfunktion in Kehler OS und deshalb auch keine Entity.
 
   # ── Energie ───────────────────────────────────────────────────────────────
   # BESTÄTIGT: Victron-Anlage, 24-V-Lithiumsystem, Solar auf dem Dach

@@ -138,7 +138,6 @@ const de: Record<string, string> = {
   "tank.fresh_small": "Frischwasser klein",
   "tank.grey": "Grauwasser",
   "tank.black": "Schwarzwasser",
-  "water.pump": "Wasserpumpe",
   "valve.grey": "Ablassventil Grauwasser",
   "valve.black": "Ablassventil Schwarzwasser",
 
@@ -146,7 +145,6 @@ const de: Record<string, string> = {
   "water.title": "Wasser",
   "water.freshTotal": "Frischwasser gesamt",
   "water.waste": "Abwasser",
-  "water.supply": "Versorgung",
   "water.remaining": "verfügbar",
   "water.filled": "belegt",
   "water.capacity": "Fassungsvermögen",
