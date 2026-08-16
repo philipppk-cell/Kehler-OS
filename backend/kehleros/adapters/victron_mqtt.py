@@ -238,6 +238,26 @@ class VictronMqttAdapter(Adapter):
             await self._send_keepalive(full=False)
             self._last_keepalive = now
 
+    async def _refresh_mapped_values(self) -> None:
+        """Fordert alle explizit gemappten Victron-Werte neu an.
+
+        Venus OS hält die N/...-Werte nicht zuverlässig als Retained
+        Messages vor. Deshalb werden ausschließlich die bereits
+        freigegebenen Read-Mappings regelmäßig über R/... angefordert.
+        """
+        client = self._client
+        if client is None:
+            raise RuntimeError(
+                "Victron-MQTT-Client ist nicht verbunden"
+            )
+
+        for point in self._read_by_topic.values():
+            await client.publish(
+                self._read_topic(point.path),
+                payload="",
+                retain=False,
+            )
+
     async def _reader(self) -> None:
         client = self._client
         if client is None:

@@ -357,3 +357,30 @@ async def test_inverter_mapping_ist_ausschliesslich_on_off() -> None:
         ) in client.published
     finally:
         await adapter.disconnect()
+
+
+
+async def test_poll_fordert_mapped_values_aktiv_neu_an() -> None:
+    """Der periodische Refresh muss den echten poll()-Pfad durchlaufen."""
+
+    adapter, _, _, client = await build_adapter()
+
+    try:
+        # Erzwingt beim nächsten poll() sofort einen Refresh.
+        adapter._last_refresh = 0.0
+
+        await adapter.poll()
+
+        assert (
+            f"R/{PORTAL}/system/0/Dc/Battery/Soc",
+            "",
+            False,
+        ) in client.published
+
+        assert (
+            f"R/{PORTAL}/vebus/276/Mode",
+            "",
+            False,
+        ) in client.published
+    finally:
+        await adapter.disconnect()
