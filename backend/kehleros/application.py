@@ -19,10 +19,14 @@ from .adapters.base import Adapter
 from .adapters.opcua_plc import OpcUaPlcAdapter
 from .adapters.opcua_plc_write import OpcUaPlcWriteAdapter
 from .adapters.simulation import SimulationAdapter
+from .adapters.victron_mqtt import VictronMqttAdapter
 from .config.hardware import (
     load_plc_device,
     load_plc_read_points,
     load_plc_write_points,
+    load_victron_device,
+    load_victron_read_points,
+    load_victron_write_points,
 )
 from .config.loader import build_entities, load_settings, load_vehicle
 from .config.models import Settings, VehicleConfig
@@ -165,6 +169,31 @@ class Application:
                         write_points,
                     )
                 )
+
+            victron_device = load_victron_device(
+                self.hardware_dir / "devices.yaml"
+            )
+
+            if victron_device is not None:
+                victron_path = self.hardware_dir / "victron.yaml"
+                victron_read_points = load_victron_read_points(
+                    victron_path
+                )
+                victron_write_points = load_victron_write_points(
+                    victron_path
+                )
+
+                if victron_read_points or victron_write_points:
+                    adapters.append(
+                        VictronMqttAdapter(
+                            self.state,
+                            self.events,
+                            self.registry,
+                            victron_device,
+                            victron_read_points,
+                            victron_write_points,
+                        )
+                    )
 
             return adapters
 

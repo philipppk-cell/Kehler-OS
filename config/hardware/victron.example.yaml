@@ -1,0 +1,50 @@
+# Kehler OS – Victron MQTT Mapping (Beispiel)
+#
+# Reale Portal-ID, Instanzen und Pfade stehen ausschließlich in der
+# ungetrackten config/hardware/victron.yaml.
+
+version: 1
+
+datapoints:
+  - id: energy.battery.soc
+    device: victron
+    direction: read
+    type: float
+    path: system/0/Dc/Battery/Soc
+
+  - id: energy.shore.connected
+    device: victron
+    direction: read
+    type: mapped
+    path: vebus/<INSTANCE>/Ac/ActiveIn/ActiveInput
+    values:
+      "0": CLOSED
+      "240": OPEN
+
+  - id: energy.inverter.state
+    device: victron
+    direction: read
+    type: mapped
+    path: vebus/<INSTANCE>/Mode
+    values:
+      "3": "ON"
+      "4": "OFF"
+
+  - id: energy.shore.limit
+    device: victron
+    direction: write
+    verb: set_value
+    type: float
+    param: value
+    path: vebus/<INSTANCE>/Ac/In/<INPUT>/CurrentLimit
+
+  - id: energy.inverter.state
+    device: victron
+    direction: write
+    verb: set_state
+    type: mapped
+    param: state
+    path: vebus/<INSTANCE>/Mode
+    values:
+      "ON": 3
+      "OFF": 4

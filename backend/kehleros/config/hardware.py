@@ -12,7 +12,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from ..domain.ids import validate_entity_id
 from .loader import ConfigError, load_yaml
@@ -231,6 +238,246 @@ def load_plc_write_points(path: Path) -> list[OpcUaWritePointConfig]:
         if key in seen:
             raise ConfigError(
                 f"{path}: Schreibpunkt '{point.id}.{point.verb}' ist doppelt"
+            )
+
+        seen.add(key)
+        result.append(point)
+
+    return result
+
+
+
+# ── Victron MQTT ────────────────────────────────────────────────────────────
+
+
+def _victron_path(value: str) -> str:
+    value = value.strip().strip("/")
+    if not value or "<TODO" in value.upper():
+        raise ValueError("Victron-MQTT-Pfad fehlt")
+    if value.startswith(("N/", "R/", "W/")):
+        raise ValueError(
+            "Victron-Pfad enthält keinen MQTT-Präfix N/R/W"
+        )
+    if "+" in value or "#" in value:
+        raise ValueError("Wildcards sind in Victron-Mappings nicht erlaubt")
+    return value
+
+
+class VictronMqttConnectionConfig(_Strict):
+    host: str
+    mqtt_port: int = Field(default=1883, ge=1, le=65535)
+    portal_id: str
+    tls: bool = False
+    username_env: str | None = None
+    password_env: str | None = None
+
+    @field_validator("host")
+    @classmethod
+    def _host_not_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Victron-MQTT-Host fehlt")
+        return value
+
+    @field_validator("portal_id")
+    @classmethod
+    def _valid_portal_id(cls, value: str) -> str:
+        value = value.strip().lower()
+        hexdigits = set("0123456789abcdef")
+        if len(value) != 12 or any(char not in hexdigits for char in value):
+            raise ValueError(
+                "VRM-Portal-ID muss aus 12 Hex-Zeichen bestehen"
+            )
+        return value
+
+
+class VictronMqttDeviceConfig(_Strict):
+    id: Literal["victron"] = "victron"
+    name: str = "Victron Cerbo GX"
+    kind: Literal["ENERGY"] = "ENERGY"
+    vendor: str | None = None
+    model: str | None = None
+    transport: Literal["mqtt"] = "mqtt"
+    connection: VictronMqttConnectionConfig
+    poll_interval_ms: int = Field(default=250, ge=50, le=10_000)
+    keepalive_interval_s: int = Field(default=30, ge=10, le=55)
+
+
+class VictronReadPointConfig(_Strict):
+    id: str
+    device: Literal["victron"] = "victron"
+    direction: Literal["read"] = "read"
+    type: Literal["float", "int", "bool", "string", "mapped"]
+    path: str
+    values: dict[str, str] | None = None
+    plausibility: PlausibilityConfig | None = None
+
+    @field_validator("id")
+    @classmethod
+    def _valid_entity_id(cls, value: str) -> str:
+        return validate_entity_id(value)
+
+    @field_validator("path")
+    @classmethod
+    def _valid_path(cls, value: str) -> str:
+        return _victron_path(value)
+
+    @model_validator(mode="after")
+    def _mapped_needs_values(self):
+        if self.type == "mapped" and not self.values:
+            raise ValueError("Mapped Victron-Wert benötigt 'values'")
+        if self.type != "mapped" and self.values is not None:
+            raise ValueError(
+                "'values' ist nur bei type: mapped erlaubt"
+            )
+        return self
+
+
+class VictronWritePointConfig(_Strict):
+    id: str
+    device: Literal["victron"] = "victron"
+    direction: Literal["write"] = "write"
+    verb: str
+    type: Literal["float", "mapped"]
+    path: str
+    param: str
+    values: dict[str, int | float | str] | None = None
+
+    @field_validator("id")
+    @classmethod
+    def _valid_entity_id(cls, value: str) -> str:
+        return validate_entity_id(value)
+
+    @field_validator("verb", "param")
+    @classmethod
+    def _not_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Victron-Schreibfeld ist leer")
+        return value
+
+    @field_validator("path")
+    @classmethod
+    def _valid_path(cls, value: str) -> str:
+        return _victron_path(value)
+
+    @model_validator(mode="after")
+    def _mapped_needs_values(self):
+        if self.type == "mapped" and not self.values:
+            raise ValueError("Mapped Victron-Write benötigt 'values'")
+        if self.type != "mapped" and self.values is not None:
+            raise ValueError(
+                "'values' ist nur bei type: mapped erlaubt"
+            )
+        return self
+
+
+def load_victron_device(
+    path: Path,
+) -> VictronMqttDeviceConfig | None:
+    data = load_yaml(path)
+    devices = data.get("devices")
+
+    if not isinstance(devices, list):
+        raise ConfigError(f"{path}: 'devices' muss eine Liste sein")
+
+    raw = next(
+        (
+            item
+            for item in devices
+            if isinstance(item, dict) and item.get("id") == "victron"
+        ),
+        None,
+    )
+
+    if raw is None:
+        return None
+
+    try:
+        return VictronMqttDeviceConfig.model_validate(raw)
+    except ValidationError as exc:
+        raise ConfigError(
+            f"Victron-Konfiguration {path} ist ungültig:\n{exc}"
+        ) from exc
+
+
+def load_victron_read_points(
+    path: Path,
+) -> list[VictronReadPointConfig]:
+    data = load_yaml(path)
+    datapoints = data.get("datapoints")
+
+    if not isinstance(datapoints, list):
+        raise ConfigError(f"{path}: 'datapoints' muss eine Liste sein")
+
+    result: list[VictronReadPointConfig] = []
+    seen: set[str] = set()
+
+    for raw in datapoints:
+        if not isinstance(raw, dict):
+            raise ConfigError(
+                f"{path}: jeder Datenpunkt muss eine Zuordnung sein"
+            )
+
+        if (
+            raw.get("device") != "victron"
+            or raw.get("direction") != "read"
+        ):
+            continue
+
+        try:
+            point = VictronReadPointConfig.model_validate(raw)
+        except ValidationError as exc:
+            raise ConfigError(
+                f"Ungültiger Victron-Lesepunkt in {path}:\n{exc}"
+            ) from exc
+
+        if point.id in seen:
+            raise ConfigError(
+                f"{path}: Victron-Lesepunkt '{point.id}' ist doppelt"
+            )
+
+        seen.add(point.id)
+        result.append(point)
+
+    return result
+
+
+def load_victron_write_points(
+    path: Path,
+) -> list[VictronWritePointConfig]:
+    data = load_yaml(path)
+    datapoints = data.get("datapoints")
+
+    if not isinstance(datapoints, list):
+        raise ConfigError(f"{path}: 'datapoints' muss eine Liste sein")
+
+    result: list[VictronWritePointConfig] = []
+    seen: set[tuple[str, str]] = set()
+
+    for raw in datapoints:
+        if not isinstance(raw, dict):
+            raise ConfigError(
+                f"{path}: jeder Datenpunkt muss eine Zuordnung sein"
+            )
+
+        if (
+            raw.get("device") != "victron"
+            or raw.get("direction") != "write"
+        ):
+            continue
+
+        try:
+            point = VictronWritePointConfig.model_validate(raw)
+        except ValidationError as exc:
+            raise ConfigError(
+                f"Ungültiger Victron-Schreibpunkt in {path}:\n{exc}"
+            ) from exc
+
+        key = (point.id, point.verb)
+        if key in seen:
+            raise ConfigError(
+                f"{path}: Victron-Write '{point.id}.{point.verb}' ist doppelt"
             )
 
         seen.add(key)
