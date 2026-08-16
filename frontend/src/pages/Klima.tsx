@@ -188,7 +188,7 @@ function TargetBlock({
           max={definition?.max_value ?? null}
           step={definition?.step ?? 1}
           unit="°C"
-          decimals={1}
+          decimals={definition?.step && definition.step >= 1 ? 0 : 1}
           label={`${system} ${t("klima.target")}`}
           stale={stale}
           disabled={!online}

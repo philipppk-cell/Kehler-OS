@@ -265,7 +265,7 @@ class TestBefehle:
         antwort = client.post(
             f"{API_PREFIX}/commands",
             json={
-                "entity_id": "climate.cooling.state",
+                "entity_id": "heating.system.state",
                 "verb": "set_state",
                 "params": {"state": "ON"},
             },

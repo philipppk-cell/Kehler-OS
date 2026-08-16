@@ -484,3 +484,47 @@ def load_victron_write_points(
         result.append(point)
 
     return result
+
+
+# ── LG ThinQ Connect ────────────────────────────────────────────────────────
+
+
+class LgThinQConnectionConfig(_Strict):
+    credentials_file: str
+    device_id: str
+
+    @field_validator("credentials_file", "device_id")
+    @classmethod
+    def _not_empty_thinq(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("LG-ThinQ-Verbindungswert fehlt")
+        return value
+
+
+class LgThinQDeviceConfig(_Strict):
+    id: Literal["lg_climate"] = "lg_climate"
+    name: str = "LG Klimaanlage"
+    kind: Literal["CLIMATE"] = "CLIMATE"
+    vendor: str = "LG"
+    model: str | None = None
+    transport: Literal["thinq"] = "thinq"
+    connection: LgThinQConnectionConfig
+    poll_interval_ms: int = Field(default=3000, ge=1000, le=60000)
+
+
+def load_lg_thinq_device(path: Path) -> LgThinQDeviceConfig:
+    data = load_yaml(path)
+    raw = data.get("device")
+
+    if not isinstance(raw, dict):
+        raise ConfigError(
+            f"{path}: 'device' muss eine Zuordnung sein"
+        )
+
+    try:
+        return LgThinQDeviceConfig.model_validate(raw)
+    except ValidationError as exc:
+        raise ConfigError(
+            f"LG-ThinQ-Konfiguration {path} ist ungültig:\n{exc}"
+        ) from exc

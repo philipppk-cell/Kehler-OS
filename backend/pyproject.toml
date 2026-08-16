@@ -13,6 +13,7 @@ dependencies = [
     "pyyaml>=6.0",
     "asyncua>=1.1,<2",
     "aiomqtt>=2.5,<3",
+    "thinqconnect==1.0.13",
 ]
 
 [project.optional-dependencies]

@@ -594,25 +594,38 @@ class TestMitgelieferteKonfiguration:
         )[0]
         assert bestaetigt.capabilities == ("set_state",)
 
-    def test_klimageraet_ist_unbestaetigt(self):
-        """Die LG-Anlage ist nicht an die Steuerung angebunden.
+    def test_klimageraet_ist_bestaetigt_und_bedienbar(self):
+        """BESTÄTIGT 2026-08-16 am realen LG-Gerät über ThinQ Connect."""
 
-        BESTÄTIGT (2026-08-10): Auf welchem Weg das geschehen soll, ist noch
-        nicht entschieden. Ein Schalter in der Oberfläche verspräche damit
-        eine Bedienung, deren Weg nicht einmal ausgewählt ist.
+        vehicle = load_vehicle(
+            REPO / "config/vehicle/vehicle.yaml"
+        )
+        entities = {
+            e.id: e
+            for e in build_entities(vehicle)
+        }
 
-        Die beiden Temperaturfühler gehören nicht zum Gerät und bleiben
-        unberührt — sonst verlöre die Seite auch ihren Messwert.
-        """
-        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        entities = {e.id: e for e in build_entities(vehicle)}
+        state = entities["climate.cooling.state"]
+        target = entities["climate.cooling.target"]
 
-        for entity_id in ("climate.cooling.state", "climate.cooling.target"):
-            assert entities[entity_id].unverified, entity_id
-            assert entities[entity_id].capabilities == (), entity_id
+        assert not state.unverified
+        assert state.configured
+        assert set(state.capabilities) == {"set_state"}
 
-        for entity_id in ("climate.living.temperature", "climate.outside.temperature"):
-            assert not entities[entity_id].unverified, entity_id
+        assert not target.unverified
+        assert target.configured
+        assert set(target.capabilities) == {"set_value"}
+        assert (
+            target.min_value,
+            target.max_value,
+            target.step,
+        ) == (18, 30, 1)
+
+        for entity_id in (
+            "climate.living.temperature",
+            "climate.outside.temperature",
+        ):
+            assert not entities[entity_id].unverified
 
     def test_heizungsanlage_ist_vollstaendig_unbestaetigt(self):
         """Solange die Registerliste fehlt, ist keine Funktion bedienbar.

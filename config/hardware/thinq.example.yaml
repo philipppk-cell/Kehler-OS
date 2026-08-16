@@ -1,0 +1,16 @@
+version: 1
+
+device:
+  id: lg_climate
+  name: LG DUALCOOL Libero Smart
+  kind: CLIMATE
+  vendor: LG
+  model: S3-M09JA3FA
+  transport: thinq
+
+  connection:
+    # Zugangsdaten selbst stehen NICHT im Repository.
+    credentials_file: ~/.config/kehleros/thinq.env
+    device_id: "<THINQ_DEVICE_ID>"
+
+  poll_interval_ms: 3000

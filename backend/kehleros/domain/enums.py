@@ -47,6 +47,7 @@ class Source(StrEnum):
 
     PLC = "PLC"
     VICTRON = "VICTRON"
+    THINQ = "THINQ"
     SENSOR = "SENSOR"
     KEHLER_OS = "KEHLER_OS"
     USER = "USER"

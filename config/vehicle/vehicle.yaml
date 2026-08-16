@@ -320,29 +320,28 @@ entities:
     deadband: 0.2
     expected_interval_s: 60
 
+  # BESTÄTIGT 2026-08-16 am realen LG-Gerät über ThinQ Connect:
+  # Ein/Aus sowie Solltemperatur lassen sich lesen und schreiben.
   - id: climate.cooling.state
     name_key: climate.cooling
     type: switch
     area: living
-    unverified: true
-    configured: false
-    timeout_ms: 5000
+    expected_interval_s: 15
+    timeout_ms: 10000
 
-  # VORLÄUFIG: Der Stellbereich ist angenommen. Anders als bei der
-  # Strombegrenzung ist ein falscher Bereich hier ungefährlich — eine
-  # Solltemperatur kann keine Leitung überlasten. Er wird korrigiert, sobald
-  # das Gerät angebunden ist.
+  # Reale Bedienung nur in ganzen °C. In dieser ersten Stufe wird der
+  # gemeinsame, in allen getesteten Betriebsarten sichere Bereich 18–30 °C
+  # angeboten. Modusabhängige Grenzen folgen mit der Modus-Anbindung.
   - id: climate.cooling.target
     name_key: climate.cooling_target
     type: setpoint
     area: living
     unit: celsius
-    min_value: 16
+    min_value: 18
     max_value: 30
-    step: 0.5
-    unverified: true
-    configured: false
-    timeout_ms: 5000
+    step: 1
+    expected_interval_s: 15
+    timeout_ms: 10000
 
   # ── Heizung: SCHEER selection 10/17 kW mit HeatMate V4.02 ────────────────
   #

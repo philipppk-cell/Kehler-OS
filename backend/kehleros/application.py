@@ -16,11 +16,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .adapters.base import Adapter
+from .adapters.lg_thinq import LgThinQAdapter
 from .adapters.opcua_plc import OpcUaPlcAdapter
 from .adapters.opcua_plc_write import OpcUaPlcWriteAdapter
 from .adapters.simulation import SimulationAdapter
 from .adapters.victron_mqtt import VictronMqttAdapter
 from .config.hardware import (
+    load_lg_thinq_device,
     load_plc_device,
     load_plc_read_points,
     load_plc_write_points,
@@ -194,6 +196,20 @@ class Application:
                             victron_write_points,
                         )
                     )
+
+            thinq_path = self.hardware_dir / "thinq.yaml"
+
+            if thinq_path.exists():
+                thinq_device = load_lg_thinq_device(thinq_path)
+
+                adapters.append(
+                    LgThinQAdapter(
+                        self.state,
+                        self.events,
+                        self.registry,
+                        thinq_device,
+                    )
+                )
 
             return adapters
 

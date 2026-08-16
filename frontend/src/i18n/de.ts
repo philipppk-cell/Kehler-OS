@@ -234,9 +234,9 @@ const de: Record<string, string> = {
   "climate.noteSeparate":
     "Klima und Heizung sind getrennte Systeme mit eigenen Geräten und eigenen Sollwerten. Was hier eingestellt wird, gilt nicht für die Heizung.",
   "climate.noteDevice":
-    "Verbaut ist eine wandmontierte LG-Anlage. Sie ist noch nicht an die Steuerung angebunden — auf welchem Weg das geschehen soll, ist offen. Bis dahin gibt es hier keine Bedienung, sondern nur die Beschreibung.",
+    "Die LG-Klimaanlage ist über ThinQ Connect mit Kehler OS verbunden. Ein/Aus und Solltemperatur werden direkt vom Gerät gelesen und geschrieben.",
   "climate.noteRange":
-    "Der einstellbare Bereich ist vorläufig und wird mit der Anbindung geprüft. Betriebsarten zeigt Kehler OS erst, wenn das Gerät sie meldet — nachgebaut wird keine.",
+    "Die Solltemperatur wird in ganzen Grad eingestellt. Betriebsarten, Lüfter und Swing werden nur mit den am realen Gerät bestätigten Funktionen ergänzt.",
 
   // ── Heizung: SCHEER selection 10/17 kW mit HeatMate V4.02 ────────────────
   "heating.title": "Heizung",
