@@ -16,11 +16,12 @@
  * Die Außentemperatur steht hier, weil sie die Kühlung erklärt: Ob 24 °C
  * innen viel oder wenig sind, hängt daran, was draußen ist.
  *
- * ── Was hier bewusst fehlt ────────────────────────────────────────────────
+ * Die LG-Anlage ist inzwischen real über ThinQ Connect angebunden. Neben
+ * Ein/Aus und Solltemperatur sind Betriebsart, Lüfter, beide Swing-Richtungen
+ * und Energiesparen am echten Gerät bestätigt.
  *
- * Kein Betriebsmodus und keine Lüftung. Welches Klimagerät verbaut ist, ist
- * nicht bekannt (Punkt G1) — und ein Gerät mit eigener Regelung darf nicht
- * nachgebaut werden (Kapitel 12 §67, Kapitel 18 §29).
+ * Feste Lamellenpositionen und nicht über die offizielle Schnittstelle
+ * bestätigte Sonderfunktionen werden bewusst nicht angeboten.
  */
 
 import { Card, Row, StaleMark, Status, Toggle } from "../design/primitives";
@@ -78,6 +79,11 @@ function Zone({ title, actualId, targetId, stateId, extra = [], notes }: ZonePro
         <Card title={t("klima.system")}>
           <PowerRow entityId={stateId} online={online} />
         </Card>
+
+        <ClimateControls
+          powerId={stateId}
+          online={online}
+        />
 
         <Card title={t("klima.notesTitle")}>
           <ul className="klima__notes">
@@ -261,6 +267,180 @@ function PowerRow({ entityId, online }: { entityId: string; online: boolean }) {
   );
 }
 
+/* ── Erweiterte LG-Funktionen ───────────────────────────────────────────── */
+
+function ChoiceControl({
+  entityId,
+  translationPrefix,
+  online,
+  systemOn,
+}: {
+  entityId: string;
+  translationPrefix: string;
+  online: boolean;
+  systemOn: boolean;
+}) {
+  const entity = useEntity(entityId);
+  const { pending } = useAppState();
+  const definition = entity?.definition;
+
+  const states = definition?.states ?? [];
+  const canSet = (definition?.capabilities ?? []).some(
+    (capability) => capability.verb === "set_state",
+  );
+
+  const actual =
+    entity?.state.quality === Quality.Valid ||
+    entity?.state.quality === Quality.Stale
+      ? typeof entity.state.value === "string"
+        ? entity.state.value
+        : null
+      : null;
+
+  const disabled =
+    !online ||
+    !systemOn ||
+    !canSet ||
+    pending.has(entityId);
+
+  const label = definition?.name_key
+    ? t(definition.name_key)
+    : entityId;
+
+  return (
+    <div className="klima__control-group">
+      <span className="klima__control-title">
+        {label}
+      </span>
+
+      <div className="klima__choices">
+        {states.map((state) => (
+          <button
+            key={state}
+            type="button"
+            className={
+              "klima__choice" +
+              (actual === state
+                ? " klima__choice--active"
+                : "")
+            }
+            disabled={disabled}
+            aria-pressed={actual === state}
+            onClick={() =>
+              sendCommand(
+                entityId,
+                "set_state",
+                { state },
+              )
+            }
+          >
+            {t(`${translationPrefix}.${state}`)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FeatureToggleRow({
+  entityId,
+  online,
+  systemOn,
+}: {
+  entityId: string;
+  online: boolean;
+  systemOn: boolean;
+}) {
+  const entity = useEntity(entityId);
+  const { pending, connection } = useAppState();
+  const definition = entity?.definition;
+
+  const label = definition?.name_key
+    ? t(definition.name_key)
+    : entityId;
+
+  const canSet = (definition?.capabilities ?? []).some(
+    (capability) => capability.verb === "set_state",
+  );
+
+  return (
+    <Row label={label}>
+      <Toggle
+        on={isOn(entity)}
+        unknown={
+          isUnknown(entity) ||
+          connection !== "online"
+        }
+        pending={pending.has(entityId)}
+        disabled={
+          !online ||
+          !systemOn ||
+          !canSet
+        }
+        label={label}
+        onChange={(next) =>
+          sendCommand(
+            entityId,
+            "set_state",
+            {
+              state: next ? "ON" : "OFF",
+            },
+          )
+        }
+      />
+    </Row>
+  );
+}
+
+function ClimateControls({
+  powerId,
+  online,
+}: {
+  powerId: string;
+  online: boolean;
+}) {
+  const power = useEntity(powerId);
+  const systemOn = isOn(power);
+
+  return (
+    <Card title={t("klima.controls")}>
+      <ChoiceControl
+        entityId="climate.cooling.mode"
+        translationPrefix="climate.mode"
+        online={online}
+        systemOn={systemOn}
+      />
+
+      <ChoiceControl
+        entityId="climate.cooling.fan"
+        translationPrefix="climate.fan"
+        online={online}
+        systemOn={systemOn}
+      />
+
+      <div className="klima__control-switches">
+        <FeatureToggleRow
+          entityId="climate.cooling.swing_vertical"
+          online={online}
+          systemOn={systemOn}
+        />
+
+        <FeatureToggleRow
+          entityId="climate.cooling.swing_horizontal"
+          online={online}
+          systemOn={systemOn}
+        />
+
+        <FeatureToggleRow
+          entityId="climate.cooling.power_save"
+          online={online}
+          systemOn={systemOn}
+        />
+      </div>
+    </Card>
+  );
+}
+
 /* ── Seite ───────────────────────────────────────────────────────────────── */
 
 export function Klima() {
@@ -271,7 +451,12 @@ export function Klima() {
       targetId="climate.cooling.target"
       stateId="climate.cooling.state"
       extra={[{ id: "climate.outside.temperature", label: t("climate.outside") }]}
-      notes={[t("climate.noteDevice"), t("climate.noteRange"), t("climate.noteSeparate")]}
+      notes={[
+        t("climate.noteDevice"),
+        t("climate.noteRange"),
+        t("climate.noteHeatMode"),
+        t("climate.noteSeparate"),
+      ]}
     />
   );
 }

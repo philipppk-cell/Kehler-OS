@@ -481,6 +481,19 @@ def _check_value(command: Command, entity: Entity, spec: CommandSpec) -> str | N
 
     value = command.params[spec.expects_param]
 
+    if entity.states:
+        if not isinstance(value, str):
+            return (
+                f"'{spec.expects_param}' muss ein Zustandsname sein"
+            )
+
+        if value not in entity.states:
+            return (
+                f"{value!r} ist für '{entity.id}' nicht freigegeben"
+            )
+
+        return None
+
     if entity.min_value is None and entity.max_value is None:
         return None
 

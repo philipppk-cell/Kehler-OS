@@ -222,6 +222,18 @@ class SimulationAdapter(Adapter):
         if {"open", "close"} <= caps:
             return _Device(entity=entity, kind="motion", value=Motion.CLOSED.value)
 
+        if entity.kind == "select":
+            if not entity.states:
+                raise RuntimeError(
+                    f"Simulation: Auswahl '{entity.id}' ohne Zustände"
+                )
+
+            return _Device(
+                entity=entity,
+                kind="select",
+                value=entity.states[0],
+            )
+
         if "set_state" in caps:
             return _Device(entity=entity, kind="switch", value="OFF")
 
@@ -471,7 +483,7 @@ class SimulationAdapter(Adapter):
             # auseinander, wartete der Command Bus bis zum Timeout auf einen
             # Zustand, den der Simulator nie meldet.
             device.value = spec.expects
-        elif device.kind == "switch":
+        elif device.kind in ("switch", "select"):
             device.value = command.params.get("state", spec.expects)
         elif device.kind == "setpoint":
             # Der Parametername steht in der Capability — `celsius` bei einer

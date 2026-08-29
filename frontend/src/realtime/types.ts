@@ -101,6 +101,9 @@ export interface EntityDefinition {
   max_value: number | null;
   step: number | null;
 
+  /** Freigegebene Zustände einer mehrwertigen Auswahl. */
+  states: string[];
+
   warn_below: number | null;
   warn_above: number | null;
   critical_below: number | null;

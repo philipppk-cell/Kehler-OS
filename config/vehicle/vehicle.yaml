@@ -285,17 +285,13 @@ entities:
   # werden beide über die Steuerung geführt. Sie haben deshalb je einen
   # eigenen Bereich in der Oberfläche.
   #
-  # BESTÄTIGT (2026-08-10): Das Klimagerät ist eine wandmontierte **LG**-Anlage
-  # (Modell S3-M09JA3FA). Sie hat ein eigenes WLAN-Modul und eine App.
+  # BESTÄTIGT: Das Klimagerät ist eine wandmontierte **LG**-Anlage
+  # (Modell S3-M09JA3FA) mit eigenem WLAN-Modul.
   #
-  # BESTÄTIGT (2026-08-10): **Wie das Gerät an die Steuerung kommt, ist noch
-  # nicht entschieden** — es soll aber geschehen.
-  #
-  # Deshalb tragen Schalter und Sollwert `unverified: true`: Solange der Weg
-  # nicht feststeht, ist auch nicht bestätigt, dass sich das Gerät überhaupt
-  # schalten lässt. Der Loader vergibt dann keine Befehle, und die Oberfläche
-  # zeigt „Noch zu verifizieren" statt eines Schalters, hinter dem nichts
-  # liegt (Punkt G1b).
+  # BESTÄTIGT 2026-08-16/17 am realen Gerät: Die Anbindung läuft über die
+  # offizielle LG ThinQ Connect API. Ein/Aus, Solltemperatur, Betriebsart,
+  # Lüfterstufe, vertikaler und horizontaler Swing sowie Energiesparen wurden
+  # jeweils geschrieben und anschließend vom realen Gerät zurückgelesen.
   #
   # Die beiden Temperaturfühler bleiben davon unberührt: Sie gehören nicht
   # zum Klimagerät, sondern zum Fahrzeug (Punkt G2).
@@ -340,6 +336,47 @@ entities:
     min_value: 18
     max_value: 30
     step: 1
+    expected_interval_s: 15
+    timeout_ms: 10000
+
+  # BESTÄTIGT 2026-08-17: alle fünf Betriebsarten am echten Gerät verfügbar.
+  - id: climate.cooling.mode
+    name_key: climate.cooling_mode
+    type: select
+    area: living
+    states: ["AUTO", "COOL", "FAN", "AIR_DRY", "HEAT"]
+    expected_interval_s: 15
+    timeout_ms: 10000
+
+  # BESTÄTIGT 2026-08-17: AUTO, LOW, MID und HIGH.
+  - id: climate.cooling.fan
+    name_key: climate.cooling_fan
+    type: select
+    area: living
+    states: ["AUTO", "LOW", "MID", "HIGH"]
+    expected_interval_s: 15
+    timeout_ms: 10000
+
+  # BESTÄTIGT 2026-08-17: beide Swing-Richtungen getrennt schaltbar.
+  - id: climate.cooling.swing_vertical
+    name_key: climate.cooling_swing_vertical
+    type: switch
+    area: living
+    expected_interval_s: 15
+    timeout_ms: 10000
+
+  - id: climate.cooling.swing_horizontal
+    name_key: climate.cooling_swing_horizontal
+    type: switch
+    area: living
+    expected_interval_s: 15
+    timeout_ms: 10000
+
+  # BESTÄTIGT 2026-08-17: ThinQ Power Save.
+  - id: climate.cooling.power_save
+    name_key: climate.cooling_power_save
+    type: switch
+    area: living
     expected_interval_s: 15
     timeout_ms: 10000
 

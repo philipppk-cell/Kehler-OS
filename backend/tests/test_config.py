@@ -114,6 +114,24 @@ class TestCapabilitiesAusTyp:
         )[0]
         assert entity.capabilities == ("set_state",)
 
+    def test_auswahl_kennt_set_state_und_zustaende(self):
+        entity = build_entities(
+            VehicleConfig(
+                entities=[
+                    EntityConfig(
+                        id="climate.cooling.mode",
+                        name_key="m",
+                        type="select",
+                        states=["AUTO", "COOL", "FAN"],
+                    )
+                ]
+            )
+        )[0]
+
+        assert entity.kind == "select"
+        assert entity.capabilities == ("set_state",)
+        assert entity.states == ("AUTO", "COOL", "FAN")
+
     def test_bewegliches_teil_kennt_open_close_stop(self):
         entity = build_entities(
             VehicleConfig(
@@ -467,7 +485,15 @@ class TestMitgelieferteKonfiguration:
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         entities = {e.id: e for e in build_entities(vehicle)}
 
-        for entity_id in ("climate.cooling.target", "climate.cooling.state"):
+        for entity_id in (
+            "climate.cooling.target",
+            "climate.cooling.state",
+            "climate.cooling.mode",
+            "climate.cooling.fan",
+            "climate.cooling.swing_vertical",
+            "climate.cooling.swing_horizontal",
+            "climate.cooling.power_save",
+        ):
             assert entity_id in entities, entity_id
 
         # Die Heizung hat eigene Sollwerte an der Anlage — keinen gemeinsamen
@@ -620,6 +646,36 @@ class TestMitgelieferteKonfiguration:
             target.max_value,
             target.step,
         ) == (18, 30, 1)
+
+        mode = entities["climate.cooling.mode"]
+        assert mode.kind == "select"
+        assert mode.states == (
+            "AUTO",
+            "COOL",
+            "FAN",
+            "AIR_DRY",
+            "HEAT",
+        )
+        assert set(mode.capabilities) == {"set_state"}
+
+        fan = entities["climate.cooling.fan"]
+        assert fan.kind == "select"
+        assert fan.states == (
+            "AUTO",
+            "LOW",
+            "MID",
+            "HIGH",
+        )
+        assert set(fan.capabilities) == {"set_state"}
+
+        for entity_id in (
+            "climate.cooling.swing_vertical",
+            "climate.cooling.swing_horizontal",
+            "climate.cooling.power_save",
+        ):
+            assert set(
+                entities[entity_id].capabilities
+            ) == {"set_state"}
 
         for entity_id in (
             "climate.living.temperature",

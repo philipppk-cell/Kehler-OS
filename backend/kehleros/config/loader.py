@@ -121,6 +121,21 @@ def _commands_for(config: EntityConfig) -> tuple[CommandSpec, ...]:
         "risk": config.risk,
     }
 
+    if config.type == "select":
+        if not config.states:
+            raise ConfigError(
+                f"Auswahl '{config.id}' braucht mindestens einen Zustand"
+            )
+
+        return (
+            CommandSpec(
+                verb="set_state",
+                expects_param="state",
+                params=("state",),
+                **common,
+            ),
+        )
+
     if config.type == "switch":
         return (
             CommandSpec(

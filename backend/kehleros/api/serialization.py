@@ -55,6 +55,7 @@ def entity_definition(entity: Entity) -> dict[str, Any]:
         "min_value": entity.min_value,
         "max_value": entity.max_value,
         "step": entity.step,
+        "states": list(entity.states),
         "warn_below": entity.warn_below,
         "warn_above": entity.warn_above,
         "critical_below": entity.critical_below,

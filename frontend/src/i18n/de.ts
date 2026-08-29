@@ -219,6 +219,7 @@ const de: Record<string, string> = {
   "klima.system": "System",
   "klima.power": "Ein/Aus",
   "klima.target": "Solltemperatur",
+  "klima.controls": "Klima-Funktionen",
   "klima.notesTitle": "Hinweise",
 
   // Klima
@@ -231,12 +232,31 @@ const de: Record<string, string> = {
   "climate.living_actual": "Innentemperatur",
   "climate.cooling": "Klimaanlage LG",
   "climate.cooling_target": "Solltemperatur Klima",
+  "climate.cooling_mode": "Betriebsart",
+  "climate.cooling_fan": "Lüfter",
+  "climate.cooling_swing_vertical": "Swing hoch / runter",
+  "climate.cooling_swing_horizontal": "Swing links / rechts",
+  "climate.cooling_power_save": "Energiesparen",
+
+  "climate.mode.AUTO": "Automatik",
+  "climate.mode.COOL": "Kühlen",
+  "climate.mode.FAN": "Lüften",
+  "climate.mode.AIR_DRY": "Entfeuchten",
+  "climate.mode.HEAT": "Heizen",
+
+  "climate.fan.AUTO": "Automatik",
+  "climate.fan.LOW": "Niedrig",
+  "climate.fan.MID": "Mittel",
+  "climate.fan.HIGH": "Hoch",
+
   "climate.noteSeparate":
     "Klima und Heizung sind getrennte Systeme mit eigenen Geräten und eigenen Sollwerten. Was hier eingestellt wird, gilt nicht für die Heizung.",
   "climate.noteDevice":
-    "Die LG-Klimaanlage ist über ThinQ Connect mit Kehler OS verbunden. Ein/Aus und Solltemperatur werden direkt vom Gerät gelesen und geschrieben.",
+    "Die LG-Klimaanlage ist über ThinQ Connect mit Kehler OS verbunden. Ein/Aus, Solltemperatur, Betriebsart, Lüfter, beide Swing-Richtungen und Energiesparen werden direkt vom Gerät gelesen und geschrieben.",
   "climate.noteRange":
-    "Die Solltemperatur wird in ganzen Grad eingestellt. Betriebsarten, Lüfter und Swing werden nur mit den am realen Gerät bestätigten Funktionen ergänzt.",
+    "Die Solltemperatur wird in ganzen Grad eingestellt. Kehler OS verwendet vorerst den bestätigten gemeinsamen Bereich von 18 bis 30 °C.",
+  "climate.noteHeatMode":
+    "Die Betriebsart Heizen gehört zur LG-Klimaanlage. Sie ist unabhängig von der separaten SCHEER-Heizungsanlage.",
 
   // ── Heizung: SCHEER selection 10/17 kW mit HeatMate V4.02 ────────────────
   "heating.title": "Heizung",
