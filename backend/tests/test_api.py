@@ -191,6 +191,36 @@ class TestSimulationswerkzeuge:
                 assert antwort.status_code == 404
 
 
+class TestWasserprognose:
+    def test_reset_startet_neue_berechnung(
+        self,
+        client: TestClient,
+    ):
+        vorher = client.get(
+            f"{API_PREFIX}/water/forecast"
+        )
+
+        assert vorher.status_code == 200
+        assert vorher.json()["started_at"] is None
+
+        reset = client.post(
+            f"{API_PREFIX}/water/forecast/reset"
+        )
+
+        assert reset.status_code == 200
+
+        payload = reset.json()
+
+        assert payload["available"] is True
+        assert isinstance(payload["started_at"], int)
+
+        danach = client.get(
+            f"{API_PREFIX}/water/forecast"
+        ).json()
+
+        assert danach["started_at"] == payload["started_at"]
+
+
 class TestEntities:
     def test_liste_enthaelt_qualitaet_und_capabilities(self, client: TestClient):
         entities = client.get(f"{API_PREFIX}/entities").json()

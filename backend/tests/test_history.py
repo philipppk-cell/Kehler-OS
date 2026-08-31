@@ -216,6 +216,37 @@ class TestAufloesung:
         assert series.resolution == erwartet
 
 
+class TestCheckpoint:
+    async def test_auswertungs_checkpoint_wird_persistent_gespeichert(
+        self,
+        history,
+    ):
+        store, _ = history
+
+        assert await store.checkpoint(
+            "water.forecast"
+        ) is None
+
+        await store.set_checkpoint(
+            "water.forecast",
+            {
+                "water.tank.fresh.large": 72.5,
+                "water.tank.fresh.small": 55.0,
+            },
+            now_ms=123_456,
+        )
+
+        checkpoint = await store.checkpoint(
+            "water.forecast"
+        )
+
+        assert checkpoint is not None
+        assert checkpoint.at == 123_456
+        assert checkpoint.snapshot[
+            "water.tank.fresh.large"
+        ] == 72.5
+
+
 class TestAusfall:
     async def test_ein_ausfall_reisst_die_steuerung_nicht_mit(self, history):
         """Kapitel 16 §88: Ein voller Datenträger darf die Wasserpumpe nicht
