@@ -93,3 +93,145 @@
   border-radius: var(--radius-full);
   background: var(--surface-sunken);
 }
+
+/* ── Interaktive Messwertanzeige ─────────────────────────────────────── */
+
+/*
+ * HTML-Tooltip und SVG liegen übereinander.
+ * Dadurch wird der Text nicht durch preserveAspectRatio="none" verzerrt.
+ */
+.chart__plot {
+  position: relative;
+  min-width: 0;
+}
+
+/*
+ * Desktop: Hover.
+ * Touch: horizontales Scrubbing.
+ *
+ * pan-y lässt normales vertikales Scrollen der Seite weiterhin zu,
+ * während horizontale Fingerbewegungen vom Diagramm verarbeitet werden.
+ */
+.chart__svg {
+  cursor: crosshair;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+
+.chart__svg:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Senkrechte Messlinie zum gewählten echten Messpunkt. */
+.chart__cursor {
+  pointer-events: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  opacity: 0.9;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Der tatsächliche Messpunkt auf der Kurve. */
+.chart__cursor-dot {
+  pointer-events: none;
+  fill: var(--surface-1);
+  stroke: var(--accent);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+/*
+ * Tooltip bleibt oben im Diagramm.
+ * So liegt er auf Touch-Geräten nicht direkt unter dem Finger.
+ */
+.chart__tooltip {
+  position: absolute;
+  z-index: 4;
+  top: var(--space-2);
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  min-width: 140px;
+  padding:
+    var(--space-2)
+    var(--space-3);
+
+  border:
+    1px solid
+    var(--border-default);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--surface-2);
+
+  color:
+    var(--text-primary);
+
+  pointer-events: none;
+}
+
+.chart__tooltip--center {
+  transform:
+    translateX(-50%);
+}
+
+.chart__tooltip--start {
+  transform:
+    translateX(0);
+}
+
+.chart__tooltip--end {
+  transform:
+    translateX(-100%);
+}
+
+.chart__tooltip-date,
+.chart__tooltip-time {
+  font-size:
+    var(--text-label);
+
+  color:
+    var(--text-secondary);
+
+  white-space: nowrap;
+}
+
+.chart__tooltip-value {
+  margin-top:
+    var(--space-1);
+
+  font-family:
+    var(--font-numeric);
+
+  font-size:
+    var(--text-body);
+
+  font-weight:
+    var(--weight-semibold);
+
+  color:
+    var(--text-primary);
+
+  white-space: nowrap;
+}
+
+@media (pointer: coarse) {
+  .chart__svg {
+    cursor: default;
+  }
+
+  .chart__tooltip {
+    min-width: 150px;
+    padding:
+      var(--space-3);
+  }
+}
