@@ -1,8 +1,8 @@
-/* Klimaseite. Nur Tokens, keine freien Werte (Kapitel 7 §41/§42). */
+/* Klimaseite. */
 
 .klima {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4);
   align-items: start;
 
@@ -11,28 +11,22 @@
   margin: 0 auto;
 }
 
-.klima__main,
-.klima__side {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 0;
+.klima__overview,
+.klima__controls,
+.klima__notes-card {
+  grid-column: 1 / -1;
 }
 
-/* ── IST und SOLL ────────────────────────────────────────────────────────
-   Die gemessene Temperatur steht groß, der Sollwert daneben. Die Größe
-   trägt die Aussage: Wie warm es ist, sieht man im Vorbeigehen; was
-   eingestellt ist, sucht man bewusst (Kapitel 8 §1). */
+/* ── Hauptanzeige ─────────────────────────────────────────────────────── */
 
 .klima__hero {
-  display: flex;
-  align-items: flex-end;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
   gap: var(--space-8);
-  margin-bottom: var(--space-5);
+  padding: var(--space-3) 0 var(--space-5);
 }
 
-/* Wert oben, Beschriftung darunter — wie auf allen anderen Seiten. */
 .klima__block {
   display: flex;
   flex-direction: column;
@@ -40,9 +34,8 @@
   gap: var(--space-2);
 }
 
-/* Der Sollwert steht auf derselben Grundlinie wie die gemessene Temperatur,
-   ist aber kleiner: Gemessen wird gelesen, eingestellt wird gesucht. */
 .klima__block--target {
+  width: 100%;
   padding-bottom: var(--space-2);
 }
 
@@ -57,8 +50,13 @@
   line-height: 1;
 }
 
-.klima__reading--stale { color: var(--text-secondary); }
-.klima__reading--unknown { color: var(--text-tertiary); }
+.klima__reading--stale {
+  color: var(--text-secondary);
+}
+
+.klima__reading--unknown {
+  color: var(--text-tertiary);
+}
 
 .klima__unit {
   font-size: var(--text-h3);
@@ -74,13 +72,11 @@
   color: var(--text-tertiary);
 }
 
-.klima__split {
-  display: flex;
-  flex-direction: column;
+.klima__system-row {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
 }
 
-/* Nebenwerte in Zeilen — dieselbe Schriftgröße wie überall sonst in einer
-   Zeile, damit die Seite nicht aus lauter Sondergrößen besteht. */
 .klima__inline {
   display: inline-flex;
   align-items: baseline;
@@ -90,32 +86,32 @@
   color: var(--text-primary);
 }
 
-.klima__inline--stale { color: var(--text-secondary); }
-.klima__inline--unknown { color: var(--text-tertiary); font-weight: var(--weight-regular); }
+.klima__inline--stale {
+  color: var(--text-secondary);
+}
+
+.klima__inline--unknown {
+  color: var(--text-tertiary);
+  font-weight: var(--weight-regular);
+}
 
 .klima__inline .klima__unit {
   font-size: var(--text-caption);
 }
 
-.klima__notes {
-  margin: 0;
-  padding-left: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  font-size: var(--text-caption);
-  color: var(--text-secondary);
+/* ── Klima-Bedienung ──────────────────────────────────────────────────── */
+
+.klima__control-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
 }
-
-
-
-/* ── LG-Bedienfunktionen ───────────────────────────────────────────────── */
 
 .klima__control-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .klima__control-title {
@@ -173,13 +169,232 @@
   background: var(--accent-wash);
 }
 
-.klima__control-switches {
+.klima__feature-group {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
 }
 
-@media (max-width: 1100px) {
-  .klima {
+.klima__control-switches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* ── Hinweise ─────────────────────────────────────────────────────────── */
+
+.klima__notes {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-6);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .klima,
+  .klima__hero,
+  .klima__control-layout,
+  .klima__notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .klima__control-switches {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ── Solltemperatur-Schnellregler ─────────────────────────────────────── */
+
+.klima__target-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 560px;
+}
+
+.klima__target-control .stepper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.klima__target-control .stepper__value {
+  font-size: var(--text-display);
+  min-width: 5ch;
+}
+
+.klima__target-control .stepper__unit {
+  font-size: var(--text-h3);
+}
+
+.klima__target-control .stepper__btn {
+  width: calc(var(--touch-min) + var(--space-2));
+  height: calc(var(--touch-min) + var(--space-2));
+  border-radius: 50%;
+}
+
+.klima__slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0 var(--space-1);
+}
+
+.klima__temperature-slider {
+  width: 100%;
+  height: 34px;
+  margin: 0;
+  accent-color: var(--accent-bright);
+  cursor: pointer;
+}
+
+.klima__temperature-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.klima__temperature-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+
+.klima__temperature-slider::-webkit-slider-thumb {
+  width: 30px;
+  height: 30px;
+  margin-top: -11px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-bright);
+  box-shadow: var(--shadow-sm);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.klima__temperature-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.klima__temperature-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+
+.klima__temperature-slider::-moz-range-thumb {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-bright);
+  box-shadow: var(--shadow-sm);
+}
+
+.klima__slider-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-tertiary);
+  font-size: var(--text-caption);
+}
+
+/* ── Klima Hauptanordnung v2 ────────────────────────────────────────────
+   IST- und SOLL-Temperatur bilden optisch eine gemeinsame Bediengruppe.
+   Sie werden bewusst nicht an die beiden äußeren Kartenränder gedrückt. */
+
+.klima__hero {
+  display: grid;
+  grid-template-columns:
+    minmax(230px, 0.8fr)
+    minmax(420px, 1.2fr);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3);
+}
+
+/* Innentemperatur nicht mehr unten an der Grundlinie ausrichten. */
+.klima__hero > .klima__block:not(.klima__block--target) {
+  align-self: center;
+  justify-self: start;
+  padding: 0;
+}
+
+/* Solltemperatur näher zur Mitte statt ganz nach rechts. */
+.klima__hero > .klima__block--target {
+  align-self: center;
+  justify-self: start;
+
+  width: min(100%, 540px);
+  padding: 0;
+}
+
+/* Temperaturbedienung bleibt kompakt zusammen. */
+.klima__target-control {
+  width: 100%;
+  max-width: 540px;
+}
+
+/* Plus / Temperatur / Minus nicht über die ganze rechte Hälfte verteilen. */
+.klima__target-control .stepper {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* Slider direkt unter dem Sollwert und ebenfalls zentriert. */
+.klima__slider-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* Beschriftung der Solltemperatur sitzt unter der kompletten Bediengruppe. */
+.klima__block--target > .klima__label {
+  margin-top: var(--space-1);
+}
+
+/* Ein/Aus-Zeile folgt derselben Breite wie die Temperaturgruppe. */
+.klima__system-row {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding-top: var(--space-3);
+}
+
+/* Auf kleineren Displays wieder sauber untereinander. */
+@media (max-width: 900px) {
+  .klima__hero {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: none;
+    gap: var(--space-5);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .klima__hero > .klima__block:not(.klima__block--target),
+  .klima__hero > .klima__block--target {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .klima__target-control,
+  .klima__target-control .stepper,
+  .klima__slider-wrap {
+    max-width: none;
+  }
+}
+
+/* ── Ende Klima Hauptanordnung v2 ── */

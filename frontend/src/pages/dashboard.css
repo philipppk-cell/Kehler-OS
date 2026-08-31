@@ -234,3 +234,10 @@
   .quickgrid { grid-template-columns: repeat(2, 1fr); }
   .dash__hero { min-height: auto; }
 }
+
+
+/* Fahrzeugstatus-Karte entfernt:
+   Das 3D-Fahrzeug darf wieder die gesamte Bühne nutzen. */
+.dash__hero {
+  --vehicle-shift: 0px;
+}

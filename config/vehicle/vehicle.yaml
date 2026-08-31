@@ -474,8 +474,11 @@ entities:
   # Lüfterstufe, vertikaler und horizontaler Swing sowie Energiesparen wurden
   # jeweils geschrieben und anschließend vom realen Gerät zurückgelesen.
   #
-  # Die beiden Temperaturfühler bleiben davon unberührt: Sie gehören nicht
-  # zum Klimagerät, sondern zum Fahrzeug (Punkt G2).
+  # BESTÄTIGT 2026-08-31: Im Fahrzeug ist kein Außentemperaturfühler
+  # vorhanden. Eine Außentemperatur wird deshalb in Kehler OS nicht geführt.
+  #
+  # Die Innentemperatur kommt direkt vom Temperatursensor des
+  # LG-Innengeräts und wird über ThinQ Connect gelesen.
   #
   # IST und SOLL sind getrennte Entities (Kapitel 13 §35): Die Messung ist
   # ein Messwert, der Sollwert eine Einstellung. Zwei Systeme mit einem
@@ -488,14 +491,6 @@ entities:
     unit: celsius
     deadband: 0.2
     expected_interval_s: 30
-
-  - id: climate.outside.temperature
-    name_key: climate.outside_actual
-    type: measurement
-    area: exterior
-    unit: celsius
-    deadband: 0.2
-    expected_interval_s: 60
 
   # BESTÄTIGT 2026-08-16 am realen LG-Gerät über ThinQ Connect:
   # Ein/Aus sowie Solltemperatur lassen sich lesen und schreiben.

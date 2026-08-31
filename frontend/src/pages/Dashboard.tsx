@@ -12,17 +12,14 @@
 import { useEffect, useState } from "react";
 import { Bar, Card, QuickTile, Row, Status, Value, type Tone } from "../design/primitives";
 import {
-  IconAwning,
-  IconDoor,
   IconGarage,
   IconPlug,
   IconSolar,
-  IconStep,
   IconWarning,
 } from "../design/icons";
 import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
 import { useVehicleState } from "../vehicle3d/useVehicleState";
-import { isUnknown, textOf, useAppState, useEntity } from "../realtime/hooks";
+import { textOf, useAppState, useEntity } from "../realtime/hooks";
 import { Quality } from "../realtime/types";
 import { useWater, type Level, type TankView as WaterTank } from "../water/useWater";
 import { sendCommand } from "../api/client";
@@ -47,7 +44,6 @@ export function Dashboard() {
         <div className="dash__vehicle">
           <VehicleDisplay state={useVehicleState()} />
         </div>
-        <VehicleStatusCard />
       </section>
 
       <aside className="dash__side">
@@ -64,79 +60,6 @@ export function Dashboard() {
       </div>
     </div>
   );
-}
-
-/* ── Fahrzeug ────────────────────────────────────────────────────────── */
-
-function VehicleStatusCard() {
-  const rows: { id: string; icon: JSX.Element; label: string }[] = [
-    { id: "vehicle.door.main", icon: <IconDoor size={18} />, label: t("vehicle.door_main") },
-    { id: "vehicle.garage.door", icon: <IconGarage size={18} />, label: t("vehicle.garage_door") },
-    { id: "vehicle.terrace.main", icon: <IconStep size={18} />, label: t("vehicle.terrace") },
-    { id: "vehicle.awning.main", icon: <IconAwning size={18} />, label: t("vehicle.awning") },
-  ];
-
-  return (
-    <div className="dash__status">
-      <Card title={t("dash.vehicleStatus")}>
-        {rows.map((row) => (
-          <StatusRow key={row.id} entityId={row.id} icon={row.icon} label={row.label} />
-        ))}
-      </Card>
-    </div>
-  );
-}
-
-function StatusRow({
-  entityId,
-  icon,
-  label,
-}: {
-  entityId: string;
-  icon: JSX.Element;
-  label: string;
-}) {
-  const entity = useEntity(entityId);
-  const { connection } = useAppState();
-
-  // Ohne Verbindung ist der Zustand nicht mehr belastbar — dann wird er als
-  // unbekannt geführt statt weiter behauptet.
-  const { tone, text } =
-    connection !== "online"
-      ? { tone: "unknown" as Tone, text: t("state.unknown") }
-      : describe(
-          entity && textOf(entity),
-          isUnknown(entity),
-          entity?.definition?.configured,
-        );
-
-  return (
-    <Row icon={icon} label={label}>
-      <Status tone={tone} label={text} compact />
-    </Row>
-  );
-}
-
-/** Ein Hardwarezustand wird zu Ton und Text — an einer Stelle, für alle. */
-function describe(
-  value: string | null | undefined,
-  unknown: boolean,
-  configured: boolean | undefined,
-): { tone: Tone; text: string } {
-  if (configured === false) return { tone: "unknown", text: t("state.notConfigured") };
-  if (unknown || !value) return { tone: "unknown", text: t("state.unknown") };
-
-  switch (value) {
-    case "CLOSED": return { tone: "ok", text: t("state.closed") };
-    case "OPEN": return { tone: "warn", text: t("state.open") };
-    case "OPENING": return { tone: "accent", text: t("state.opening") };
-    case "CLOSING": return { tone: "accent", text: t("state.closing") };
-    case "STOPPED": return { tone: "warn", text: t("state.stopped") };
-    case "BLOCKED": return { tone: "error", text: t("state.blocked") };
-    case "ON": return { tone: "ok", text: t("state.on") };
-    case "OFF": return { tone: "neutral", text: t("state.off") };
-    default: return { tone: "neutral", text: value };
-  }
 }
 
 /* ── Warnungen ───────────────────────────────────────────────────────── */
@@ -373,7 +296,6 @@ function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
  */
 function TemperatureCard() {
   const inside = useEntity("climate.living.temperature");
-  const outside = useEntity("climate.outside.temperature");
   const cooling = useEntity("climate.cooling.target");
   const heating = useEntity("heating.temperature.target");
 
@@ -385,9 +307,6 @@ function TemperatureCard() {
       </div>
 
       <div className="dash__split">
-        <Row label={t("climate.outside")}>
-          <Value entity={outside} size="inline" decimals={1} />
-        </Row>
         <Row label={t("dash.coolingTarget")}>
           <Value entity={cooling} size="inline" decimals={1} />
         </Row>

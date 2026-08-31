@@ -561,11 +561,50 @@ const FILL: Record<Level, string> = {
  */
 function NoteCard() {
   // Der Hinweis auf die fehlende Rückmeldung steht nur da, wenn sie
-  // tatsächlich fehlt. Ihn fest einzutragen wäre bequem und würde beim Tag
-  // der Nachrüstung zur Falschaussage — dann stünde dort weiterhin, das
-  // System könne die Stellung nicht kennen, während es sie anzeigt.
+  // tatsächlich fehlt.
   const grau = useEntity("water.valve.grey");
-  const ohneRueckmeldung = grau?.definition?.feedback === false;
+  const ohneRueckmeldung =
+    grau?.definition?.feedback === false;
+
+  /*
+   * Der Sensor-Neustart gehört fachlich zur Wasserseite:
+   * Hier bemerkt der Benutzer zuerst, wenn die Tankwerte nicht
+   * plausibel sind oder ein Sensor nicht mehr reagiert.
+   */
+  const sensorRestartId = "vehicle.sensors.restart";
+  const sensorRestart = useEntity(sensorRestartId);
+  const { pending, connection } = useAppState();
+
+  const online = connection === "online";
+  const busy = pending.has(sensorRestartId);
+
+  const configured =
+    sensorRestart?.definition?.configured ?? false;
+
+  const hasTrigger =
+    sensorRestart?.definition?.capabilities.some(
+      (capability) =>
+        capability.verb === "trigger",
+    ) ?? false;
+
+  function restartSensors() {
+    if (
+      brauchtBestaetigung(
+        sensorRestart,
+        "trigger",
+      ) &&
+      !window.confirm(
+        t("diag.sensorRestartConfirm"),
+      )
+    ) {
+      return;
+    }
+
+    void sendCommand(
+      sensorRestartId,
+      "trigger",
+    );
+  }
 
   return (
     <Card title={t("water.notesTitle")}>
@@ -573,8 +612,40 @@ function NoteCard() {
         <li>{t("water.thresholdsSet")}</li>
         <li>{t("water.thresholdMarks")}</li>
         <li>{t("water.valveNote")}</li>
-        {ohneRueckmeldung && <li>{t("water.valveNoFeedback")}</li>}
+
+        {ohneRueckmeldung && (
+          <li>{t("water.valveNoFeedback")}</li>
+        )}
       </ul>
+
+      <div className="wasser__sensor-maintenance">
+        <div className="wasser__sensor-maintenance-copy">
+          <strong>
+            {t("diag.sensorRestart")}
+          </strong>
+
+          <span>
+            {t("diag.sensorRestartHint")}
+          </span>
+        </div>
+
+        <Button
+          variant="accent"
+          full
+          disabled={
+            !online ||
+            !configured ||
+            !hasTrigger ||
+            busy
+          }
+          onClick={restartSensors}
+        >
+          {busy
+            ? t("diag.sensorRestartRunning")
+            : t("diag.sensorRestart")}
+        </Button>
+      </div>
+
       <Button variant="quiet" full disabled>
         {t("water.historyLater")}
       </Button>
@@ -586,4 +657,3 @@ function formatL(litres: number | null): string {
   if (litres === null) return "—";
   return `${Math.round(litres)} L`;
 }
-

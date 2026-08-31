@@ -13,8 +13,9 @@
  * Warmwasser herausstellte — ein geteilter Baustein für zwei so verschiedene
  * Seiten wäre eine Abstraktion mit genau einem echten Nutzer gewesen.
  *
- * Die Außentemperatur steht hier, weil sie die Kühlung erklärt: Ob 24 °C
- * innen viel oder wenig sind, hängt daran, was draußen ist.
+ * Die Innentemperatur stammt direkt vom Temperatursensor des
+ * LG-Innengeräts über ThinQ Connect. Einen Außentemperaturfühler besitzt
+ * das Fahrzeug nicht; deshalb wird hier auch keiner dargestellt.
  *
  * Die LG-Anlage ist inzwischen real über ThinQ Connect angebunden. Neben
  * Ein/Aus und Solltemperatur sind Betriebsart, Lüfter, beide Swing-Richtungen
@@ -24,6 +25,7 @@
  * bestätigte Sonderfunktionen werden bewusst nicht angeboten.
  */
 
+import { useEffect, useState } from "react";
 import { Card, Row, StaleMark, Status, Toggle } from "../design/primitives";
 import { Stepper } from "../design/stepper";
 import { isOn, isUnknown, numberOf, useAppState, useEntity } from "../realtime/hooks";
@@ -35,56 +37,55 @@ import "./klima.css";
 const USABLE: readonly string[] = [Quality.Valid, Quality.Stale];
 
 interface ZoneProps {
-  /** Überschrift der Seite. */
   title: string;
-  /** Gemessene Temperatur. */
   actualId: string;
-  /** Solltemperatur — einstellbar, sofern Grenzen konfiguriert sind. */
   targetId: string;
-  /** Ein/Aus des Systems. */
   stateId: string;
-  /** Zusätzliche Messwerte, die zu dieser Zone gehören. */
-  extra?: { id: string; label: string }[];
-  /** Was an dieser Stelle noch fehlt und warum. */
   notes: string[];
 }
 
-function Zone({ title, actualId, targetId, stateId, extra = [], notes }: ZoneProps) {
+function Zone({
+  title,
+  actualId,
+  targetId,
+  stateId,
+  notes,
+}: ZoneProps) {
   const { connection } = useAppState();
   const online = connection === "online";
 
   return (
     <div className="klima">
-      <div className="klima__main">
+      <div className="klima__overview">
         <Card title={title}>
           <div className="klima__hero">
-            {/* Beide Blöcke tragen ihre Beschriftung, weil zwei Temperaturen
-                nebeneinander stehen. Ohne sie wäre nicht zu sehen, welche
-                gemessen und welche eingestellt ist. */}
-            <MainReading entityId={actualId} online={online} />
-            <TargetBlock targetId={targetId} online={online} system={title} />
+            <MainReading
+              entityId={actualId}
+              online={online}
+            />
+
+            <TargetBlock
+              targetId={targetId}
+              online={online}
+              system={title}
+            />
           </div>
 
-          <div className="klima__split">
-            {extra.map((item) => (
-              <Row key={item.id} label={item.label}>
-                <Temperature entityId={item.id} online={online} inline />
-              </Row>
-            ))}
+          <div className="klima__system-row">
+            <PowerRow
+              entityId={stateId}
+              online={online}
+            />
           </div>
         </Card>
       </div>
 
-      <aside className="klima__side">
-        <Card title={t("klima.system")}>
-          <PowerRow entityId={stateId} online={online} />
-        </Card>
+      <ClimateControls
+        powerId={stateId}
+        online={online}
+      />
 
-        <ClimateControls
-          powerId={stateId}
-          online={online}
-        />
-
+      <div className="klima__notes-card">
         <Card title={t("klima.notesTitle")}>
           <ul className="klima__notes">
             {notes.map((note) => (
@@ -92,7 +93,7 @@ function Zone({ title, actualId, targetId, stateId, extra = [], notes }: ZonePro
             ))}
           </ul>
         </Card>
-      </aside>
+      </div>
     </div>
   );
 }
@@ -170,51 +171,206 @@ function TargetBlock({
 }: {
   targetId: string;
   online: boolean;
-  /** Name des Systems — die Sprachausgabe soll Klima und Heizung
-   *  auseinanderhalten können, auch wenn beide „Solltemperatur" heißen. */
   system: string;
 }) {
   const target = useEntity(targetId);
+  const { pending } = useAppState();
   const definition = target?.definition;
 
-  // Wie überall: Ohne Befehl gibt es kein Bedienelement. Bei einem Sollwert
-  // heißt das konkret — ohne konfigurierte Obergrenze wird der Wert gezeigt,
-  // aber nicht verstellt (Kapitel 18 §98).
-  const adjustable = (definition?.capabilities ?? []).some((c) => c.verb === "set_value");
-  const value = numberOf(target);
-  const stale = target?.state.quality === Quality.Stale || !online;
+  const adjustable = (
+    definition?.capabilities ?? []
+  ).some(
+    (capability) =>
+      capability.verb === "set_value",
+  );
+
+  const actualValue = numberOf(target);
+  const min = definition?.min_value ?? null;
+  const max = definition?.max_value ?? null;
+  const step = definition?.step ?? 1;
+
+  const stale =
+    target?.state.quality === Quality.Stale ||
+    !online;
+
+  const busy = pending.has(targetId);
+
+  /*
+   * Während der Benutzer zieht, lebt der Wert nur lokal.
+   * Dadurch schicken wir nicht für 18 -> 19 -> 20 -> 21 ...
+   * jeweils einen ThinQ-Befehl.
+   */
+  const [draftValue, setDraftValue] =
+    useState<number | null>(actualValue);
+
+  const [dragging, setDragging] =
+    useState(false);
+
+  /*
+   * Sobald LG den echten Zustand zurückmeldet,
+   * übernehmen wir ihn wieder.
+   *
+   * dragging steht absichtlich nicht in der Dependency-Liste:
+   * Beim Loslassen soll die neue lokale Zahl stehen bleiben,
+   * bis die echte ThinQ-Rückmeldung eintrifft.
+   */
+  useEffect(() => {
+    if (!dragging) {
+      setDraftValue(actualValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actualValue]);
+
+  const shownValue =
+    draftValue ?? actualValue;
+
+  function clamp(raw: number): number {
+    let next = Math.round(raw / step) * step;
+
+    if (min !== null) {
+      next = Math.max(min, next);
+    }
+
+    if (max !== null) {
+      next = Math.min(max, next);
+    }
+
+    return Number(next.toFixed(4));
+  }
+
+  function commitSlider(raw: number) {
+    const next = clamp(raw);
+
+    setDragging(false);
+    setDraftValue(next);
+
+    if (
+      !online ||
+      busy ||
+      actualValue === null ||
+      next === actualValue
+    ) {
+      return;
+    }
+
+    /*
+     * Genau EIN Befehl beim Loslassen.
+     * Das ist wichtig, damit der Slider ThinQ nicht mit
+     * einzelnen Zwischenwerten belastet.
+     */
+    sendCommand(
+      targetId,
+      "set_value",
+      { value: next },
+    );
+  }
+
+  const sliderAvailable =
+    adjustable &&
+    min !== null &&
+    max !== null &&
+    shownValue !== null;
 
   return (
     <div className="klima__block klima__block--target">
       {adjustable ? (
-        <Stepper
-          entityId={targetId}
-          value={value}
-          min={definition?.min_value ?? null}
-          max={definition?.max_value ?? null}
-          step={definition?.step ?? 1}
-          unit="°C"
-          decimals={definition?.step && definition.step >= 1 ? 0 : 1}
-          label={`${system} ${t("klima.target")}`}
-          stale={stale}
-          disabled={!online}
-        />
+        <div className="klima__target-control">
+          <Stepper
+            entityId={targetId}
+            value={shownValue}
+            min={min}
+            max={max}
+            step={step}
+            unit="°C"
+            decimals={
+              step >= 1
+                ? 0
+                : 1
+            }
+            label={`${system} ${t("klima.target")}`}
+            stale={stale}
+            disabled={!online || dragging}
+          />
+
+          {sliderAvailable && (
+            <div className="klima__slider-wrap">
+              <input
+                className="klima__temperature-slider"
+                type="range"
+                min={min}
+                max={max}
+                step={step}
+                value={shownValue}
+                disabled={!online || busy}
+                aria-label={`${system} ${t("klima.target")}`}
+                onPointerDown={() => {
+                  setDragging(true);
+                }}
+                onChange={(event) => {
+                  setDraftValue(
+                    clamp(
+                      Number(
+                        event.currentTarget.value,
+                      ),
+                    ),
+                  );
+                }}
+                onPointerUp={(event) => {
+                  commitSlider(
+                    Number(
+                      event.currentTarget.value,
+                    ),
+                  );
+                }}
+                onPointerCancel={() => {
+                  setDragging(false);
+                  setDraftValue(actualValue);
+                }}
+                onKeyUp={(event) => {
+                  if (
+                    event.key === "ArrowLeft" ||
+                    event.key === "ArrowRight" ||
+                    event.key === "ArrowUp" ||
+                    event.key === "ArrowDown" ||
+                    event.key === "Home" ||
+                    event.key === "End" ||
+                    event.key === "PageUp" ||
+                    event.key === "PageDown"
+                  ) {
+                    commitSlider(
+                      Number(
+                        event.currentTarget.value,
+                      ),
+                    );
+                  }
+                }}
+              />
+
+              <div
+                className="klima__slider-scale"
+                aria-hidden="true"
+              >
+                <span>{min}°</span>
+                <span>{max}°</span>
+              </div>
+            </div>
+          )}
+        </div>
       ) : definition?.unverified ? (
-        /* Solange die Anbindung nicht entschieden ist, gibt es keinen Wert —
-           und der Grund dafür steht dort, wo sonst die Zahl stünde. „Unbekannt"
-           wäre hier zwar richtig, aber es sagt das Falsche: Nicht der Messwert
-           fehlt, sondern die Verbindung. */
         <span className="klima__inline klima__inline--unknown">
           {t("state.unverified")}
         </span>
       ) : (
-        /* Ohne konfigurierte Grenzen bleibt der Wert sichtbar, aber
-           unverstellbar. */
-        <Temperature entityId={targetId} online={online} inline />
+        <Temperature
+          entityId={targetId}
+          online={online}
+          inline
+        />
       )}
-      {/* Die Kennzeichnung „veraltet“ setzt der Stepper selbst — er kennt
-          den Zustand seines Werts und trägt sie damit auf jeder Seite. */}
-      <span className="klima__label">{t("klima.target")}</span>
+
+      <span className="klima__label">
+        {t("klima.target")}
+      </span>
     </div>
   );
 }
@@ -403,41 +559,51 @@ function ClimateControls({
   const systemOn = isOn(power);
 
   return (
-    <Card title={t("klima.controls")}>
-      <ChoiceControl
-        entityId="climate.cooling.mode"
-        translationPrefix="climate.mode"
-        online={online}
-        systemOn={systemOn}
-      />
+    <div className="klima__controls">
+      <Card title={t("klima.controls")}>
+        <div className="klima__control-layout">
+          <ChoiceControl
+            entityId="climate.cooling.mode"
+            translationPrefix="climate.mode"
+            online={online}
+            systemOn={systemOn}
+          />
 
-      <ChoiceControl
-        entityId="climate.cooling.fan"
-        translationPrefix="climate.fan"
-        online={online}
-        systemOn={systemOn}
-      />
+          <ChoiceControl
+            entityId="climate.cooling.fan"
+            translationPrefix="climate.fan"
+            online={online}
+            systemOn={systemOn}
+          />
 
-      <div className="klima__control-switches">
-        <FeatureToggleRow
-          entityId="climate.cooling.swing_vertical"
-          online={online}
-          systemOn={systemOn}
-        />
+          <div className="klima__feature-group">
+            <span className="klima__control-title">
+              {t("klima.comfort")}
+            </span>
 
-        <FeatureToggleRow
-          entityId="climate.cooling.swing_horizontal"
-          online={online}
-          systemOn={systemOn}
-        />
+            <div className="klima__control-switches">
+              <FeatureToggleRow
+                entityId="climate.cooling.swing_vertical"
+                online={online}
+                systemOn={systemOn}
+              />
 
-        <FeatureToggleRow
-          entityId="climate.cooling.power_save"
-          online={online}
-          systemOn={systemOn}
-        />
-      </div>
-    </Card>
+              <FeatureToggleRow
+                entityId="climate.cooling.swing_horizontal"
+                online={online}
+                systemOn={systemOn}
+              />
+
+              <FeatureToggleRow
+                entityId="climate.cooling.power_save"
+                online={online}
+                systemOn={systemOn}
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -450,7 +616,6 @@ export function Klima() {
       actualId="climate.living.temperature"
       targetId="climate.cooling.target"
       stateId="climate.cooling.state"
-      extra={[{ id: "climate.outside.temperature", label: t("climate.outside") }]}
       notes={[
         t("climate.noteDevice"),
         t("climate.noteRange"),

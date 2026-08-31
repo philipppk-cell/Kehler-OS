@@ -32,12 +32,10 @@
 
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { Button, Card, Row, Status } from "../design/primitives";
+import { Button, Card, Status } from "../design/primitives";
 import { IconAwning, IconDoor, IconGarage, IconStep } from "../design/icons";
-import { VehicleDisplay } from "../vehicle3d/VehicleDisplay";
-import { useVehicleState } from "../vehicle3d/useVehicleState";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
-import { textOf, useAppState, useEntity } from "../realtime/hooks";
+import { useAppState } from "../realtime/hooks";
 import { renewHold, sendCommand } from "../api/client";
 import { t } from "../i18n/de";
 import "./fahrzeug.css";
@@ -52,12 +50,6 @@ export function Fahrzeug() {
   return (
     <div className="fahrzeug">
       <div className="fahrzeug__main">
-        <Card title={t("vehicle.title")}>
-          <div className="fahrzeug__scene">
-            <VehicleDisplay state={useVehicleState()} />
-          </div>
-        </Card>
-
         <Card title={t("vehicle.movingParts")}>
           <PartRow
             entityId="vehicle.garage.door"
@@ -74,9 +66,7 @@ export function Fahrzeug() {
             icon={<IconAwning size={20} />}
             online={online}
           />
-        </Card>
 
-        <Card title={t("vehicle.locks")}>
           <LockRow
             entityId="vehicle.door.main.lock"
             icon={<IconDoor size={20} />}
@@ -86,10 +76,6 @@ export function Fahrzeug() {
       </div>
 
       <aside className="fahrzeug__side">
-        <Card title={t("vehicle.sensors")}>
-          <ContactRow entityId="vehicle.door.main" icon={<IconDoor size={18} />} />
-        </Card>
-
         <Card title={t("vehicle.notesTitle")}>
           <ul className="fahrzeug__notes">
             <li>{t("vehicle.noteStop")}</li>
@@ -445,35 +431,5 @@ function LockRow({
         )}
       </span>
     </div>
-  );
-}
-
-/* ── Ein Kontakt ─────────────────────────────────────────────────────────── */
-
-/**
- * Ein Sensor ohne Bedienung.
- *
- * Die Eingangstür meldet ihren Zustand, sie lässt sich nicht fahren. Deshalb
- * steht sie unter „Sensoren" und nicht bei den beweglichen Teilen — eine Tür
- * mit Schaltflächen, die nichts tun, wäre ein Versprechen.
- */
-function ContactRow({ entityId, icon }: { entityId: string; icon: JSX.Element }) {
-  const entity = useEntity(entityId);
-  const { connection } = useAppState();
-  const name = entity?.definition?.name_key ? t(entity.definition.name_key) : entityId;
-  const value = connection === "online" ? textOf(entity) : null;
-
-  return (
-    <Row icon={icon} label={name}>
-      {value === null ? (
-        <Status tone="unknown" label={t("state.unknown")} compact />
-      ) : (
-        <Status
-          tone={value === "CLOSED" ? "ok" : "warn"}
-          label={t(`state.${value.toLowerCase()}`, value)}
-          compact
-        />
-      )}
-    </Row>
   );
 }

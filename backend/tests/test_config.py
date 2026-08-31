@@ -677,11 +677,14 @@ class TestMitgelieferteKonfiguration:
                 entities[entity_id].capabilities
             ) == {"set_state"}
 
-        for entity_id in (
-            "climate.living.temperature",
-            "climate.outside.temperature",
-        ):
-            assert not entities[entity_id].unverified
+        inside = entities["climate.living.temperature"]
+        assert not inside.unverified
+        assert inside.configured
+
+        # BESTÄTIGT 2026-08-31:
+        # Im Fahrzeug existiert kein Außentemperaturfühler.
+        # Die Entity darf deshalb auch nicht mehr ausgeliefert werden.
+        assert "climate.outside.temperature" not in entities
 
     def test_heizungsanlage_ist_vollstaendig_unbestaetigt(self):
         """Solange die Registerliste fehlt, ist keine Funktion bedienbar.

@@ -32,7 +32,7 @@
 
 import { useMemo, useState } from "react";
 import { Button, Card, Segmented, Status, type Tone } from "../design/primitives";
-import { useAppState, useEntity } from "../realtime/hooks";
+import { useAppState } from "../realtime/hooks";
 import { Link, Quality, type EntityView } from "../realtime/types";
 import {
   useDiagnostics,
@@ -41,8 +41,6 @@ import {
   type SimulationTools,
 } from "../diagnostics/useDiagnostics";
 import { injectFault, setLevel } from "../diagnostics/actions";
-import { brauchtBestaetigung } from "../control/actuator";
-import { sendCommand } from "../api/client";
 import { t } from "../i18n/de";
 import "./diagnose.css";
 
@@ -114,8 +112,6 @@ export function Diagnose() {
         <ServicesCard services={diagnostics.services} />
         <AdaptersCard adapters={diagnostics.adapters} />
       </div>
-
-      <MaintenanceCard />
 
       {/* Die Entity-Tabelle steht über den Meldungen, nicht darunter. Sie ist
           die Arbeitsfläche dieser Seite, und die Meldungsliste enthält im
@@ -191,46 +187,6 @@ export function Diagnose() {
         <SimulationCard tools={diagnostics.simulation} selected={selected} />
       )}
     </div>
-  );
-}
-
-/* ── Wartung ────────────────────────────────────────────────────────────── */
-
-function MaintenanceCard() {
-  const entityId = "vehicle.sensors.restart";
-  const entity = useEntity(entityId);
-  const { pending, connection } = useAppState();
-
-  const online = connection === "online";
-  const busy = pending.has(entityId);
-  const configured = entity?.definition?.configured ?? false;
-  const hasTrigger =
-    entity?.definition?.capabilities.some((capability) => capability.verb === "trigger")
-    ?? false;
-
-  function restartSensors() {
-    if (
-      brauchtBestaetigung(entity, "trigger") &&
-      !window.confirm(t("diag.sensorRestartConfirm"))
-    ) {
-      return;
-    }
-
-    void sendCommand(entityId, "trigger");
-  }
-
-  return (
-    <Card title={t("diag.maintenance")}>
-      <p className="diag__note">{t("diag.sensorRestartHint")}</p>
-
-      <Button
-        variant="accent"
-        disabled={!online || !configured || !hasTrigger || busy}
-        onClick={restartSensors}
-      >
-        {busy ? t("diag.sensorRestartRunning") : t("diag.sensorRestart")}
-      </Button>
-    </Card>
   );
 }
 

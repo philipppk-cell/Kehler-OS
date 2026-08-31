@@ -290,15 +290,12 @@ const de: Record<string, string> = {
   "klima.power": "Ein/Aus",
   "klima.target": "Solltemperatur",
   "klima.controls": "Klima-Funktionen",
+  "klima.comfort": "Komfortfunktionen",
   "klima.notesTitle": "Hinweise",
 
   // Klima
   "climate.title": "Klima",
   "climate.inside": "Innen",
-  "climate.outside": "Außen",
-  // Der Name der Entity steht für sich allein — ohne das „Innen" daneben
-  // wäre „Außen" kein Name, sondern eine Richtung.
-  "climate.outside_actual": "Außentemperatur",
   "climate.living_actual": "Innentemperatur",
   "climate.cooling": "Klimaanlage LG",
   "climate.cooling_target": "Solltemperatur Klima",
@@ -322,7 +319,7 @@ const de: Record<string, string> = {
   "climate.noteSeparate":
     "Klima und Heizung sind getrennte Systeme mit eigenen Geräten und eigenen Sollwerten. Was hier eingestellt wird, gilt nicht für die Heizung.",
   "climate.noteDevice":
-    "Die LG-Klimaanlage ist über ThinQ Connect mit Kehler OS verbunden. Ein/Aus, Solltemperatur, Betriebsart, Lüfter, beide Swing-Richtungen und Energiesparen werden direkt vom Gerät gelesen und geschrieben.",
+    "Die LG-Klimaanlage ist über ThinQ Connect mit Kehler OS verbunden. Die Innentemperatur kommt direkt vom Sensor des LG-Innengeräts; Ein/Aus, Solltemperatur, Betriebsart, Lüfter, beide Swing-Richtungen und Energiesparen werden direkt mit dem Gerät ausgetauscht.",
   "climate.noteRange":
     "Die Solltemperatur wird in ganzen Grad eingestellt. Kehler OS verwendet vorerst den bestätigten gemeinsamen Bereich von 18 bis 30 °C.",
   "climate.noteHeatMode":

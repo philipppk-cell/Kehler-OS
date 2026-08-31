@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,7 @@ from .base import Adapter
 
 log = logging.getLogger(__name__)
 
+INSIDE_ID = "climate.living.temperature"
 STATE_ID = "climate.cooling.state"
 TARGET_ID = "climate.cooling.target"
 MODE_ID = "climate.cooling.mode"
@@ -84,6 +86,7 @@ class LgThinQAdapter(Adapter):
         readback_delay_s: float = 0.8,
     ) -> None:
         entity_ids = [
+            INSIDE_ID,
             STATE_ID,
             TARGET_ID,
             MODE_ID,
@@ -130,6 +133,11 @@ class LgThinQAdapter(Adapter):
                 raise ValueError(
                     f"ThinQ-Entity fehlt: {entity_id}"
                 )
+
+            # Die Innentemperatur ist ein reiner Messwert des
+            # LG-Innengeräts und besitzt absichtlich keinen Befehl.
+            if entity_id == INSIDE_ID:
+                continue
 
             expected_verb = (
                 "set_value"
@@ -629,6 +637,7 @@ class LgThinQAdapter(Adapter):
         status: dict[str, Any],
     ) -> None:
         values: dict[str, Any] = {
+            INSIDE_ID: self._read_current_temperature(status),
             STATE_ID: self._read_power(status),
             TARGET_ID: self._read_target_temperature(
                 status
@@ -702,6 +711,88 @@ class LgThinQAdapter(Adapter):
 
                 if result is not None:
                     return result
+
+        return None
+
+    @classmethod
+    def _read_current_temperature(
+        cls,
+        status: dict[str, Any],
+    ) -> float | None:
+        """Liest die vom LG-Innengerät gemessene Raumtemperatur in °C."""
+
+        def as_number(raw: Any) -> float | None:
+            if isinstance(raw, bool):
+                return None
+
+            try:
+                value = float(raw)
+            except (TypeError, ValueError):
+                return None
+
+            if not math.isfinite(value):
+                return None
+
+            return value
+
+        # MQTT DEVICE_STATUS des realen Geräts:
+        #
+        # "temperature": {
+        #     "currentTemperature": 31,
+        #     "targetTemperature": 18,
+        #     "unit": "C"
+        # }
+        temperature = status.get("temperature")
+
+        if isinstance(temperature, dict):
+            unit = str(
+                temperature.get("unit", "C")
+            ).upper()
+
+            if unit in {"C", "CELSIUS"}:
+                value = as_number(
+                    temperature.get(
+                        "currentTemperature"
+                    )
+                )
+
+                if value is not None:
+                    return value
+
+        # REST-Status / alternatives ThinQ-Format:
+        #
+        # "temperatureInUnits": [
+        #     {
+        #         "currentTemperature": 24.5,
+        #         "targetTemperature": 18,
+        #         "unit": "C"
+        #     }
+        # ]
+        temperatures = status.get(
+            "temperatureInUnits"
+        )
+
+        if isinstance(temperatures, list):
+            for item in temperatures:
+                if not isinstance(item, dict):
+                    continue
+
+                if (
+                    str(
+                        item.get("unit", "")
+                    ).upper()
+                    != "C"
+                ):
+                    continue
+
+                value = as_number(
+                    item.get(
+                        "currentTemperature"
+                    )
+                )
+
+                if value is not None:
+                    return value
 
         return None
 

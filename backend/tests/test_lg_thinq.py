@@ -8,6 +8,7 @@ import pytest
 
 from kehleros.adapters.lg_thinq import (
     FAN_ID,
+    INSIDE_ID,
     MODE_ID,
     POWER_SAVE_ID,
     STATE_ID,
@@ -122,6 +123,10 @@ def build_adapter(tmp_path):
     registry.register_all(
         [
             make_entity(
+                INSIDE_ID,
+                unit="celsius",
+            ),
+            make_entity(
                 STATE_ID,
                 commands=SWITCH,
                 kind="switch",
@@ -190,6 +195,7 @@ async def test_status_wird_vollstaendig_gelesen(
     await adapter.poll()
 
     expected = {
+        INSIDE_ID: 24.5,
         STATE_ID: "OFF",
         TARGET_ID: 18,
         MODE_ID: "COOL",

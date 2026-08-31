@@ -19,18 +19,6 @@
   min-width: 0;
 }
 
-/* Die Ansicht bekommt eine feste Höhe statt eines Seitenverhältnisses: Sie
-   soll auf jeder Bildschirmgröße gleich groß bleiben, damit das Fahrzeug
-   nicht auf dem iPad im Hochformat die halbe Seite einnimmt. */
-.fahrzeug__scene {
-  position: relative;
-  height: 380px;
-  margin: calc(var(--space-4) * -1);
-  margin-top: calc(var(--space-2) * -1);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
 /* ── Ein bewegliches Teil ────────────────────────────────────────────────
    Symbol, Name, Zustand, Bedienung — in dieser Reihenfolge, weil man erst
    wissen will, was etwas tut, bevor man es bedient. */
@@ -99,10 +87,6 @@
   .part__controls {
     grid-column: 1 / -1;
     justify-content: flex-end;
-  }
-
-  .fahrzeug__scene {
-    height: 240px;
   }
 }
 
