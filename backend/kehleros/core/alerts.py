@@ -125,6 +125,44 @@ def _motion_alerts(entity: Entity, value: object) -> list[Alert]:
     ]
 
 
+def _status_alerts(
+    entity: Entity,
+    value: object,
+) -> list[Alert]:
+    """Mehrwertige Gerätezustände WARNING/ALARM werden Systemwarnungen.
+
+    Das gilt nur für echte ``status``-Entities. Andere Strings wie COOL,
+    OPEN oder INVERTING werden dadurch nicht als Warnung interpretiert.
+    """
+
+    if entity.kind != "status":
+        return []
+
+    if value == "WARNING":
+        return [
+            Alert(
+                type="device.status_warning",
+                entity_id=entity.id,
+                severity=Severity.WARNING,
+                message_key="alert.statusWarning",
+                params={"name_key": entity.name_key},
+            )
+        ]
+
+    if value == "ALARM":
+        return [
+            Alert(
+                type="device.status_alarm",
+                entity_id=entity.id,
+                severity=Severity.CRITICAL,
+                message_key="alert.statusAlarm",
+                params={"name_key": entity.name_key},
+            )
+        ]
+
+    return []
+
+
 def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
     """Erzeugt die aktuell zutreffenden Warnungen.
 
@@ -216,6 +254,7 @@ def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
         if quality in _USABLE:
             alerts.extend(_threshold_alerts(entity, entity_state.state.value))
             alerts.extend(_motion_alerts(entity, entity_state.state.value))
+            alerts.extend(_status_alerts(entity, entity_state.state.value))
 
     # Wichtigstes zuerst — das Dashboard zeigt oben, was zählt
     # (Kapitel 8 §9).

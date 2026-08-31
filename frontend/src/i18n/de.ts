@@ -108,6 +108,71 @@ const de: Record<string, string> = {
   "energy.shore_connected": "Landstromanschluss",
   "energy.shore_power": "Landstromleistung",
   "energy.shore_limit": "Eingangsstrombegrenzung",
+  "energy.multiPlus": "MultiPlus 24/5000/120-100",
+  "energy.operation": "Betriebszustand",
+  "energy.lynxBms": "Lynx Smart BMS 1000 NG",
+  "energy.smartSolar": "SmartSolar MPPT",
+  "energy.yieldToday": "Ertrag heute",
+  "energy.pvVoltage": "PV-Spannung",
+  "energy.pvCurrent": "PV-Strom",
+  "energy.power": "Leistung",
+  "energy.mpptNumber": "MPPT {number}",
+  "energy.victronAlarms": "Victron-Warnungen",
+  "energy.noActiveAlarms": "Keine aktiven Victron-Warnungen",
+  "energy.activeAlarmHint":
+    "Victron meldet einen aktiven Alarm. Details bleiben auch in der Kehler-OS-Systemwarnung sichtbar.",
+  "energy.warning": "Warnung",
+  "energy.alarm": "Alarm",
+  "energy.noError": "#0 Kein Fehler",
+  "energy.errorCode": "Fehlercode #{code}",
+
+  "energy.battery_temperature": "Batterietemperatur",
+  "energy.battery_consumed_ah": "Verbrauchte Amperestunden",
+  "energy.battery_error_code": "BMS-Fehler",
+  "energy.inverter_operation": "MultiPlus Betriebszustand",
+
+  "energy.solar_mppt1_yield_today": "MPPT 1 Ertrag heute",
+  "energy.solar_mppt1_pv_voltage": "MPPT 1 PV-Spannung",
+  "energy.solar_mppt1_power": "MPPT 1 Leistung",
+  "energy.solar_mppt2_yield_today": "MPPT 2 Ertrag heute",
+  "energy.solar_mppt2_pv_voltage": "MPPT 2 PV-Spannung",
+  "energy.solar_mppt2_power": "MPPT 2 Leistung",
+
+  "energy.inverter_alarm_overload": "Wechselrichter Überlastung",
+  "energy.inverter_alarm_high_temperature": "Wechselrichter Übertemperatur",
+  "energy.inverter_alarm_low_battery": "Wechselrichter Batterie niedrig",
+  "energy.inverter_alarm_ripple": "Wechselrichter DC-Ripple",
+  "energy.inverter_alarm_bms_connection": "BMS-Verbindung",
+
+  "energy.battery_alarm_bms_cable": "BMS-Kabel",
+  "energy.battery_alarm_contactor": "BMS-Schütz",
+  "energy.battery_alarm_high_current": "Batteriestrom zu hoch",
+  "energy.battery_alarm_high_temperature": "Batterietemperatur zu hoch",
+  "energy.battery_alarm_low_cell_voltage": "Zellspannung zu niedrig",
+  "energy.battery_alarm_low_soc": "Batterieladestand niedrig",
+
+  "energy.inverterMode.ON": "Ein",
+  "energy.inverterMode.CHARGER_ONLY": "Nur Ladegerät",
+  "energy.inverterMode.INVERTER_ONLY": "Nur Wechselrichter",
+  "energy.inverterMode.OFF": "Aus",
+  "energy.inverterModeConfirm":
+    "MultiPlus wirklich auf „{mode}“ stellen?",
+
+  "energy.inverterOperation.OFF": "Aus",
+  "energy.inverterOperation.LOW_POWER": "Energiesparmodus",
+  "energy.inverterOperation.FAULT": "Fehler",
+  "energy.inverterOperation.BULK": "Bulk-Ladung",
+  "energy.inverterOperation.ABSORPTION": "Absorption",
+  "energy.inverterOperation.FLOAT": "Float",
+  "energy.inverterOperation.STORAGE": "Lagerung",
+  "energy.inverterOperation.EQUALIZE": "Ausgleichsladung",
+  "energy.inverterOperation.PASSTHRU": "Durchleitung",
+  "energy.inverterOperation.INVERTING": "Wechselrichterbetrieb",
+  "energy.inverterOperation.ASSISTING": "PowerAssist",
+  "energy.inverterOperation.POWER_SUPPLY": "Netzteilbetrieb",
+  "energy.inverterOperation.TEST": "Test",
+  "energy.inverterOperation.HUB1": "Hub-1",
+  "energy.inverterOperation.UNAVAILABLE": "Nicht verfügbar",
 
   // Laderichtung. „Ruht" ist eine Aussage — bei fehlendem Messwert wird
   // stattdessen „Unbekannt" gezeigt.
@@ -130,7 +195,12 @@ const de: Record<string, string> = {
   "energy.noRuntime":
     "Die Restlaufzeit ist eine Hochrechnung des augenblicklichen Verbrauchs, keine Vorhersage. Beim Laden entfällt sie.",
   "energy.readOnly":
-    "Kehler OS liest die Anlage nur. Geregelt wird sie von Victron; schreibend gibt es ausschließlich Strombegrenzung und Wechselrichter.",
+    "Victron bleibt Regel- und Schutzinstanz. Kehler OS schreibt ausschließlich die freigegebene Landstrombegrenzung und den MultiPlus-Modus.",
+
+  "alert.statusWarning":
+    "{name} meldet eine Warnung.",
+  "alert.statusAlarm":
+    "{name} meldet einen Alarm.",
 
   // Wasser
   "tank.fresh": "Frischwasser",

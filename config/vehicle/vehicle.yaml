@@ -273,12 +273,193 @@ entities:
   # Wechselrichter — der zweite erlaubte Schreibzugriff. HIGH bedeutet:
   # bestätigungspflichtig. Ein versehentliches Abschalten nimmt dem ganzen
   # Fahrzeug die 230-V-Versorgung.
+  # BESTÄTIGT 2026-08-31 am realen MultiPlus:
+  # /Mode besitzt vier schreibbare Zustände:
+  # 1 = Nur Ladegerät, 2 = Nur Wechselrichter, 3 = Ein, 4 = Aus.
   - id: energy.inverter.state
     name_key: energy.inverter
-    type: switch
+    type: select
     area: tech
+    states: ["ON", "CHARGER_ONLY", "INVERTER_ONLY", "OFF"]
     risk: HIGH
+    expected_interval_s: 10
     timeout_ms: 8000
+
+
+  # ── Erweiterte Victron-Diagnose ──────────────────────────────────────────
+  # BESTÄTIGT 2026-08-31 direkt über MQTT am realen Cerbo GX.
+
+  - id: energy.battery.temperature
+    name_key: energy.battery_temperature
+    type: measurement
+    area: tech
+    unit: celsius
+    deadband: 0.2
+    expected_interval_s: 15
+
+  - id: energy.battery.consumed_ah
+    name_key: energy.battery_consumed_ah
+    type: measurement
+    area: tech
+    unit: Ah
+    deadband: 0.1
+    expected_interval_s: 15
+
+  - id: energy.battery.error_code
+    name_key: energy.battery_error_code
+    type: measurement
+    area: tech
+    expected_interval_s: 15
+
+  - id: energy.inverter.operation
+    name_key: energy.inverter_operation
+    type: status
+    area: tech
+    states:
+      - "OFF"
+      - "LOW_POWER"
+      - "FAULT"
+      - "BULK"
+      - "ABSORPTION"
+      - "FLOAT"
+      - "STORAGE"
+      - "EQUALIZE"
+      - "PASSTHRU"
+      - "INVERTING"
+      - "ASSISTING"
+      - "POWER_SUPPLY"
+      - "TEST"
+      - "HUB1"
+      - "UNAVAILABLE"
+    expected_interval_s: 15
+
+  # Beide real vorhandenen SmartSolar MPPT VE.Can 250/100 rev2.
+  - id: energy.solar.mppt1.yield_today
+    name_key: energy.solar_mppt1_yield_today
+    type: measurement
+    area: tech
+    unit: kWh
+    deadband: 0.01
+    expected_interval_s: 15
+
+  - id: energy.solar.mppt1.pv_voltage
+    name_key: energy.solar_mppt1_pv_voltage
+    type: measurement
+    area: tech
+    unit: V
+    deadband: 0.5
+    expected_interval_s: 15
+
+  - id: energy.solar.mppt1.power
+    name_key: energy.solar_mppt1_power
+    type: measurement
+    area: tech
+    unit: W
+    deadband: 5
+    expected_interval_s: 15
+
+  - id: energy.solar.mppt2.yield_today
+    name_key: energy.solar_mppt2_yield_today
+    type: measurement
+    area: tech
+    unit: kWh
+    deadband: 0.01
+    expected_interval_s: 15
+
+  - id: energy.solar.mppt2.pv_voltage
+    name_key: energy.solar_mppt2_pv_voltage
+    type: measurement
+    area: tech
+    unit: V
+    deadband: 0.5
+    expected_interval_s: 15
+
+  - id: energy.solar.mppt2.power
+    name_key: energy.solar_mppt2_power
+    type: measurement
+    area: tech
+    unit: W
+    deadband: 5
+    expected_interval_s: 15
+
+  # VE.Bus-Alarme. 0 = OK; Warnung/Alarm werden getrennt übernommen.
+  - id: energy.inverter.alarm.overload
+    name_key: energy.inverter_alarm_overload
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.inverter.alarm.high_temperature
+    name_key: energy.inverter_alarm_high_temperature
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.inverter.alarm.low_battery
+    name_key: energy.inverter_alarm_low_battery
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.inverter.alarm.ripple
+    name_key: energy.inverter_alarm_ripple
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.inverter.alarm.bms_connection
+    name_key: energy.inverter_alarm_bms_connection
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  # Lynx-Smart-BMS-Alarme.
+  - id: energy.battery.alarm.bms_cable
+    name_key: energy.battery_alarm_bms_cable
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.battery.alarm.contactor
+    name_key: energy.battery_alarm_contactor
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.battery.alarm.high_current
+    name_key: energy.battery_alarm_high_current
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.battery.alarm.high_temperature
+    name_key: energy.battery_alarm_high_temperature
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.battery.alarm.low_cell_voltage
+    name_key: energy.battery_alarm_low_cell_voltage
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
+
+  - id: energy.battery.alarm.low_soc
+    name_key: energy.battery_alarm_low_soc
+    type: status
+    area: tech
+    states: ["OK", "WARNING", "ALARM"]
+    expected_interval_s: 15
 
   # ── Klima ─────────────────────────────────────────────────────────────────
   # BESTÄTIGT (2026-08-10): Klima und Heizung sind **getrennte Systeme** und

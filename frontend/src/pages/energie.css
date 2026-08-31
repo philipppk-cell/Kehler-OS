@@ -201,3 +201,122 @@
 }
 
 /* Die Sollwertverstellung liegt im Designsystem: design/stepper.css */
+
+
+/* ── Erweiterte Victron-Ansicht ─────────────────────────────────────────── */
+
+.energie__mode-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-3);
+}
+
+.energie__mode {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.energie__mode:last-child {
+  border-bottom: 0;
+}
+
+.energie__mode:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.energie__mode--active {
+  color: var(--text-primary);
+}
+
+.energie__mode-dot {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border: 1px solid var(--text-tertiary);
+  border-radius: 50%;
+}
+
+.energie__mode--active .energie__mode-dot {
+  border: 4px solid var(--accent);
+}
+
+.energie__mppt-head,
+.energie__mppt-row {
+  display: grid;
+  grid-template-columns:
+    minmax(210px, 1.5fr)
+    repeat(4, minmax(72px, 0.65fr));
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.energie__mppt-head {
+  padding: 0 var(--space-3) var(--space-2);
+  color: var(--text-tertiary);
+  font-size: var(--text-caption);
+  text-align: right;
+}
+
+.energie__mppt-row {
+  padding: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.energie__mppt-row > :not(:first-child) {
+  justify-self: end;
+}
+
+.energie__mppt-name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.energie__mppt-name strong {
+  color: var(--text-primary);
+  font-size: var(--text-body);
+}
+
+.energie__mppt-name span {
+  overflow: hidden;
+  color: var(--text-tertiary);
+  font-size: var(--text-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.energie__alarm-list {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 760px) {
+  .energie__mppt-head {
+    display: none;
+  }
+
+  .energie__mppt-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .energie__mppt-name {
+    grid-column: 1 / -1;
+  }
+
+  .energie__mppt-row > :not(:first-child) {
+    justify-self: start;
+  }
+}

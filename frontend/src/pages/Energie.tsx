@@ -14,10 +14,10 @@
  * die reale Absicherung des Anschlusses bekannt ist.
  */
 
-import { Card, Row, StaleMark, Status, Toggle, type Tone } from "../design/primitives";
+import { Card, Row, StaleMark, Status, type Tone } from "../design/primitives";
 import { Stepper } from "../design/stepper";
 import { IconPlug, IconSolar } from "../design/icons";
-import { isOn, isUnknown, useAppState, useEntity } from "../realtime/hooks";
+import { useAppState, useEntity } from "../realtime/hooks";
 import { sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useEnergy, type Direction, type EnergySummary, type Reading } from "../energy/useEnergy";
@@ -36,6 +36,8 @@ export function Energie() {
     <div className="energie">
       <div className="energie__main">
         <BatteryCard energy={energy} online={online} />
+        <LynxBmsCard energy={energy} online={online} />
+        <SolarDetailCard online={online} />
         <FlowCard energy={energy} online={online} />
 
         <HistoryCard
@@ -50,7 +52,8 @@ export function Energie() {
 
       <aside className="energie__side">
         <ShoreCard energy={energy} online={online} />
-        <InverterCard online={online} />
+        <MultiPlusCard online={online} />
+        <VictronAlarmCard online={online} />
         <NoteCard />
       </aside>
     </div>
@@ -320,44 +323,445 @@ function ShoreCard({ energy, online }: { energy: EnergySummary | null; online: b
   );
 }
 
-/* ── Wechselrichter ──────────────────────────────────────────────────────── */
+/* ── MultiPlus ───────────────────────────────────────────────────────────── */
 
-function InverterCard({ online }: { online: boolean }) {
-  const inverter = useEntity("energy.inverter.state");
-  const { pending, connection } = useAppState();
-  const on = isOn(inverter);
-  const configured = inverter?.definition?.configured ?? false;
-  const spec = (inverter?.definition?.capabilities ?? []).find(
-    (c) => c.verb === "set_state",
+function MultiPlusCard({ online }: { online: boolean }) {
+  const mode = useEntity("energy.inverter.state");
+  const operation = useEntity("energy.inverter.operation");
+  const { pending } = useAppState();
+
+  const definition = mode?.definition;
+  const states = definition?.states ?? [];
+  const actual = stateString(mode, online);
+
+  const canSet = (definition?.capabilities ?? []).some(
+    (capability) => capability.verb === "set_state",
   );
 
-  function toggle(next: boolean) {
-    // Abschalten nimmt dem ganzen Fahrzeug die 230-V-Versorgung. Die
-    // Bestätigungspflicht steht in der Capability, nicht in dieser Datei —
-    // die Oberfläche liest sie nur aus (Kapitel 15 §21).
-    if (!next && spec?.needs_confirmation) {
-      const ok = window.confirm(t("energy.inverterConfirm"));
+  const spec = (definition?.capabilities ?? []).find(
+    (capability) => capability.verb === "set_state",
+  );
+
+  const operationValue = stateString(operation, online);
+
+  function choose(next: string) {
+    if (!online || !canSet || next === actual) return;
+
+    if (spec?.needs_confirmation) {
+      const label = t(`energy.inverterMode.${next}`, next);
+      const ok = window.confirm(
+        t("energy.inverterModeConfirm", undefined, { mode: label }),
+      );
+
       if (!ok) return;
     }
-    sendCommand("energy.inverter.state", "set_state", { state: next ? "ON" : "OFF" });
+
+    sendCommand(
+      "energy.inverter.state",
+      "set_state",
+      { state: next },
+    );
   }
 
   return (
-    <Card title={t("energy.inverter")}>
-      <Row label={t("energy.inverter")}>
-        {configured ? (
-          <Toggle
-            on={on}
-            unknown={isUnknown(inverter) || connection !== "online"}
-            pending={pending.has("energy.inverter.state")}
-            disabled={!online}
-            label={t("energy.inverter")}
-            onChange={toggle}
-          />
-        ) : (
-          <Status tone="unknown" label={t("state.notConfigured")} compact />
-        )}
+    <Card title={t("energy.multiPlus")}>
+      <div className="energie__mode-list">
+        {states.map((state) => (
+          <button
+            key={state}
+            type="button"
+            className={
+              "energie__mode" +
+              (actual === state ? " energie__mode--active" : "")
+            }
+            disabled={
+              !online ||
+              !canSet ||
+              pending.has("energy.inverter.state")
+            }
+            aria-pressed={actual === state}
+            onClick={() => choose(state)}
+          >
+            <span className="energie__mode-dot" aria-hidden="true" />
+            <span>{t(`energy.inverterMode.${state}`, state)}</span>
+          </button>
+        ))}
+      </div>
+
+      <Row label={t("energy.operation")}>
+        <Status
+          tone={operationTone(operationValue)}
+          label={
+            operationValue
+              ? t(
+                  `energy.inverterOperation.${operationValue}`,
+                  operationValue,
+                )
+              : t("state.unknown")
+          }
+          compact
+        />
       </Row>
+    </Card>
+  );
+}
+
+function operationTone(value: string | null): Tone {
+  if (value === null || value === "UNAVAILABLE") return "unknown";
+  if (value === "FAULT") return "error";
+  if (value === "INVERTING" || value === "ASSISTING") return "accent";
+  if (
+    value === "BULK" ||
+    value === "ABSORPTION" ||
+    value === "FLOAT" ||
+    value === "STORAGE"
+  ) {
+    return "ok";
+  }
+  return "neutral";
+}
+
+/* ── Lynx Smart BMS ──────────────────────────────────────────────────────── */
+
+function LynxBmsCard({
+  energy,
+  online,
+}: {
+  energy: EnergySummary | null;
+  online: boolean;
+}) {
+  const temperature = useEntity("energy.battery.temperature");
+  const consumedAh = useEntity("energy.battery.consumed_ah");
+  const error = useEntity("energy.battery.error_code");
+
+  const errorCode =
+    online &&
+    error &&
+    USABLE.includes(error.state.quality) &&
+    typeof error.state.value === "number"
+      ? error.state.value
+      : null;
+
+  return (
+    <Card title={t("energy.lynxBms")}>
+      <div className="energie__split">
+        <Row label={t("energy.battery_soc")}>
+          <Number
+            reading={energy?.soc}
+            online={online}
+            unit="%"
+            decimals={0}
+          />
+        </Row>
+
+        <Row label={t("energy.battery_voltage")}>
+          <Number
+            reading={energy?.voltage}
+            online={online}
+            unit="V"
+            decimals={2}
+          />
+        </Row>
+
+        <Row label={t("energy.battery_current")}>
+          <Number
+            reading={energy?.current}
+            online={online}
+            unit="A"
+            decimals={1}
+            signed
+          />
+        </Row>
+
+        <Row label={t("energy.battery_power")}>
+          <Number
+            reading={energy?.battery_power}
+            online={online}
+            unit="W"
+            decimals={0}
+            signed
+          />
+        </Row>
+
+        <Row label={t("energy.battery_temperature")}>
+          <Number
+            reading={readingOf(temperature)}
+            online={online}
+            unit="°C"
+            decimals={1}
+          />
+        </Row>
+
+        <Row label={t("energy.battery_consumed_ah")}>
+          <Number
+            reading={readingOf(consumedAh)}
+            online={online}
+            unit="Ah"
+            decimals={1}
+            signed
+          />
+        </Row>
+
+        <Row label={t("energy.battery_error_code")}>
+          <Status
+            tone={
+              errorCode === null
+                ? "unknown"
+                : errorCode === 0
+                  ? "ok"
+                  : "error"
+            }
+            label={
+              errorCode === null
+                ? t("state.unknown")
+                : errorCode === 0
+                  ? t("energy.noError")
+                  : t("energy.errorCode", undefined, {
+                      code: String(errorCode),
+                    })
+            }
+            compact
+          />
+        </Row>
+      </div>
+    </Card>
+  );
+}
+
+/* ── SmartSolar ──────────────────────────────────────────────────────────── */
+
+function SolarDetailCard({ online }: { online: boolean }) {
+  return (
+    <Card title={t("energy.smartSolar")}>
+      <div className="energie__mppt-head" aria-hidden="true">
+        <span />
+        <span>{t("energy.yieldToday")}</span>
+        <span>{t("energy.pvVoltage")}</span>
+        <span>{t("energy.pvCurrent")}</span>
+        <span>{t("energy.power")}</span>
+      </div>
+
+      <MpptRow
+        number={1}
+        prefix="energy.solar.mppt1"
+        online={online}
+      />
+
+      <MpptRow
+        number={2}
+        prefix="energy.solar.mppt2"
+        online={online}
+      />
+    </Card>
+  );
+}
+
+function MpptRow({
+  number,
+  prefix,
+  online,
+}: {
+  number: number;
+  prefix: string;
+  online: boolean;
+}) {
+  const yieldToday = useEntity(`${prefix}.yield_today`);
+  const voltage = useEntity(`${prefix}.pv_voltage`);
+  const power = useEntity(`${prefix}.power`);
+
+  const current = derivedPvCurrent(
+    readingOf(power),
+    readingOf(voltage),
+  );
+
+  return (
+    <div className="energie__mppt-row">
+      <div className="energie__mppt-name">
+        <strong>
+          {t("energy.mpptNumber", undefined, {
+            number: String(number),
+          })}
+        </strong>
+        <span>SmartSolar MPPT VE.Can 250/100 rev2</span>
+      </div>
+
+      <Number
+        reading={readingOf(yieldToday)}
+        online={online}
+        unit="kWh"
+        decimals={2}
+      />
+
+      <Number
+        reading={readingOf(voltage)}
+        online={online}
+        unit="V"
+        decimals={1}
+      />
+
+      <Number
+        reading={current}
+        online={online}
+        unit="A"
+        decimals={1}
+      />
+
+      <Number
+        reading={readingOf(power)}
+        online={online}
+        unit="W"
+        decimals={0}
+      />
+    </div>
+  );
+}
+
+function derivedPvCurrent(
+  power: Reading | undefined,
+  voltage: Reading | undefined,
+): Reading | undefined {
+  if (
+    !power ||
+    !voltage ||
+    typeof power.value !== "number" ||
+    typeof voltage.value !== "number" ||
+    voltage.value <= 0
+  ) {
+    return undefined;
+  }
+
+  const usablePower = USABLE.includes(power.quality);
+  const usableVoltage = USABLE.includes(voltage.quality);
+
+  if (!usablePower || !usableVoltage) return undefined;
+
+  return {
+    value: power.value / voltage.value,
+    quality:
+      power.quality === Quality.Stale ||
+      voltage.quality === Quality.Stale
+        ? Quality.Stale
+        : Quality.Valid,
+  };
+}
+
+/* ── Victron-Alarme ─────────────────────────────────────────────────────── */
+
+function VictronAlarmCard({ online }: { online: boolean }) {
+  const inverterOverload = useEntity(
+    "energy.inverter.alarm.overload",
+  );
+  const inverterTemperature = useEntity(
+    "energy.inverter.alarm.high_temperature",
+  );
+  const inverterLowBattery = useEntity(
+    "energy.inverter.alarm.low_battery",
+  );
+  const inverterRipple = useEntity(
+    "energy.inverter.alarm.ripple",
+  );
+  const inverterBms = useEntity(
+    "energy.inverter.alarm.bms_connection",
+  );
+
+  const bmsCable = useEntity(
+    "energy.battery.alarm.bms_cable",
+  );
+  const bmsContactor = useEntity(
+    "energy.battery.alarm.contactor",
+  );
+  const bmsHighCurrent = useEntity(
+    "energy.battery.alarm.high_current",
+  );
+  const bmsTemperature = useEntity(
+    "energy.battery.alarm.high_temperature",
+  );
+  const bmsLowCell = useEntity(
+    "energy.battery.alarm.low_cell_voltage",
+  );
+  const bmsLowSoc = useEntity(
+    "energy.battery.alarm.low_soc",
+  );
+
+  const alarms = [
+    inverterOverload,
+    inverterTemperature,
+    inverterLowBattery,
+    inverterRipple,
+    inverterBms,
+    bmsCable,
+    bmsContactor,
+    bmsHighCurrent,
+    bmsTemperature,
+    bmsLowCell,
+    bmsLowSoc,
+  ];
+
+  const active = alarms
+    .map((entity) => ({
+      entity,
+      state: stateString(entity, online),
+    }))
+    .filter(
+      (item) =>
+        item.state === "WARNING" ||
+        item.state === "ALARM",
+    );
+
+  const critical = active.some(
+    (item) => item.state === "ALARM",
+  );
+
+  return (
+    <Card
+      title={t("energy.victronAlarms")}
+      emphasis={active.length > 0}
+    >
+      {active.length === 0 ? (
+        <Status
+          tone={online ? "ok" : "unknown"}
+          label={
+            online
+              ? t("energy.noActiveAlarms")
+              : t("state.unknown")
+          }
+        />
+      ) : (
+        <div className="energie__alarm-list">
+          {active.map(({ entity, state }) => {
+            const name = entity?.definition?.name_key
+              ? t(entity.definition.name_key)
+              : entity?.entity_id ?? t("state.unknown");
+
+            return (
+              <Row
+                key={entity?.entity_id ?? name}
+                label={name}
+              >
+                <Status
+                  tone={
+                    state === "ALARM"
+                      ? "error"
+                      : "warn"
+                  }
+                  label={
+                    state === "ALARM"
+                      ? t("energy.alarm")
+                      : t("energy.warning")
+                  }
+                  compact
+                />
+              </Row>
+            );
+          })}
+        </div>
+      )}
+
+      {critical && (
+        <p className="energie__note">
+          {t("energy.activeAlarmHint")}
+        </p>
+      )}
     </Card>
   );
 }
@@ -434,6 +838,21 @@ function readingOf(entity: ReturnType<typeof useEntity>): Reading | undefined {
     value: typeof value === "number" ? value : null,
     quality: entity.state.quality,
   };
+}
+
+function stateString(
+  entity: ReturnType<typeof useEntity>,
+  online: boolean,
+): string | null {
+  if (!online || !entity) return null;
+
+  if (!USABLE.includes(entity.state.quality)) {
+    return null;
+  }
+
+  return typeof entity.state.value === "string"
+    ? entity.state.value
+    : null;
 }
 
 function format(value: number, decimals: number, signed: boolean): string {

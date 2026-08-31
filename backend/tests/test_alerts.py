@@ -249,3 +249,70 @@ class TestBlockierteMechanik:
             state.apply("vehicle.garage.door", StateValue.valid(lage))
             typen = {a.type for a in derive_alerts(state, registry)}
             assert "motion.blocked" not in typen, lage
+
+
+class TestGeraeteStatusAlarm:
+    def setup_method(self):
+        from tests.conftest import make_entity
+
+        self.registry = Registry()
+        self.registry.register(
+            make_entity(
+                "energy.inverter.alarm.overload",
+                kind="status",
+            )
+        )
+        self.state = StateStore(self.registry)
+
+    def test_warning_wird_systemwarnung(self):
+        self.state.apply(
+            "energy.inverter.alarm.overload",
+            StateValue.valid(
+                "WARNING",
+                source=Source.VICTRON,
+            ),
+            force=True,
+        )
+
+        alerts = derive_alerts(
+            self.state,
+            self.registry,
+        )
+
+        assert len(alerts) == 1
+        assert alerts[0].type == "device.status_warning"
+        assert alerts[0].severity is Severity.WARNING
+
+    def test_alarm_wird_kritisch(self):
+        self.state.apply(
+            "energy.inverter.alarm.overload",
+            StateValue.valid(
+                "ALARM",
+                source=Source.VICTRON,
+            ),
+            force=True,
+        )
+
+        alerts = derive_alerts(
+            self.state,
+            self.registry,
+        )
+
+        assert len(alerts) == 1
+        assert alerts[0].type == "device.status_alarm"
+        assert alerts[0].severity is Severity.CRITICAL
+
+    def test_ok_erzeugt_keine_warnung(self):
+        self.state.apply(
+            "energy.inverter.alarm.overload",
+            StateValue.valid(
+                "OK",
+                source=Source.VICTRON,
+            ),
+            force=True,
+        )
+
+        assert derive_alerts(
+            self.state,
+            self.registry,
+        ) == []
