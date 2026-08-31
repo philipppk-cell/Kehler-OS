@@ -176,6 +176,38 @@ entities:
     timeout_ms: 2000
     risk: HIGH
 
+  # BESTÄTIGT (2026-08-31):
+  # Der große Frischwassertank besitzt in der Siemens-SPS zwei getrennte
+  # HMI-Eingänge zum Starten und Stoppen der Befüllung.
+  #
+  # Beide Eingänge werden als kurzer Boolean-Impuls betätigt.
+  # Eine Rückmeldung, ob die Befüllung tatsächlich läuft, existiert nicht.
+  # Kehler OS zeigt deshalb keinen erfundenen Betriebszustand an.
+  # BESTÄTIGT (2026-08-31):
+  # Relais 23 ist während der Befüllung des großen Frischwassertanks aktiv.
+  # TRUE = Befüllung läuft, FALSE = Befüllung nicht aktiv.
+  - id: water.fill.large.active
+    name_key: water.fill_large_active
+    type: contact
+    area: tech
+    expected_interval_s: 2
+
+  - id: water.fill.large.start
+    name_key: water.fill_large_start
+    type: action
+    area: tech
+    feedback: false
+    timeout_ms: 2000
+    risk: MEDIUM
+
+  - id: water.fill.large.stop
+    name_key: water.fill_large_stop
+    type: action
+    area: tech
+    feedback: false
+    timeout_ms: 2000
+    risk: LOW
+
   # ── Energie ───────────────────────────────────────────────────────────────
   # BESTÄTIGT: Victron-Anlage, 24-V-Lithiumsystem, Solar auf dem Dach
   # (zehn Module, auf den Fotos sichtbar), Landstromanschluss.

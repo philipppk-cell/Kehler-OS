@@ -15,7 +15,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { Button, Card, StaleMark } from "../design/primitives";
+import { Button, Card, StaleMark, Status } from "../design/primitives";
 import { IconValve } from "../design/icons";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { useAppState, useEntity } from "../realtime/hooks";
@@ -54,6 +54,7 @@ export function Wasser() {
     <div className="wasser">
       <div className="wasser__main">
         <FreshCard fresh={water?.fresh} online={online} />
+        <FreshFillCard online={online} />
         <WasteCard tanks={water?.waste} online={online} />
 
         {/* Der Verlauf steht unter den aktuellen Ständen und nicht daneben:
@@ -134,6 +135,137 @@ function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
   );
 }
 
+/* ── Befüllung großer Frischwassertank ────────────────────────────────── */
+
+const FILL_ACTIVE_ID = "water.fill.large.active";
+const FILL_START_ID = "water.fill.large.start";
+const FILL_STOP_ID = "water.fill.large.stop";
+
+function FreshFillStatus() {
+  const active = useEntity(FILL_ACTIVE_ID);
+  const { connection } = useAppState();
+
+  const online = connection === "online";
+  const value = active?.state.value;
+  const quality = active?.state.quality;
+
+  const filling =
+    online &&
+    active?.definition?.configured !== false &&
+    (
+      quality === Quality.Valid ||
+      quality === Quality.Stale
+    ) &&
+    value === true;
+
+  if (!filling) {
+    return null;
+  }
+
+  return (
+    <div className="tankrow__fill-status">
+      <Status
+        tone="accent"
+        label={t("water.fillActive")}
+        compact
+      />
+
+      {quality === Quality.Stale && <StaleMark />}
+    </div>
+  );
+}
+
+function FreshFillCard({ online }: { online: boolean }) {
+  const active = useEntity(FILL_ACTIVE_ID);
+  const start = useEntity(FILL_START_ID);
+  const stop = useEntity(FILL_STOP_ID);
+  const { pending } = useAppState();
+
+  const startBusy = pending.has(FILL_START_ID);
+  const stopBusy = pending.has(FILL_STOP_ID);
+
+  /*
+   * Während eines 100-ms-Impulses wird auch der jeweils andere Knopf kurz
+   * gesperrt. Dadurch können Kehler OS selbst niemals START und STOP
+   * gleichzeitig auf TRUE setzen.
+   */
+  const busy = startBusy || stopBusy;
+
+  /*
+   * Der angezeigte Zustand stammt ausschließlich von Relais 23.
+   * Ein gesendeter Start-Befehl macht daraus noch keinen laufenden Zustand.
+   */
+  const activeValue = active?.state.value;
+  const activeQuality = active?.state.quality;
+
+  const filling =
+    online &&
+    active?.definition?.configured !== false &&
+    (
+      activeQuality === Quality.Valid ||
+      activeQuality === Quality.Stale
+    ) &&
+    typeof activeValue === "boolean"
+      ? activeValue
+      : null;
+
+  const startReady =
+    start?.definition?.configured === true &&
+    (
+      start.definition.capabilities.some(
+        (capability) => capability.verb === "trigger",
+      )
+    );
+
+  const stopReady =
+    stop?.definition?.configured === true &&
+    (
+      stop.definition.capabilities.some(
+        (capability) => capability.verb === "trigger",
+      )
+    );
+
+  function trigger(entityId: string) {
+    void sendCommand(entityId, "trigger");
+  }
+
+  return (
+    <Card title={t("water.fillTitle")}>
+      <div className="wasser__fill">
+        <div className="wasser__fill-copy">
+          <strong>{t("tank.fresh_large")}</strong>
+
+        </div>
+
+        <div
+          className="wasser__fill-controls"
+          role="group"
+          aria-label={t("water.fillTitle")}
+        >
+          <Button
+            variant="accent"
+            disabled={!online || !startReady || busy || filling === true}
+            onClick={() => trigger(FILL_START_ID)}
+          >
+            {startBusy
+              ? t("water.fillStarting")
+              : t("water.fillStart")}
+          </Button>
+
+          <Button
+            disabled={!online || !stopReady || busy}
+            onClick={() => trigger(FILL_STOP_ID)}
+          >
+            {stopBusy
+              ? t("water.fillStopping")
+              : t("water.fillStop")}
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 /* ── Abwasser ────────────────────────────────────────────────────────────── */
 
 function WasteCard({ tanks, online }: { tanks?: TankView[]; online: boolean }) {
@@ -166,16 +298,22 @@ function TankRow({
     <div className="tankrow">
       <div className="tankrow__head">
         <span className="tankrow__name">{t(tank.name_key, tank.entity_id)}</span>
-        <span className={`tankrow__value${stale && usable ? " tankrow__value--stale" : ""}`}>
-          {usable ? (
-            <>
-              <span className="numeric">{Math.round(tank.percent!)}</span>
-              <span className="tankrow__unit">%</span>
-            </>
-          ) : (
-            <span className="tankrow__unknown">{t("state.unknown")}</span>
+        <div className="tankrow__head-right">
+          {tank.entity_id === "water.tank.fresh.large" && (
+            <FreshFillStatus />
           )}
-        </span>
+
+          <span className={`tankrow__value${stale && usable ? " tankrow__value--stale" : ""}`}>
+            {usable ? (
+              <>
+                <span className="numeric">{Math.round(tank.percent!)}</span>
+                <span className="tankrow__unit">%</span>
+              </>
+            ) : (
+              <span className="tankrow__unknown">{t("state.unknown")}</span>
+            )}
+          </span>
+        </div>
       </div>
 
       <RawBar

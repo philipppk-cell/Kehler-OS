@@ -240,6 +240,21 @@ const de: Record<string, string> = {
   "water.valveNoFeedback":
     "Die Ablassventile melden ihre Stellung nicht zurück. Angezeigt wird der zuletzt gesendete Befehl, nicht die tatsächliche Stellung — Kehler OS kann sie nicht kennen.",
 
+  // Befüllung großer Frischwassertank
+  "water.fill_large_start": "Befüllung starten",
+  "water.fill_large_stop": "Befüllung stoppen",
+  "water.fillTitle": "Frischwassertank befüllen",
+  "water.fillStatus": "Status",
+  "water.fillActive": "Befüllung läuft",
+  "water.fillInactive": "Nicht aktiv",
+  "water.fill_large_active": "Befüllungsstatus",
+  "water.fillStart": "Befüllung starten",
+  "water.fillStop": "Befüllung stoppen",
+  "water.fillStarting": "Start wird gesendet …",
+  "water.fillStopping": "Stopp wird gesendet …",
+  "water.fillHint":
+    "Steuert die Befüllung des großen Frischwassertanks. Start und Stopp senden jeweils einen kurzen Befehl an die SPS. Einen laufenden Befüllungsstatus meldet die SPS nicht zurück.",
+
   "water.notesTitle": "Hinweise",
   "water.thresholdsSet":
     "Frischwasser: Warnung unter 20 %, kritisch unter 10 %. Abwasser: Warnung über 80 %, kritisch über 90 %.",

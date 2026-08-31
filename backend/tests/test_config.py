@@ -308,6 +308,31 @@ class TestMitgelieferteKonfiguration:
         for ventil in ventile:
             assert ventil.feedback is False, f"{ventil.id} erwartet eine Rückmeldung"
 
+    def test_befuellung_hat_echte_rueckmeldung(self):
+        """Relais 23 liefert den realen Zustand der Tankbefüllung."""
+        vehicle = load_vehicle(
+            REPO / "config/vehicle/vehicle.yaml"
+        )
+        entities = {
+            entity.id: entity
+            for entity in build_entities(vehicle)
+        }
+
+        status = entities["water.fill.large.active"]
+
+        assert status.kind == "contact"
+        assert status.feedback
+        assert status.capabilities == ()
+
+        for entity_id in (
+            "water.fill.large.start",
+            "water.fill.large.stop",
+        ):
+            action = entities[entity_id]
+            assert action.kind == "action"
+            assert not action.feedback
+            assert action.capabilities == ("trigger",)
+
     def test_nur_aktoren_sind_ohne_rueckmeldung(self):
         """BESTÄTIGT (2026-08-12): Kein bewegliches Teil meldet zurück.
 
@@ -324,6 +349,8 @@ class TestMitgelieferteKonfiguration:
         assert ohne == {
             "water.valve.grey",
             "water.valve.black",
+            "water.fill.large.start",
+            "water.fill.large.stop",
             "vehicle.garage.door",
             "vehicle.sensors.restart",
             "vehicle.terrace.main",
