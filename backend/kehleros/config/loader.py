@@ -77,6 +77,7 @@ def _build_entity(config: EntityConfig) -> Entity:
         deadband=config.deadband,
         expected_interval_s=config.expected_interval_s,
         configured=config.configured,
+        alerts_enabled=config.alerts_enabled,
         unverified=config.unverified,
         feedback=config.feedback,
         kind=config.type,

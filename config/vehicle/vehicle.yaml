@@ -76,6 +76,9 @@ entities:
     type: measurement
     unit: percent
     capacity_l: 450
+    # Tank bleibt im System sichtbar und wird weiter eingelesen.
+    # Wegen des physischen Defekts erzeugt er bis zur Reparatur keine Meldungen.
+    alerts_enabled: false
     warn_below: 20
     critical_below: 10
     deadband: 0.5

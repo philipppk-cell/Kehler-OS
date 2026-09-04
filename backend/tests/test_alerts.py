@@ -12,8 +12,8 @@ from datetime import timedelta
 from kehleros.core.alerts import derive_alerts
 from kehleros.core.registry import Registry
 from kehleros.core.state_store import StateStore
-from kehleros.domain.enums import Quality, Severity, Source
-from kehleros.domain.models import StateValue, utcnow
+from kehleros.domain.enums import LinkState, Quality, Severity, Source
+from kehleros.domain.models import Entity, StateValue, utcnow
 
 TANK = "water.tank.fresh"
 
@@ -79,6 +79,90 @@ class TestUnbekannt:
             force=True,
         )
         assert "sensor.lost" not in types_of(derive_alerts(state, registry))
+
+
+class TestDeaktivierteMeldungen:
+    def registry(self) -> Registry:
+        reg = Registry()
+        reg.register(
+            Entity(
+                id="water.tank.fresh.small",
+                name_key="tank.fresh_small",
+                unit="percent",
+                alerts_enabled=False,
+                warn_below=20,
+                critical_below=10,
+            )
+        )
+        return reg
+
+    def assert_silent(self, store: StateStore, registry: Registry) -> None:
+        alerts = [
+            alert
+            for alert in derive_alerts(store, registry)
+            if alert.entity_id == "water.tank.fresh.small"
+        ]
+        assert alerts == []
+
+    def test_stummgeschalteter_tank_erzeugt_keinerlei_meldungen(self):
+        reg = self.registry()
+        store = StateStore(reg)
+        tank = "water.tank.fresh.small"
+
+        # Kritisch niedriger Füllstand
+        store.apply(
+            tank,
+            StateValue.valid(
+                5.0,
+                unit="percent",
+                source=Source.SIMULATION,
+            ),
+            force=True,
+        )
+        self.assert_silent(store, reg)
+
+        # Sensorfehler
+        store.apply(
+            tank,
+            StateValue.invalid(
+                unit="percent",
+                source=Source.SIMULATION,
+            ),
+            force=True,
+        )
+        self.assert_silent(store, reg)
+
+        # Veralteter Wert
+        store.apply(
+            tank,
+            StateValue(
+                value=5.0,
+                unit="percent",
+                quality=Quality.STALE,
+                source=Source.SIMULATION,
+                measured_at=utcnow() - timedelta(minutes=5),
+            ),
+            force=True,
+        )
+        self.assert_silent(store, reg)
+
+        # Sensorwert verloren
+        store.apply(
+            tank,
+            StateValue(
+                value=None,
+                unit="percent",
+                quality=Quality.UNKNOWN,
+                source=Source.SIMULATION,
+                measured_at=utcnow() - timedelta(minutes=5),
+            ),
+            force=True,
+        )
+        self.assert_silent(store, reg)
+
+        # Quelle / Hardware offline
+        store.set_link(tank, LinkState.OFFLINE)
+        self.assert_silent(store, reg)
 
 
 class TestNichtKonfiguriert:

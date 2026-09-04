@@ -262,6 +262,12 @@ class Entity:
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt „Nicht konfiguriert“ (Kapitel 18 §101)."""
 
+    alerts_enabled: bool = True
+    """Ob diese Entity Warnungen und Hinweise erzeugen darf.
+
+    Das beeinflusst weder Messung noch Anzeige noch Bedienung.
+    """
+
     feedback: bool = True
     """Ob die Hardware ihren Zustand zurückmeldet.
 

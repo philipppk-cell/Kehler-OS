@@ -136,6 +136,14 @@ class EntityConfig(_Strict):
     """``False`` heißt: vorgesehen, aber ohne Hardwarezuordnung. Die
     Oberfläche zeigt dann „Nicht konfiguriert“ (Kapitel 18 §101)."""
 
+    alerts_enabled: bool = True
+    """Ob diese Entity Systemmeldungen erzeugen darf.
+
+    ``False`` deaktiviert ausschließlich Meldungen. Die Entity bleibt
+    vollständig registriert, wird weiter gelesen und bleibt in der
+    Oberfläche sichtbar.
+    """
+
     feedback: bool = True
     """Ob die Hardware ihren Zustand zurückmeldet.
 

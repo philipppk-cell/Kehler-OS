@@ -178,6 +178,11 @@ def derive_alerts(state: StateStore, registry: Registry) -> list[Alert]:
         if entity is None:
             continue
 
+        # Die Entity bleibt vollständig im System und wird weiter gelesen,
+        # erzeugt aber bewusst keinerlei Systemmeldungen.
+        if not entity.alerts_enabled:
+            continue
+
         # Fehlende Hardwarezuordnung ist ein Hinweis, keine Störung. Sie
         # gehört sichtbar gemacht, damit sie nicht vergessen wird.
         if not entity.configured:
