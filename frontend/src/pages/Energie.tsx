@@ -36,9 +36,9 @@ export function Energie() {
     <div className="energie">
       <div className="energie__main">
         <BatteryCard energy={energy} online={online} />
+        <FlowCard energy={energy} online={online} />
         <LynxBmsCard energy={energy} online={online} />
         <SolarDetailCard online={online} />
-        <FlowCard energy={energy} online={online} />
 
         <HistoryCard
           metrics={[
