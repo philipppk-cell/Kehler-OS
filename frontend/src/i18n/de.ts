@@ -253,7 +253,7 @@ const de: Record<string, string> = {
   "water.fillStarting": "Start wird gesendet …",
   "water.fillStopping": "Stopp wird gesendet …",
   "water.fillHint":
-    "Steuert die Befüllung des großen Frischwassertanks. Start und Stopp senden jeweils einen kurzen Befehl an die SPS. Einen laufenden Befüllungsstatus meldet die SPS nicht zurück.",
+    "Steuert die Befüllung des großen Frischwassertanks. Start und Stopp senden jeweils einen kurzen Befehl an die SPS; der laufende Zustand wird über Relais 23 zurückgemeldet.",
 
   "water.notesTitle": "Hinweise",
   "water.thresholdsSet":
