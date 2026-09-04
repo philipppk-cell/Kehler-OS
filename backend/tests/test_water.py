@@ -118,6 +118,58 @@ def test_ohne_kapazitaet_keine_liter():
     assert fresh.litres is None
 
 
+@pytest.mark.parametrize(
+    "entity_id",
+    [
+        "water.tank.fresh.large",
+        "water.tank.fresh.small",
+        "water.tank.grey",
+        "water.tank.black",
+    ],
+)
+@pytest.mark.parametrize(
+    "reported_percent",
+    [100.1, 101.0, 102.0],
+)
+def test_tankgeber_bis_102_prozent_werden_als_voll_verarbeitet(
+    registry,
+    entity_id,
+    reported_percent,
+):
+    """Die obere Sensortoleranz gilt für jeden Wassertank."""
+
+    states = {
+        entity_id: state(
+            entity_id,
+            reported_percent,
+            Quality.VALID,
+        ),
+    }
+
+    summary = summarise(states, registry)
+
+    tanks = [
+        *summary.fresh.tanks,
+        *summary.waste,
+    ]
+
+    actual = next(
+        tank
+        for tank in tanks
+        if tank.entity_id == entity_id
+    )
+
+    expected_capacity = next(
+        entity.capacity_l
+        for entity in registry
+        if entity.id == entity_id
+    )
+
+    assert actual.quality is Quality.VALID
+    assert actual.percent == pytest.approx(100.0)
+    assert actual.litres == pytest.approx(expected_capacity)
+
+
 def test_freier_platz_wird_nicht_negativ(registry):
     """Ein Sensor, der über 100 % meldet, darf keinen negativen Restplatz
     erzeugen."""

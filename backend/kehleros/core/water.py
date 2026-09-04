@@ -34,6 +34,15 @@ from ..domain.models import Entity, EntityState
 FRESH_PREFIX = "water.tank.fresh"
 WASTE_IDS = ("water.tank.grey", "water.tank.black")
 
+TANK_PERCENT_MAX = 100.0
+TANK_PERCENT_TOLERANCE_MAX = 102.0
+"""Tankgeber dürfen bis 102 % überlaufen.
+
+101 oder 102 % bedeuten physikalisch weiterhin "voll" und werden deshalb
+als 100 % verarbeitet. Erst oberhalb von 102 % bleibt der Wert außerhalb
+der zulässigen Plausibilität.
+"""
+
 # Von gut nach schlecht. Die Reihenfolge ist die Rangfolge, mit der die
 # Qualität einer Summe bestimmt wird.
 _RANK = {
@@ -52,6 +61,18 @@ Level = Literal["ok", "warn", "critical"]
 Drei Stufen statt eines Ja/Nein-Flags: Sobald es zwei Schwellen gibt, muss
 die Oberfläche unterscheiden können, welche davon überschritten ist.
 """
+
+
+def normalise_tank_percent(value: float) -> float:
+    """Kappt die bestätigte obere Sensortoleranz auf physikalische 100 %.
+
+    Werte oberhalb von 102 % werden hier bewusst nicht korrigiert. Sie sollen
+    anschließend an der Plausibilitätsprüfung scheitern, statt als voller Tank
+    ausgegeben zu werden.
+    """
+    if TANK_PERCENT_MAX < value <= TANK_PERCENT_TOLERANCE_MAX:
+        return TANK_PERCENT_MAX
+    return value
 
 
 def _classify(
@@ -206,6 +227,9 @@ def _tank(entity: Entity, state: EntityState | None) -> TankView:
     quality = state.state.quality if state else Quality.UNKNOWN
     value = state.state.value if state else None
     percent = float(value) if isinstance(value, (int, float)) else None
+
+    if percent is not None:
+        percent = normalise_tank_percent(percent)
 
     litres: float | None = None
     if percent is not None and entity.capacity_l is not None:

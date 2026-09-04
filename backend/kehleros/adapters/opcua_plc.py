@@ -17,6 +17,7 @@ from ..config.hardware import OpcUaPlcDeviceConfig, OpcUaReadPointConfig
 from ..core.event_bus import EventBus
 from ..core.registry import Registry
 from ..core.state_store import StateStore
+from ..core.water import normalise_tank_percent
 from ..domain.enums import Source
 from ..domain.models import Command, CommandSpec, StateValue, utcnow
 from .base import Adapter
@@ -181,6 +182,19 @@ class OpcUaPlcAdapter(Adapter):
                     force=True,
                 )
                 continue
+
+            # Die Tankgeber dürfen am oberen Anschlag geringfügig über
+            # 100 % melden. Bis einschließlich 102 % bedeutet der Messwert
+            # weiterhin schlicht "voll". Die Korrektur geschieht vor der
+            # Plausibilitätsprüfung, damit ein Mapping mit max: 100 den
+            # tolerierten Rohwert nicht vorher verwirft.
+            if (
+                entity.id.startswith("water.tank.")
+                and entity.unit == "percent"
+                and isinstance(value, (int, float))
+                and not isinstance(value, bool)
+            ):
+                value = normalise_tank_percent(float(value))
 
             if not self._plausible(point, value):
                 log.warning(
