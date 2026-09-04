@@ -240,26 +240,6 @@ const de: Record<string, string> = {
   "water.valveNoFeedback":
     "Die Ablassventile melden ihre Stellung nicht zurück. Angezeigt wird der zuletzt gesendete Befehl, nicht die tatsächliche Stellung — Kehler OS kann sie nicht kennen.",
 
-  // Wasserverbrauch und Reichweite
-  "water.forecastTitle": "Wasserreichweite",
-  "water.forecastNotStarted": "Noch keine Berechnung gestartet",
-  "water.forecastNotStartedHint":
-    "Starte die Berechnung am aktuellen Stellplatz. Später kannst du sie jederzeit zurücksetzen und ab diesem Zeitpunkt neu berechnen lassen.",
-  "water.forecastUnavailable": "Prognose derzeit nicht verfügbar",
-  "water.forecastCalculating": "Wird berechnet …",
-  "water.forecastNeedData":
-    "Kehler OS sammelt seit dem Reset neue Verbrauchsdaten. Eine Restdauer erscheint nach mindestens 2 Stunden und 5 Litern erkanntem Verbrauch.",
-  "water.forecastStart": "Berechnung starten",
-  "water.forecastReset": "Zurücksetzen",
-  "water.forecastResetting": "Wird zurückgesetzt …",
-  "water.forecastResetConfirm":
-    "Die bisherige Verbrauchsberechnung verwerfen und ab dem aktuellen Stand neu beginnen?",
-  "water.forecastApprox": "ca.",
-  "water.forecastLitresPerDay": "L/Tag",
-  "water.forecastHours": "Std.",
-  "water.forecastDays": "Tage",
-  "water.forecastUntilFull": "Restzeit bis voll",
-
   // Befüllung großer Frischwassertank
   "water.fill_large_start": "Befüllung starten",
   "water.fill_large_stop": "Befüllung stoppen",
@@ -273,7 +253,7 @@ const de: Record<string, string> = {
   "water.fillStarting": "Start wird gesendet …",
   "water.fillStopping": "Stopp wird gesendet …",
   "water.fillHint":
-    "Steuert die Befüllung des großen Frischwassertanks. Start und Stopp senden jeweils einen kurzen Befehl an die SPS; der laufende Zustand wird über Relais 23 zurückgemeldet.",
+    "Steuert die Befüllung des großen Frischwassertanks. Start und Stopp senden jeweils einen kurzen Befehl an die SPS. Einen laufenden Befüllungsstatus meldet die SPS nicht zurück.",
 
   "water.notesTitle": "Hinweise",
   "water.thresholdsSet":

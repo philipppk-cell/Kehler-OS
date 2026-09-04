@@ -22,11 +22,6 @@ import { useAppState, useEntity } from "../realtime/hooks";
 import { renewHold, sendCommand } from "../api/client";
 import { Quality } from "../realtime/types";
 import { useWater, type FreshGroup, type Level, type TankView } from "../water/useWater";
-import {
-  useWaterForecast,
-  type ForecastMetric,
-  type WaterForecast,
-} from "../water/useWaterForecast";
 import { HistoryCard } from "../history/HistoryCard";
 import { t } from "../i18n/de";
 import "./wasser.css";
@@ -54,24 +49,13 @@ export function Wasser() {
   const water = useWater();
   const { connection } = useAppState();
   const online = connection === "online";
-  const waterForecast = useWaterForecast(online);
 
   return (
     <div className="wasser">
       <div className="wasser__main">
-        <FreshCard
-          fresh={water?.fresh}
-          online={online}
-          forecast={waterForecast.forecast}
-          resetting={waterForecast.resetting}
-          onReset={waterForecast.reset}
-        />
+        <FreshCard fresh={water?.fresh} online={online} />
         <FreshFillCard online={online} />
-        <WasteCard
-          tanks={water?.waste}
-          online={online}
-          forecast={waterForecast.forecast}
-        />
+        <WasteCard tanks={water?.waste} online={online} />
 
         {/* Der Verlauf steht unter den aktuellen Ständen und nicht daneben:
             Erst die Frage „wie viel ist drin", dann „wie schnell geht es
@@ -95,19 +79,7 @@ export function Wasser() {
 
 /* ── Frischwasser ────────────────────────────────────────────────────────── */
 
-function FreshCard({
-  fresh,
-  online,
-  forecast,
-  resetting,
-  onReset,
-}: {
-  fresh?: FreshGroup;
-  online: boolean;
-  forecast: WaterForecast | null;
-  resetting: boolean;
-  onReset: () => Promise<void>;
-}) {
+function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
   // Ohne Verbindung bleibt der zuletzt bekannte Stand stehen und wird als
   // veraltet gekennzeichnet — wie in der Komponente `Value`. Ihn zu leeren
   // ließe „Verbindung weg" genauso aussehen wie „kein Wert vorhanden"; dass
@@ -152,12 +124,6 @@ function FreshCard({
         />
       </div>
 
-      <FreshForecast
-        forecast={forecast}
-        resetting={resetting}
-        onReset={onReset}
-      />
-
       {!usable && <p className="wasser__hint">{t("water.totalUnknownHint")}</p>}
 
       <div className="wasser__tanks">
@@ -166,102 +132,6 @@ function FreshCard({
         ))}
       </div>
     </Card>
-  );
-}
-
-function FreshForecast({
-  forecast,
-  resetting,
-  onReset,
-}: {
-  forecast: WaterForecast | null;
-  resetting: boolean;
-  onReset: () => Promise<void>;
-}) {
-  if (forecast === null) {
-    return null;
-  }
-
-  const started = forecast.started_at !== null;
-  const metric = forecast.fresh;
-
-  function reset() {
-    if (
-      started &&
-      !window.confirm(
-        t("water.forecastResetConfirm"),
-      )
-    ) {
-      return;
-    }
-
-    void onReset();
-  }
-
-  return (
-    <div className="wasser__forecast">
-      <div className="wasser__forecast-copy">
-        <span className="wasser__forecast-label">
-          {t("water.forecastTitle")}
-        </span>
-
-        {!forecast.available ? (
-          <>
-            <strong>
-              {t("water.forecastUnavailable")}
-            </strong>
-          </>
-        ) : !started ? (
-          <>
-            <strong>
-              {t("water.forecastNotStarted")}
-            </strong>
-            <span>
-              {t("water.forecastNotStartedHint")}
-            </span>
-          </>
-        ) : metric.ready &&
-          metric.rate_l_day !== null &&
-          metric.remaining_days !== null ? (
-          <>
-            <strong className="wasser__forecast-value">
-              {t("water.forecastApprox")}{" "}
-              {formatForecastDuration(
-                metric.remaining_days,
-              )}
-            </strong>
-
-            <span>
-              Ø {formatForecastRate(metric.rate_l_day)}{" "}
-              {t("water.forecastLitresPerDay")}
-            </span>
-          </>
-        ) : (
-          <>
-            <strong>
-              {t("water.forecastCalculating")}
-            </strong>
-            <span>
-              {t("water.forecastNeedData")}
-            </span>
-          </>
-        )}
-      </div>
-
-      <Button
-        disabled={
-          !forecast.available ||
-          resetting
-        }
-        onClick={reset}
-      >
-        {resetting
-          ? t("water.forecastResetting")
-          : started
-            ? t("water.forecastReset")
-            : t("water.forecastStart")}
-      </Button>
-    </div>
   );
 }
 
@@ -398,32 +268,12 @@ function FreshFillCard({ online }: { online: boolean }) {
 
 /* ── Abwasser ────────────────────────────────────────────────────────────── */
 
-function WasteCard({
-  tanks,
-  online,
-  forecast,
-}: {
-  tanks?: TankView[];
-  online: boolean;
-  forecast: WaterForecast | null;
-}) {
+function WasteCard({ tanks, online }: { tanks?: TankView[]; online: boolean }) {
   return (
     <Card title={t("water.waste")}>
       <div className="wasser__tanks">
         {(tanks ?? []).map((tank) => (
-          <TankRow
-            key={tank.entity_id}
-            tank={tank}
-            online={online}
-            waste
-            forecast={
-              tank.entity_id === "water.tank.grey"
-                ? forecast?.grey ?? null
-                : tank.entity_id === "water.tank.black"
-                  ? forecast?.black ?? null
-                  : null
-            }
-          />
+          <TankRow key={tank.entity_id} tank={tank} online={online} waste />
         ))}
       </div>
     </Card>
@@ -434,13 +284,11 @@ function TankRow({
   tank,
   online,
   waste = false,
-  forecast = null,
 }: {
   tank: TankView;
   online: boolean;
   /** Beim Abwasser interessiert der freie Platz, nicht der Inhalt. */
   waste?: boolean;
-  forecast?: ForecastMetric | null;
 }) {
   const usable = USABLE.includes(tank.quality) && tank.percent !== null;
   const stale = tank.quality === Quality.Stale || !online;
@@ -489,28 +337,6 @@ function TankRow({
         )}
         {usable && tank.quality === Quality.Stale && <StaleMark />}
       </div>
-
-      {waste &&
-        forecast?.ready &&
-        forecast.rate_l_day !== null &&
-        forecast.remaining_days !== null && (
-          <div className="tankrow__forecast">
-            <span>
-              Ø +{formatForecastRate(
-                forecast.rate_l_day,
-              )}{" "}
-              {t("water.forecastLitresPerDay")}
-            </span>
-
-            <span>
-              {t("water.forecastUntilFull")}:{" "}
-              {t("water.forecastApprox")}{" "}
-              {formatForecastDuration(
-                forecast.remaining_days,
-              )}
-            </span>
-          </div>
-        )}
 
       {valveId !== undefined && <ValveRow valveId={valveId} online={online} />}
     </div>
@@ -962,34 +788,6 @@ function NoteCard() {
         {t("water.historyLater")}
       </Button>
     </Card>
-  );
-}
-
-const WATER_FORECAST_NUMBER =
-  new Intl.NumberFormat("de-DE", {
-    maximumFractionDigits: 1,
-  });
-
-function formatForecastDuration(
-  days: number,
-): string {
-  if (days < 1) {
-    const hours = Math.max(
-      1,
-      Math.round(days * 24),
-    );
-
-    return `${hours} ${t("water.forecastHours")}`;
-  }
-
-  return `${WATER_FORECAST_NUMBER.format(days)} ${t("water.forecastDays")}`;
-}
-
-function formatForecastRate(
-  litresPerDay: number,
-): string {
-  return WATER_FORECAST_NUMBER.format(
-    litresPerDay,
   );
 }
 

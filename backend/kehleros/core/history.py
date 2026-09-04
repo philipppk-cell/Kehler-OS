@@ -42,7 +42,6 @@ erfunden** — es ist dieselbe Zahl, mit der schon der State Store arbeitet.
 
 from __future__ import annotations
 
-import json
 import logging
 import sqlite3
 import time
@@ -82,12 +81,6 @@ CREATE TABLE IF NOT EXISTS rollup_hour (
     max_value REAL,
     avg_value REAL,
     PRIMARY KEY (entity_id, bucket)
-) WITHOUT ROWID;
-
-CREATE TABLE IF NOT EXISTS checkpoint (
-    key      TEXT    NOT NULL PRIMARY KEY,
-    at       INTEGER NOT NULL,
-    snapshot TEXT    NOT NULL
 ) WITHOUT ROWID;
 """
 """Zeitstempel sind Unix-Millisekunden in UTC.
@@ -149,14 +142,6 @@ class Series:
     resolution: str
     points: list[Point]
     """Aufsteigend nach Zeit. Nicht aufgefüllt — siehe Kopf dieser Datei."""
-
-
-@dataclass(frozen=True)
-class Checkpoint:
-    """Persistenter Startpunkt einer abgeleiteten Auswertung."""
-
-    at: int
-    snapshot: dict[str, float | None]
 
 
 @dataclass
@@ -398,110 +383,6 @@ class HistoryStore:
             points = []
 
         return Series(entity_id=entity_id, resolution=resolution, points=points)
-
-
-
-    # ── Persistente Auswertungs-Checkpoints ──────────────────────────────
-
-    async def checkpoint(
-        self,
-        key: str,
-    ) -> Checkpoint | None:
-        """Liest den gespeicherten Startpunkt einer Auswertung."""
-
-        def read(
-            connection: sqlite3.Connection,
-        ) -> sqlite3.Row | None:
-            return connection.execute(
-                "SELECT at, snapshot FROM checkpoint WHERE key = ?",
-                (key,),
-            ).fetchone()
-
-        try:
-            row = await self._database.run(read)
-        except sqlite3.Error as error:
-            self._degraded = True
-            log.exception("Checkpoint konnte nicht gelesen werden")
-            raise RuntimeError(
-                "Historie nicht verfügbar"
-            ) from error
-
-        if row is None:
-            return None
-
-        try:
-            raw = json.loads(row["snapshot"])
-
-            if not isinstance(raw, dict):
-                raise ValueError("Snapshot ist kein Objekt")
-
-            snapshot = {
-                str(entity_id): (
-                    None
-                    if value is None
-                    else float(value)
-                )
-                for entity_id, value in raw.items()
-            }
-        except (TypeError, ValueError, json.JSONDecodeError) as error:
-            log.exception("Checkpoint ist beschädigt")
-            raise RuntimeError(
-                "Checkpoint ist beschädigt"
-            ) from error
-
-        return Checkpoint(
-            at=int(row["at"]),
-            snapshot=snapshot,
-        )
-
-    async def set_checkpoint(
-        self,
-        key: str,
-        snapshot: dict[str, float | None],
-        *,
-        now_ms: int | None = None,
-    ) -> Checkpoint:
-        """Setzt einen Checkpoint atomar neu."""
-
-        at = (
-            int(time.time() * 1000)
-            if now_ms is None
-            else now_ms
-        )
-
-        payload = json.dumps(
-            snapshot,
-            separators=(",", ":"),
-            sort_keys=True,
-        )
-
-        def write(connection: sqlite3.Connection) -> None:
-            connection.execute(
-                """
-                INSERT INTO checkpoint (key, at, snapshot)
-                VALUES (?, ?, ?)
-                ON CONFLICT(key) DO UPDATE SET
-                    at = excluded.at,
-                    snapshot = excluded.snapshot
-                """,
-                (key, at, payload),
-            )
-
-        try:
-            await self._database.run(write)
-        except sqlite3.Error as error:
-            self._degraded = True
-            log.exception("Checkpoint konnte nicht gespeichert werden")
-            raise RuntimeError(
-                "Historie nicht verfügbar"
-            ) from error
-
-        self._degraded = False
-
-        return Checkpoint(
-            at=at,
-            snapshot=dict(snapshot),
-        )
 
 
 def _rollup(connection: sqlite3.Connection, table: str, width: int, now: int) -> None:
