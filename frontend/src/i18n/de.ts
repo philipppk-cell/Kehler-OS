@@ -367,8 +367,10 @@ const de: Record<string, string> = {
   "heating.floorThermostatTitle": "Fußbodenheizung",
   "heating.radiatorCircuitTitle": "Heizkörperkreis",
   "heating.floorThermostatHint":
-    "Das Thermostat regelt die Fußbodenheizung selbst. Kehler OS liest und setzt die bestätigten Thermostatwerte direkt lokal über WLAN; die HeatMate bleibt davon getrennt.",
-  "heating.floorMode.AUTO": "Automatik",
+    "Das Thermostat regelt die Fußbodenheizung selbst. Kehler OS liest und setzt die bestätigten Thermostatwerte direkt lokal über WLAN.",
+  "heating.floorOnlyHint":
+    "Die Fußbodenheizung wird direkt über das lokale Thermostat gesteuert. Isttemperatur, Solltemperatur und Heizanforderung kommen vom Thermostat selbst.",
+  "heating.floorMode.AUTO": "Zeitplan",
   "heating.floorMode.MANUAL": "Manuell",
   "heating.floorDemand.HEATING": "Heizt",
   "heating.floorDemand.IDLE": "Keine Heizanforderung",
