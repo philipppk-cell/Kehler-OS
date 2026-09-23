@@ -77,6 +77,7 @@ export function Heizung() {
       <div className="heizung">
         <div className="heizung__main">
           <PlantCard heating={heating} />
+          <FloorThermostatCard />
           <CircuitsCard />
           <WaterCard />
           <ElectricCard />
@@ -181,6 +182,159 @@ function ErrorCode() {
   return <span className="heizung__value">{String(value)}</span>;
 }
 
+/* ── Fußboden-Thermostat ───────────────────────────────────────────────── */
+
+/**
+ * Das Smart-Life-Thermostat ist eine eigene, bestätigte Anbindung.
+ *
+ * Es regelt die Fußbodenheizung selbst. Kehler OS zeigt seinen echten
+ * Zustand und setzt ausschließlich die am realen Gerät bestätigten Werte.
+ * Die noch offene HeatMate-Modbus-Anbindung bleibt davon getrennt.
+ */
+function FloorThermostatCard() {
+  return (
+    <Card
+      title={t("heating.floorThermostatTitle")}
+      icon={<IconHeating size={18} />}
+    >
+      <div className="heizung__thermostat-hero">
+        <Field
+          entityId="heating.floor.temperature.actual"
+          size="metric"
+        />
+        <Field
+          entityId="heating.floor.temperature.target"
+          size="metric"
+        />
+      </div>
+
+      <FloorDemand />
+
+      <div className="heizung__thermostat-controls">
+        <FieldRow entityId="heating.floor.state" />
+        <FloorModeRow />
+        <FieldRow entityId="heating.floor.eco" />
+        <FieldRow entityId="heating.floor.child_lock" />
+
+        {/*
+          Die Pumpe wird weiterhin von der HeatMate erwartet.
+          Das Thermostat meldet nur seine Heizanforderung; daraus wird
+          ausdrücklich keine Pumpenrückmeldung erfunden.
+        */}
+        <FieldRow entityId="heating.floor.pump" />
+      </div>
+
+      <p className="heizung__thermostat-note">
+        {t("heating.floorThermostatHint")}
+      </p>
+    </Card>
+  );
+}
+
+
+function FloorDemand() {
+  const entity = useEntity("heating.floor.demand");
+  const { online } = useContext(Plant);
+
+  const quality = entity?.state.quality;
+  const value = entity?.state.value;
+
+  const usable =
+    online &&
+    value !== null &&
+    value !== undefined &&
+    quality !== undefined &&
+    USABLE.includes(quality);
+
+  let tone: Tone = "unknown";
+  let text = t("state.unknown");
+
+  if (usable && value === "HEATING") {
+    tone = "accent";
+    text = t("heating.floorDemand.HEATING");
+  } else if (usable && value === "IDLE") {
+    tone = "neutral";
+    text = t("heating.floorDemand.IDLE");
+  }
+
+  return (
+    <div className="heizung__thermostat-demand">
+      <span className="heizung__thermostat-demand-label">
+        {t("heating.floor_demand")}
+      </span>
+      <Status tone={tone} label={text} />
+    </div>
+  );
+}
+
+
+function FloorModeRow() {
+  const entityId = "heating.floor.mode";
+  const entity = useEntity(entityId);
+  const { online } = useContext(Plant);
+  const { pending } = useAppState();
+
+  const definition = entity?.definition;
+  const states = definition?.states ?? [];
+
+  const canSet = (definition?.capabilities ?? []).some(
+    (capability) => capability.verb === "set_state",
+  );
+
+  const quality = entity?.state.quality;
+
+  const current =
+    quality !== undefined &&
+    USABLE.includes(quality) &&
+    typeof entity?.state.value === "string"
+      ? entity.state.value
+      : null;
+
+  const disabled =
+    !online ||
+    !canSet ||
+    pending.has(entityId);
+
+  const title = definition?.name_key
+    ? t(definition.name_key)
+    : t("heating.floor_mode");
+
+  return (
+    <Row label={title}>
+      <div
+        className="heizung__mode"
+        role="group"
+        aria-label={title}
+      >
+        {states.map((state) => (
+          <button
+            key={state}
+            type="button"
+            className={
+              "heizung__mode-option" +
+              (current === state
+                ? " heizung__mode-option--active"
+                : "")
+            }
+            aria-pressed={current === state}
+            disabled={disabled}
+            onClick={() =>
+              sendCommand(
+                entityId,
+                "set_state",
+                { state },
+              )
+            }
+          >
+            {t(`heating.floorMode.${state}`, state)}
+          </button>
+        ))}
+      </div>
+    </Row>
+  );
+}
+
+
 /* ── Heizkreise ──────────────────────────────────────────────────────────── */
 
 /**
@@ -193,10 +347,12 @@ function ErrorCode() {
  */
 function CircuitsCard() {
   return (
-    <Card title={t("heating.circuitsTitle")}>
+    <Card title={t("heating.radiatorCircuitTitle")}>
       <div className="heizung__split">
-        <CircuitRow stateId="heating.radiators.state" pumpId="heating.radiators.pump" />
-        <CircuitRow stateId="heating.floor.state" pumpId="heating.floor.pump" />
+        <CircuitRow
+          stateId="heating.radiators.state"
+          pumpId="heating.radiators.pump"
+        />
       </div>
     </Card>
   );

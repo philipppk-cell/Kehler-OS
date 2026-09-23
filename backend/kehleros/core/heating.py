@@ -45,6 +45,24 @@ SYSTEM_FAULT = "heating.system.fault"
 BURNER_STATE = "heating.burner.state"
 ELECTRIC_STATE = "heating.electric.state"
 
+FLOOR_THERMOSTAT_IDS = frozenset(
+    {
+        "heating.floor.state",
+        "heating.floor.temperature.actual",
+        "heating.floor.temperature.target",
+        "heating.floor.mode",
+        "heating.floor.eco",
+        "heating.floor.demand",
+        "heating.floor.child_lock",
+    }
+)
+"""Entities des separaten lokalen Fußboden-Thermostats.
+
+Sie gehören zur Heizungsseite, sind aber nicht Teil der noch ausstehenden
+HeatMate-Modbus-Anbindung. Insbesondere darf ein erreichbares Thermostat die
+SCHEER-Anlage nicht fälschlich als "angebunden" erscheinen lassen.
+"""
+
 _USABLE = (Quality.VALID, Quality.STALE)
 
 BURNER_ACTIVE = frozenset({"HEATING", "DEMAND"})
@@ -106,6 +124,17 @@ def summarise(
 ) -> HeatingSummary:
     by_id = {entity.id: entity for entity in entities if entity.id.startswith("heating.")}
 
+    # `linked` und `unverified` beschreiben weiterhin die SCHEER/HeatMate-
+    # Anbindung. Das separat über WLAN angebundene Fußboden-Thermostat darf
+    # diesen Status nicht verfälschen. Die Pumpenrückmeldung
+    # `heating.floor.pump` gehört dagegen weiterhin zur HeatMate und bleibt
+    # deshalb bewusst in dieser Menge.
+    plant_entities = [
+        entity
+        for entity in by_id.values()
+        if entity.id not in FLOOR_THERMOSTAT_IDS
+    ]
+
     def read(entity_id: str) -> Reading:
         entity = by_id.get(entity_id)
         if entity is None or not entity.configured:
@@ -118,8 +147,10 @@ def summarise(
     return HeatingSummary(
         heat_source=_heat_source(read(BURNER_STATE), read(ELECTRIC_STATE)),
         fault=_fault(read(SYSTEM_FAULT)),
-        linked=any(entity.configured for entity in by_id.values()),
-        unverified=sum(1 for entity in by_id.values() if entity.unverified),
+        linked=any(entity.configured for entity in plant_entities),
+        unverified=sum(
+            1 for entity in plant_entities if entity.unverified
+        ),
     )
 
 

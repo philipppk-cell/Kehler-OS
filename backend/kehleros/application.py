@@ -20,12 +20,14 @@ from .adapters.lg_thinq import LgThinQAdapter
 from .adapters.opcua_plc import OpcUaPlcAdapter
 from .adapters.opcua_plc_write import OpcUaPlcWriteAdapter
 from .adapters.simulation import SimulationAdapter
+from .adapters.tuya_thermostat import TuyaThermostatAdapter
 from .adapters.victron_mqtt import VictronMqttAdapter
 from .config.hardware import (
     load_lg_thinq_device,
     load_plc_device,
     load_plc_read_points,
     load_plc_write_points,
+    load_tuya_thermostat_device,
     load_victron_device,
     load_victron_read_points,
     load_victron_write_points,
@@ -208,6 +210,24 @@ class Application:
                         self.events,
                         self.registry,
                         thinq_device,
+                    )
+                )
+
+            tuya_floor_path = (
+                self.hardware_dir / "tuya_floor.yaml"
+            )
+
+            if tuya_floor_path.exists():
+                tuya_floor_device = load_tuya_thermostat_device(
+                    tuya_floor_path
+                )
+
+                adapters.append(
+                    TuyaThermostatAdapter(
+                        self.state,
+                        self.events,
+                        self.registry,
+                        tuya_floor_device,
                     )
                 )
 

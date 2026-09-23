@@ -574,23 +574,43 @@ class TestMitgelieferteKonfiguration:
         )
         assert kreise == ["heating.floor.state", "heating.radiators.state"]
 
-    def test_die_anlage_fuehrt_genau_eine_temperatur(self):
-        """BESTÄTIGT (2026-08-10): ein Ist- und ein Sollwert.
+    def test_heatmate_fuehrt_genau_eine_temperatur(self):
+        """BESTÄTIGT (2026-08-10): HeatMate hat ein Ist-/Sollwert-Paar.
 
-        Kessel und Warmwasser werden nicht getrennt geführt. Zwei
-        Temperaturen anzuzeigen hätte eine Genauigkeit vorgetäuscht, die die
-        Anlage nicht hat.
+        Das separat angebundene Fußboden-Thermostat besitzt seinen eigenen
+        Raumtemperaturfühler und Sollwert und ist deshalb hier ausdrücklich
+        nicht mitgemeint.
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
         temperaturen = sorted(
             e.id
             for e in vehicle.entities
-            if e.id.startswith("heating.") and e.unit == "celsius"
+            if e.id.startswith("heating.temperature.")
+            and e.unit == "celsius"
         )
         assert temperaturen == [
             "heating.temperature.actual",
             "heating.temperature.target",
         ]
+
+    def test_fussbodenthermostat_hat_eigene_temperaturen(self):
+        """BESTÄTIGT 2026-09-23 am realen Smart-Life-Thermostat."""
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        entities = {e.id: e for e in build_entities(vehicle)}
+
+        actual = entities["heating.floor.temperature.actual"]
+        target = entities["heating.floor.temperature.target"]
+
+        assert actual.unit == "celsius"
+        assert actual.capabilities == ()
+
+        assert target.unit == "celsius"
+        assert (
+            target.min_value,
+            target.max_value,
+            target.step,
+        ) == (5, 45, 0.5)
+        assert target.capabilities == ("set_value",)
 
     def test_elektroheizung_hat_drei_stufen_in_kilowatt(self):
         """BESTÄTIGT (2026-08-10): 1 kW, 2 kW, 3 kW.
@@ -713,24 +733,80 @@ class TestMitgelieferteKonfiguration:
         # Die Entity darf deshalb auch nicht mehr ausgeliefert werden.
         assert "climate.outside.temperature" not in entities
 
-    def test_heizungsanlage_ist_vollstaendig_unbestaetigt(self):
-        """Solange die Registerliste fehlt, ist keine Funktion bedienbar.
+    def test_heatmate_ist_weiterhin_vollstaendig_unbestaetigt(self):
+        """Die lokale Fußbodenheizung ändert nichts am HeatMate-Stand.
 
-        Der Test prüft die gelieferte Konfiguration und nicht nur den
-        Mechanismus: Ein versehentlich vergessenes `unverified` würde in der
-        Oberfläche einen Schalter erzeugen, der eine Heizungsanlage schaltet.
+        Für die SCHEER/HeatMate fehlt weiterhin die Modbus-Registerliste.
+        Nur die separat bestätigten Tuya-Thermostat-Entities sind davon
+        ausgenommen.
         """
         vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
-        heizung = [e for e in vehicle.entities if e.id.startswith("heating.")]
-        assert heizung
 
-        for config in heizung:
+        thermostat_ids = {
+            "heating.floor.state",
+            "heating.floor.temperature.actual",
+            "heating.floor.temperature.target",
+            "heating.floor.mode",
+            "heating.floor.eco",
+            "heating.floor.demand",
+            "heating.floor.child_lock",
+        }
+
+        heatmate = [
+            e
+            for e in vehicle.entities
+            if e.id.startswith("heating.")
+            and e.id not in thermostat_ids
+        ]
+        assert heatmate
+
+        for config in heatmate:
             assert config.unverified, config.id
             assert not config.configured, config.id
 
         for entity in build_entities(vehicle):
-            if entity.id.startswith("heating."):
+            if (
+                entity.id.startswith("heating.")
+                and entity.id not in thermostat_ids
+            ):
                 assert entity.capabilities == (), entity.id
+
+    def test_fussbodenthermostat_ist_bestaetigt_und_bedienbar(self):
+        """Die real geprüften lokalen Tuya-Datenpunkte sind freigegeben."""
+        vehicle = load_vehicle(REPO / "config/vehicle/vehicle.yaml")
+        entities = {
+            e.id: e
+            for e in build_entities(vehicle)
+        }
+
+        state = entities["heating.floor.state"]
+        assert state.configured
+        assert not state.unverified
+        assert state.capabilities == ("set_state",)
+
+        target = entities["heating.floor.temperature.target"]
+        assert target.configured
+        assert not target.unverified
+        assert target.capabilities == ("set_value",)
+
+        mode = entities["heating.floor.mode"]
+        assert mode.states == ("AUTO", "MANUAL")
+        assert mode.capabilities == ("set_state",)
+
+        for entity_id in (
+            "heating.floor.eco",
+            "heating.floor.child_lock",
+        ):
+            assert entities[entity_id].capabilities == ("set_state",)
+
+        demand = entities["heating.floor.demand"]
+        assert demand.capabilities == ()
+
+        # Die Pumpenrückmeldung kommt nicht aus dem Thermostat.
+        pump = entities["heating.floor.pump"]
+        assert pump.unverified
+        assert not pump.configured
+        assert pump.capabilities == ()
 
     def test_zustandsnamen_sind_zeichenketten(self):
         """YAML liest `ON` und `OFF` als Wahrheitswerte.

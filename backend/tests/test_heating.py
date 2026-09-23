@@ -148,6 +148,27 @@ class TestAnbindung:
         ]
         assert summarise({}, entities).linked is True
 
+    def test_fussbodenthermostat_markiert_heatmate_nicht_als_angebunden(self):
+        """Das WLAN-Thermostat und die HeatMate sind getrennte Anbindungen."""
+        entities = [
+            _entity("heating.floor.state"),
+            _entity(
+                "heating.system.state",
+                configured=False,
+                unverified=True,
+            ),
+            _entity(
+                "heating.floor.pump",
+                configured=False,
+                unverified=True,
+            ),
+        ]
+
+        summary = summarise({}, entities)
+
+        assert summary.linked is False
+        assert summary.unverified == 2
+
     def test_fremde_entities_bleiben_unberuecksichtigt(self):
         # Die Klimaanlage ist ein eigenes System und darf die Heizung nicht
         # als angebunden erscheinen lassen.

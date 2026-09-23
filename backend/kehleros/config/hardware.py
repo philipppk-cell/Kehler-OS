@@ -528,3 +528,51 @@ def load_lg_thinq_device(path: Path) -> LgThinQDeviceConfig:
         raise ConfigError(
             f"LG-ThinQ-Konfiguration {path} ist ungültig:\n{exc}"
         ) from exc
+
+
+
+# ── Tuya Fußbodenheizungs-Thermostat ───────────────────────────────────────
+
+
+class TuyaLocalConnectionConfig(_Strict):
+    credentials_file: str
+    address: str
+    version: float = Field(ge=3.1, le=3.5)
+
+    @field_validator("credentials_file", "address")
+    @classmethod
+    def _not_empty_tuya(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Tuya-Verbindungswert fehlt")
+        return value
+
+
+class TuyaThermostatDeviceConfig(_Strict):
+    id: Literal["tuya_floor"] = "tuya_floor"
+    name: str = "Fußbodenheizung"
+    kind: Literal["THERMOSTAT"] = "THERMOSTAT"
+    vendor: str = "Tuya"
+    model: str | None = None
+    transport: Literal["tuya_local"] = "tuya_local"
+    connection: TuyaLocalConnectionConfig
+    poll_interval_ms: int = Field(default=1000, ge=500, le=60000)
+
+
+def load_tuya_thermostat_device(
+    path: Path,
+) -> TuyaThermostatDeviceConfig:
+    data = load_yaml(path)
+    raw = data.get("device")
+
+    if not isinstance(raw, dict):
+        raise ConfigError(
+            f"{path}: 'device' muss eine Zuordnung sein"
+        )
+
+    try:
+        return TuyaThermostatDeviceConfig.model_validate(raw)
+    except ValidationError as exc:
+        raise ConfigError(
+            f"Tuya-Thermostat-Konfiguration {path} ist ungültig:\n{exc}"
+        ) from exc
