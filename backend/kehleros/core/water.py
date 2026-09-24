@@ -34,13 +34,18 @@ from ..domain.models import Entity, EntityState
 FRESH_PREFIX = "water.tank.fresh"
 WASTE_IDS = ("water.tank.grey", "water.tank.black")
 
+TANK_PERCENT_MIN = 0.0
 TANK_PERCENT_MAX = 100.0
+TANK_PERCENT_TOLERANCE_MIN = -2.0
 TANK_PERCENT_TOLERANCE_MAX = 102.0
-"""Tankgeber dürfen bis 102 % überlaufen.
+"""Zulässige Sensortoleranz aller Wassertanks.
 
-101 oder 102 % bedeuten physikalisch weiterhin "voll" und werden deshalb
-als 100 % verarbeitet. Erst oberhalb von 102 % bleibt der Wert außerhalb
-der zulässigen Plausibilität.
+Werte zwischen -2 % und 0 % bedeuten physikalisch "leer" und werden auf
+0 % begrenzt. Werte zwischen 100 % und 102 % bedeuten "voll" und werden
+auf 100 % begrenzt.
+
+Alles unter -2 % oder über 102 % ist kein belastbarer Füllstand und wird
+als ungültig behandelt.
 """
 
 # Von gut nach schlecht. Die Reihenfolge ist die Rangfolge, mit der die
@@ -63,15 +68,27 @@ die Oberfläche unterscheiden können, welche davon überschritten ist.
 """
 
 
-def normalise_tank_percent(value: float) -> float:
-    """Kappt die bestätigte obere Sensortoleranz auf physikalische 100 %.
+def normalise_tank_percent(value: float) -> float | None:
+    """Normalisiert die bestätigte Sensortoleranz aller Wassertanks.
 
-    Werte oberhalb von 102 % werden hier bewusst nicht korrigiert. Sie sollen
-    anschließend an der Plausibilitätsprüfung scheitern, statt als voller Tank
-    ausgegeben zu werden.
+    -2 .. 0 %   -> 0 %
+     0 .. 100 % -> unverändert
+   100 .. 102 % -> 100 %
+
+    Werte außerhalb -2 .. 102 % sind nicht verwertbar.
     """
-    if TANK_PERCENT_MAX < value <= TANK_PERCENT_TOLERANCE_MAX:
+    if value < TANK_PERCENT_TOLERANCE_MIN:
+        return None
+
+    if value > TANK_PERCENT_TOLERANCE_MAX:
+        return None
+
+    if value < TANK_PERCENT_MIN:
+        return TANK_PERCENT_MIN
+
+    if value > TANK_PERCENT_MAX:
         return TANK_PERCENT_MAX
+
     return value
 
 
@@ -230,6 +247,9 @@ def _tank(entity: Entity, state: EntityState | None) -> TankView:
 
     if percent is not None:
         percent = normalise_tank_percent(percent)
+
+        if percent is None:
+            quality = Quality.INVALID
 
     litres: float | None = None
     if percent is not None and entity.capacity_l is not None:

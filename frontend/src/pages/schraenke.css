@@ -2,7 +2,7 @@
 
 .schraenke {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
 
@@ -11,8 +11,7 @@
   margin: 0 auto;
 }
 
-.schraenke__main,
-.schraenke__side {
+.schraenke__main {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);

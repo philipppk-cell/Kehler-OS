@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { Bar, Card, QuickTile, Row, Status, Value, type Tone } from "../design/primitives";
 import {
+  IconDiagnostics,
   IconGarage,
   IconPlug,
   IconSolar,
@@ -23,6 +24,8 @@ import { textOf, useAppState, useEntity } from "../realtime/hooks";
 import { Quality } from "../realtime/types";
 import { useWater, type Level, type TankView as WaterTank } from "../water/useWater";
 import { sendCommand } from "../api/client";
+import { confirmInApp } from "../design/confirm";
+import { brauchtBestaetigung } from "../control/actuator";
 import { t } from "../i18n/de";
 import "./dashboard.css";
 
@@ -134,7 +137,13 @@ function QuickAccessCard() {
   return (
     <Card title={t("dash.quickAccess")}>
       <div className="quickgrid">
-        <MoveTile entityId="vehicle.garage.door" icon={<IconGarage />} label={t("vehicle.garage_door")} />
+        <MoveTile
+          entityId="vehicle.garage.door"
+          icon={<IconGarage />}
+          label={t("vehicle.garage_door")}
+        />
+
+        <SensorRestartTile />
       </div>
     </Card>
   );
@@ -170,11 +179,62 @@ function MoveTile({
   );
 }
 
+function SensorRestartTile() {
+  const entityId = "vehicle.sensors.restart";
+  const entity = useEntity(entityId);
+  const { pending, connection } = useAppState();
+
+  const online = connection === "online";
+  const busy = pending.has(entityId);
+
+  const configured =
+    entity?.definition?.configured ?? false;
+
+  const hasTrigger =
+    entity?.definition?.capabilities.some(
+      (capability) =>
+        capability.verb === "trigger",
+    ) ?? false;
+
+  async function restart() {
+    if (
+      brauchtBestaetigung(
+        entity,
+        "trigger",
+      ) &&
+      !(await confirmInApp(
+        t("diag.sensorRestartConfirm"),
+      ))
+    ) {
+      return;
+    }
+
+    void sendCommand(
+      entityId,
+      "trigger",
+    );
+  }
+
+  return (
+    <QuickTile
+      icon={<IconDiagnostics />}
+      label={t("diag.sensorRestart")}
+      pending={busy}
+      disabled={
+        !online ||
+        !configured ||
+        !hasTrigger
+      }
+      onClick={() => void restart()}
+    />
+  );
+}
+
 /* ── Bereichskarten ──────────────────────────────────────────────────── */
 
 function EnergyCard({ emphasis }: { emphasis: boolean }) {
   const soc = useEntity("energy.battery.soc");
-  const voltage = useEntity("energy.battery.voltage");
+  const consumption = useEntity("energy.consumption.power");
   const solar = useEntity("energy.solar.power");
 
   return (
@@ -189,8 +249,8 @@ function EnergyCard({ emphasis }: { emphasis: boolean }) {
         <Row icon={<IconSolar size={16} />} label={t("energy.solar")}>
           <Value entity={solar} size="inline" />
         </Row>
-        <Row label={t("energy.voltage")}>
-          <Value entity={voltage} size="inline" decimals={1} />
+        <Row label={t("energy.consumption")}>
+          <Value entity={consumption} size="inline" />
         </Row>
       </div>
     </Card>
@@ -220,15 +280,15 @@ function WaterCard({ emphasis }: { emphasis: boolean }) {
   const { connection } = useAppState();
   const online = connection === "online";
   const fresh = water?.fresh;
-  const total = online && fresh?.litres !== null && fresh !== undefined;
+  const total = online && fresh?.percent !== null && fresh !== undefined;
 
   return (
     <Card title={t("dash.water")} emphasis={emphasis}>
       <div className="metric">
         {total ? (
           <span className="value value--metric">
-            <span className="numeric">{Math.round(fresh.litres!)}</span>
-            <span className="value__unit">L</span>
+            <span className="numeric">{Math.round(fresh.percent!)}</span>
+            <span className="value__unit">%</span>
           </span>
         ) : (
           <span className="value value--metric value--unknown">
@@ -297,7 +357,7 @@ function WasteRow({ tank, online }: { tank: WaterTank; online: boolean }) {
 function TemperatureCard() {
   const inside = useEntity("climate.living.temperature");
   const cooling = useEntity("climate.cooling.target");
-  const heating = useEntity("heating.temperature.target");
+  const heating = useEntity("heating.floor.temperature.target");
 
   return (
     <Card title={t("dash.temperature")}>

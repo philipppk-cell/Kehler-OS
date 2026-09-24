@@ -72,7 +72,7 @@ export function Wasser() {
       </div>
 
       <aside className="wasser__side">
-        <NoteCard />
+        <SensorMaintenanceCard />
       </aside>
     </div>
   );
@@ -124,8 +124,6 @@ function FreshCard({ fresh, online }: { fresh?: FreshGroup; online: boolean }) {
           marks={[fresh?.warn_below ?? null, fresh?.critical_below ?? null]}
         />
       </div>
-
-      {!usable && <p className="wasser__hint">{t("water.totalUnknownHint")}</p>}
 
       <div className="wasser__tanks">
         {(fresh?.tanks ?? []).map((tank) => (
@@ -704,18 +702,7 @@ const FILL: Record<Level, string> = {
  * Kapitel 18 §101: Fehlendes wird benannt statt verschwiegen. Beides hier
  * hängt an offenen Hardwarefragen, nicht an der Software.
  */
-function NoteCard() {
-  // Der Hinweis auf die fehlende Rückmeldung steht nur da, wenn sie
-  // tatsächlich fehlt.
-  const grau = useEntity("water.valve.grey");
-  const ohneRueckmeldung =
-    grau?.definition?.feedback === false;
-
-  /*
-   * Der Sensor-Neustart gehört fachlich zur Wasserseite:
-   * Hier bemerkt der Benutzer zuerst, wenn die Tankwerte nicht
-   * plausibel sind oder ein Sensor nicht mehr reagiert.
-   */
+function SensorMaintenanceCard() {
   const sensorRestartId = "vehicle.sensors.restart";
   const sensorRestart = useEntity(sensorRestartId);
   const { pending, connection } = useAppState();
@@ -752,47 +739,21 @@ function NoteCard() {
   }
 
   return (
-    <Card title={t("water.notesTitle")}>
-      <ul className="wasser__notes">
-        <li>{t("water.thresholdsSet")}</li>
-        <li>{t("water.thresholdMarks")}</li>
-        <li>{t("water.valveNote")}</li>
-
-        {ohneRueckmeldung && (
-          <li>{t("water.valveNoFeedback")}</li>
-        )}
-      </ul>
-
-      <div className="wasser__sensor-maintenance">
-        <div className="wasser__sensor-maintenance-copy">
-          <strong>
-            {t("diag.sensorRestart")}
-          </strong>
-
-          <span>
-            {t("diag.sensorRestartHint")}
-          </span>
-        </div>
-
-        <Button
-          variant="accent"
-          full
-          disabled={
-            !online ||
-            !configured ||
-            !hasTrigger ||
-            busy
-          }
-          onClick={restartSensors}
-        >
-          {busy
-            ? t("diag.sensorRestartRunning")
-            : t("diag.sensorRestart")}
-        </Button>
-      </div>
-
-      <Button variant="quiet" full disabled>
-        {t("water.historyLater")}
+    <Card title={t("diag.sensorRestart")}>
+      <Button
+        variant="accent"
+        full
+        disabled={
+          !online ||
+          !configured ||
+          !hasTrigger ||
+          busy
+        }
+        onClick={() => void restartSensors()}
+      >
+        {busy
+          ? t("diag.sensorRestartRunning")
+          : t("diag.sensorRestart")}
       </Button>
     </Card>
   );

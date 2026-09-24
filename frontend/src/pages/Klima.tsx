@@ -41,7 +41,6 @@ interface ZoneProps {
   actualId: string;
   targetId: string;
   stateId: string;
-  notes: string[];
 }
 
 function Zone({
@@ -49,7 +48,6 @@ function Zone({
   actualId,
   targetId,
   stateId,
-  notes,
 }: ZoneProps) {
   const { connection } = useAppState();
   const online = connection === "online";
@@ -84,16 +82,6 @@ function Zone({
         powerId={stateId}
         online={online}
       />
-
-      <div className="klima__notes-card">
-        <Card title={t("klima.notesTitle")}>
-          <ul className="klima__notes">
-            {notes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-          </ul>
-        </Card>
-      </div>
     </div>
   );
 }
@@ -616,12 +604,7 @@ export function Klima() {
       actualId="climate.living.temperature"
       targetId="climate.cooling.target"
       stateId="climate.cooling.state"
-      notes={[
-        t("climate.noteDevice"),
-        t("climate.noteRange"),
-        t("climate.noteHeatMode"),
-        t("climate.noteSeparate"),
-      ]}
+
     />
   );
 }

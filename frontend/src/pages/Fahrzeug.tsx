@@ -75,16 +75,6 @@ export function Fahrzeug() {
           />
         </Card>
       </div>
-
-      <aside className="fahrzeug__side">
-        <Card title={t("vehicle.notesTitle")}>
-          <ul className="fahrzeug__notes">
-            <li>{t("vehicle.noteStop")}</li>
-            <li>{t("vehicle.noteMissing")}</li>
-            <li>{t("vehicle.noteNoReadiness")}</li>
-          </ul>
-        </Card>
-      </aside>
     </div>
   );
 }

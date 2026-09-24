@@ -45,16 +45,6 @@ export function Schraenke() {
           ))}
         </Card>
       </div>
-
-      <aside className="schraenke__side">
-        <Card title={t("cabinet.notesTitle")}>
-          <ul className="schraenke__notes">
-            <li>{t("cabinet.notePurpose")}</li>
-            <li>{t("cabinet.noteNoFeedback")}</li>
-            <li>{t("cabinet.noteNoAuto")}</li>
-          </ul>
-        </Card>
-      </aside>
     </div>
   );
 }

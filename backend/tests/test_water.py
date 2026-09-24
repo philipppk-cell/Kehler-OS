@@ -170,16 +170,111 @@ def test_tankgeber_bis_102_prozent_werden_als_voll_verarbeitet(
     assert actual.litres == pytest.approx(expected_capacity)
 
 
-def test_freier_platz_wird_nicht_negativ(registry):
-    """Ein Sensor, der über 100 % meldet, darf keinen negativen Restplatz
-    erzeugen."""
+
+@pytest.mark.parametrize(
+    "entity_id",
+    [
+        "water.tank.fresh.large",
+        "water.tank.fresh.small",
+        "water.tank.grey",
+        "water.tank.black",
+    ],
+)
+@pytest.mark.parametrize(
+    "reported_percent",
+    [-2.0, -1.0, -0.1],
+)
+def test_tankgeber_bis_minus_2_prozent_werden_als_leer_verarbeitet(
+    registry,
+    entity_id,
+    reported_percent,
+):
+    """Die untere Sensortoleranz gilt für jeden Wassertank."""
+
     states = {
-        "water.tank.grey": state("water.tank.grey", 104.0, Quality.VALID),
+        entity_id: state(
+            entity_id,
+            reported_percent,
+            Quality.VALID,
+        ),
+    }
+
+    summary = summarise(states, registry)
+
+    tanks = [
+        *summary.fresh.tanks,
+        *summary.waste,
+    ]
+
+    actual = next(
+        tank
+        for tank in tanks
+        if tank.entity_id == entity_id
+    )
+
+    assert actual.quality is Quality.VALID
+    assert actual.percent == pytest.approx(0.0)
+    assert actual.litres == pytest.approx(0.0)
+
+
+@pytest.mark.parametrize(
+    "entity_id",
+    [
+        "water.tank.fresh.large",
+        "water.tank.fresh.small",
+        "water.tank.grey",
+        "water.tank.black",
+    ],
+)
+@pytest.mark.parametrize(
+    "reported_percent",
+    [-2.1, -10.0, 102.1, 110.0],
+)
+def test_tankgeber_ausserhalb_toleranz_sind_ungueltig(
+    registry,
+    entity_id,
+    reported_percent,
+):
+    """Außerhalb -2 .. 102 % gibt Kehler OS keinen Füllstand aus."""
+
+    states = {
+        entity_id: state(
+            entity_id,
+            reported_percent,
+            Quality.VALID,
+        ),
+    }
+
+    summary = summarise(states, registry)
+
+    tanks = [
+        *summary.fresh.tanks,
+        *summary.waste,
+    ]
+
+    actual = next(
+        tank
+        for tank in tanks
+        if tank.entity_id == entity_id
+    )
+
+    assert actual.quality is Quality.INVALID
+    assert actual.percent is None
+    assert actual.litres is None
+
+
+def test_freier_platz_wird_nicht_negativ(registry):
+    """Ein tolerierter Messwert über 100 % wird als voller Tank verarbeitet
+    und darf keinen negativen Restplatz erzeugen."""
+    states = {
+        "water.tank.grey": state("water.tank.grey", 102.0, Quality.VALID),
     }
 
     waste = summarise(states, registry).waste
     grey = next(t for t in waste if t.entity_id == "water.tank.grey")
 
+    assert grey.quality is Quality.VALID
+    assert grey.percent == pytest.approx(100.0)
     assert grey.free_l == pytest.approx(0.0)
 
 

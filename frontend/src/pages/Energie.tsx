@@ -55,7 +55,6 @@ export function Energie() {
         <ShoreCard energy={energy} online={online} />
         <MultiPlusCard online={online} />
         <VictronAlarmCard online={online} />
-        <NoteCard />
       </aside>
     </div>
   );
@@ -771,19 +770,6 @@ function VictronAlarmCard({ online }: { online: boolean }) {
           {t("energy.activeAlarmHint")}
         </p>
       )}
-    </Card>
-  );
-}
-
-/* ── Hinweise ────────────────────────────────────────────────────────────── */
-
-function NoteCard() {
-  return (
-    <Card title={t("energy.notesTitle")}>
-      <ul className="energie__notes">
-        <li>{t("energy.noRuntime")}</li>
-        <li>{t("energy.readOnly")}</li>
-      </ul>
     </Card>
   );
 }

@@ -63,18 +63,14 @@ export function Einstellungen() {
   return (
     <div className="settings">
       <Card title={t("settings.display")}>
-        <p className="settings__note">{t("settings.displayScope")}</p>
-
-        <Row label={t("settings.night")}>
+<Row label={t("settings.night")}>
           <Toggle
             on={prefs.night}
             label={t("settings.night")}
             onChange={(next) => preferences.set("night", next)}
           />
         </Row>
-        <p className="settings__hint">{t("settings.nightHint")}</p>
-
-        {support === "available" ? (
+{support === "available" ? (
           <>
             <Row label={t("settings.keepAwake")}>
               {/* Der Schalter zeigt den Wunsch, die Statusanzeige daneben den
@@ -94,8 +90,7 @@ export function Einstellungen() {
                 />
               </span>
             </Row>
-            <p className="settings__hint">{t("settings.keepAwakeHint")}</p>
-          </>
+</>
         ) : (
           <Row label={t("settings.keepAwake")}>
             <Status tone="unknown" label={t(`settings.awake.${support}`)} compact />
@@ -110,9 +105,7 @@ export function Einstellungen() {
       </Card>
 
       <Card title={t("settings.vehicle")}>
-        <p className="settings__note">{t("settings.vehicleScope")}</p>
-
-        <Row label={t("settings.vehicleName")}>
+<Row label={t("settings.vehicleName")}>
           <span className="settings__value">{vehicle?.name ?? "—"}</span>
         </Row>
         <Row label={t("settings.areas")}>
@@ -124,24 +117,6 @@ export function Einstellungen() {
         </Row>
 
         <ConfiguredValues entities={all} />
-      </Card>
-
-      <Card title={t("settings.missingTitle")}>
-        <p className="settings__note">{t("settings.missingIntro")}</p>
-        <dl className="missing">
-          <Missing what={t("settings.miss.language")} why={t("settings.miss.languageWhy")} />
-          <Missing what={t("settings.miss.units")} why={t("settings.miss.unitsWhy")} />
-          <Missing
-            what={t("settings.miss.brightness")}
-            why={t("settings.miss.brightnessWhy")}
-          />
-          <Missing what={t("settings.miss.theme")} why={t("settings.miss.themeWhy")} />
-          <Missing what={t("settings.miss.time")} why={t("settings.miss.timeWhy")} />
-          <Missing what={t("settings.miss.notify")} why={t("settings.miss.notifyWhy")} />
-          <Missing what={t("settings.miss.network")} why={t("settings.miss.networkWhy")} />
-          <Missing what={t("settings.miss.automation")} why={t("settings.miss.automationWhy")} />
-          <Missing what={t("settings.miss.users")} why={t("settings.miss.usersWhy")} />
-        </dl>
       </Card>
     </div>
   );
@@ -244,15 +219,6 @@ function factsOf(entity: EntityView): string[] {
 }
 
 /* ── Was fehlt ───────────────────────────────────────────────────────────── */
-
-function Missing({ what, why }: { what: string; why: string }) {
-  return (
-    <div className="missing__item">
-      <dt className="missing__what">{what}</dt>
-      <dd className="missing__why">{why}</dd>
-    </div>
-  );
-}
 
 /* ── Fahrzeugbeschreibung ────────────────────────────────────────────────── */
 

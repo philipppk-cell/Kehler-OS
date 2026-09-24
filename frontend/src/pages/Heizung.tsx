@@ -57,10 +57,6 @@ function FloorThermostatCard() {
         <SwitchRow entityId="heating.floor.eco" />
         <SwitchRow entityId="heating.floor.child_lock" />
       </div>
-
-      <p className="heizung__note">
-        {t("heating.floorOnlyHint")}
-      </p>
     </Card>
   );
 }

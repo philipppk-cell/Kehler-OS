@@ -183,18 +183,37 @@ class OpcUaPlcAdapter(Adapter):
                 )
                 continue
 
-            # Die Tankgeber dürfen am oberen Anschlag geringfügig über
-            # 100 % melden. Bis einschließlich 102 % bedeutet der Messwert
-            # weiterhin schlicht "voll". Die Korrektur geschieht vor der
-            # Plausibilitätsprüfung, damit ein Mapping mit max: 100 den
-            # tolerierten Rohwert nicht vorher verwirft.
+            # Alle Wassertankgeber haben eine bestätigte Toleranz von
+            # -2 .. 102 %. Innerhalb davon wird auf die physikalischen
+            # Grenzen 0 .. 100 % gekappt. Alles außerhalb ist kein
+            # belastbarer Messwert.
             if (
                 entity.id.startswith("water.tank.")
                 and entity.unit == "percent"
                 and isinstance(value, (int, float))
                 and not isinstance(value, bool)
             ):
-                value = normalise_tank_percent(float(value))
+                normalised = normalise_tank_percent(
+                    float(value)
+                )
+
+                if normalised is None:
+                    log.warning(
+                        "OPC UA: %s außerhalb Tank-Toleranz: %r",
+                        entity_id,
+                        value,
+                    )
+                    self._state.apply(
+                        entity_id,
+                        StateValue.invalid(
+                            unit=entity.unit,
+                            source=self.source,
+                        ),
+                        force=True,
+                    )
+                    continue
+
+                value = normalised
 
             if not self._plausible(point, value):
                 log.warning(
