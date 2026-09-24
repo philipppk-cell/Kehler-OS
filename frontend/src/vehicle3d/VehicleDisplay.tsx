@@ -15,7 +15,13 @@
  * Pi (Kapitel 17 §93).
  */
 
-import { Suspense, lazy, useMemo } from "react";
+import {
+  Component,
+  Suspense,
+  lazy,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { VehicleView, type Part } from "../vehicle/VehicleView";
 import type { VehicleState } from "./buildVehicle";
 import { t } from "../i18n/de";
@@ -29,25 +35,89 @@ let webglSupported: boolean | null = null;
 
 function hasWebGL(): boolean {
   if (webglSupported !== null) return webglSupported;
+
   try {
     const canvas = document.createElement("canvas");
+
+    /*
+     * Three.js in der aktuell eingesetzten Version benötigt für den
+     * WebGLRenderer WebGL 2.
+     *
+     * Ein Gerät, das nur WebGL 1 anbietet, darf deshalb nicht als
+     * 3D-fähig gelten. Besonders Embedded-Browser auf HMIs können einen
+     * WebGL-Kontext anbieten, ohne die Anforderungen der 3D-Szene zu
+     * erfüllen.
+     */
     webglSupported = Boolean(
-      canvas.getContext("webgl2") ?? canvas.getContext("webgl"),
+      canvas.getContext("webgl2"),
     );
   } catch {
     webglSupported = false;
   }
+
   return webglSupported;
 }
+
+class VehicleSceneBoundary extends Component<
+  {
+    children: ReactNode;
+    fallback: ReactNode;
+  },
+  {
+    failed: boolean;
+  }
+> {
+  state = {
+    failed: false,
+  };
+
+  static getDerivedStateFromError() {
+    return {
+      failed: true,
+    };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.warn(
+      "Kehler OS · 3D-Ansicht nicht verfügbar, verwende 2D-Fallback",
+      error,
+    );
+  }
+
+  render() {
+    if (this.state.failed) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
+
 
 export function VehicleDisplay({ state }: { state: VehicleState }) {
   const label = useMemo(() => describeForScreenReader(state), [state]);
 
-  if (!hasWebGL()) return <VehicleView state={state} />;
+  /*
+   * Eingebettete HMI-Browser können WebGL 2 melden, obwohl der
+   * Three.js-Renderer dort nicht zuverlässig funktioniert.
+   *
+   * Mit ?hmi=1 wird die 3D-Komponente deshalb gar nicht erst geladen.
+   * Alle normalen Browser behalten weiterhin die 3D-Ansicht.
+   */
+  const hmiMode = /(?:^|[?&])hmi=1(?:&|$)/.test(
+    window.location.search,
+  );
+
+  if (hmiMode || !hasWebGL()) {
+    return <VehicleView state={state} />;
+  }
 
   return (
-    <Suspense fallback={<VehicleView state={state} />}>
-      <VehicleScene
+    <VehicleSceneBoundary
+      fallback={<VehicleView state={state} />}
+    >
+      <Suspense fallback={<VehicleView state={state} />}>
+        <VehicleScene
           state={state}
           label={label}
           onModelReport={(report) => {
@@ -66,7 +136,8 @@ export function VehicleDisplay({ state }: { state: VehicleState }) {
             );
           }}
         />
-    </Suspense>
+      </Suspense>
+    </VehicleSceneBoundary>
   );
 }
 

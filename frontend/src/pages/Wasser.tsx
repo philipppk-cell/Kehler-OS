@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button, Card, StaleMark, Status } from "../design/primitives";
+import { confirmInApp } from "../design/confirm";
 import { IconValve } from "../design/icons";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { useAppState, useEntity } from "../realtime/hooks";
@@ -432,12 +433,16 @@ function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
     }, VALVE_HOLD_ARM_MS);
   }
 
-  function drive(verb: string) {
+  async function drive(verb: string) {
     disarmHold();
 
     if (
       brauchtBestaetigung(aktor.entity, verb) &&
-      !window.confirm(t("water.confirmDrain", undefined, { name: aktor.name }))
+      !(await confirmInApp(
+        t("water.confirmDrain", undefined, {
+          name: aktor.name,
+        }),
+      ))
     ) {
       return;
     }
@@ -492,9 +497,11 @@ function ValveRow({ valveId, online }: { valveId: string; online: boolean }) {
     if (!armedRef.current) {
       if (
         brauchtBestaetigung(aktor.entity, "open") &&
-        !window.confirm(
-          t("water.confirmDrain", undefined, { name: aktor.name }),
-        )
+        !(await confirmInApp(
+          t("water.confirmDrain", undefined, {
+            name: aktor.name,
+          }),
+        ))
       ) {
         return;
       }
@@ -725,15 +732,15 @@ function NoteCard() {
         capability.verb === "trigger",
     ) ?? false;
 
-  function restartSensors() {
+  async function restartSensors() {
     if (
       brauchtBestaetigung(
         sensorRestart,
         "trigger",
       ) &&
-      !window.confirm(
+      !(await confirmInApp(
         t("diag.sensorRestartConfirm"),
-      )
+      ))
     ) {
       return;
     }

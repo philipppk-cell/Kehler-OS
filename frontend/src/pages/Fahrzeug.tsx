@@ -33,6 +33,7 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button, Card, Status } from "../design/primitives";
+import { confirmInApp } from "../design/confirm";
 import { IconAwning, IconDoor, IconGarage, IconStep } from "../design/icons";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { useAppState } from "../realtime/hooks";
@@ -109,17 +110,22 @@ function PartRow({
   const aktor = useAktor(entityId);
   const faehrt = aktor.zustand !== null && MOVING.includes(aktor.zustand);
 
-  function drive(verb: string) {
+  async function drive(verb: string) {
     // Ob eine Bestätigung nötig ist, steht in der Capability und nicht hier.
     // Die Oberfläche liest die Einstufung, sie erfindet sie nicht
     // (Kapitel 15 §21).
     if (
       brauchtBestaetigung(aktor.entity, verb) &&
-      !window.confirm(t("vehicle.confirmMove", undefined, { name: aktor.name }))
+      !(await confirmInApp(
+        t("vehicle.confirmMove", undefined, {
+          name: aktor.name,
+        }),
+      ))
     ) {
       return;
     }
-    sendCommand(entityId, verb);
+
+    void sendCommand(entityId, verb);
   }
 
   return (
@@ -385,17 +391,19 @@ function LockRow({
 }) {
   const aktor = useAktor(entityId);
 
-  function schalten(verb: string) {
+  async function schalten(verb: string) {
     if (
       brauchtBestaetigung(aktor.entity, verb) &&
-      !window.confirm(
-        t("vehicle.confirmMove", undefined, { name: aktor.name }),
-      )
+      !(await confirmInApp(
+        t("vehicle.confirmMove", undefined, {
+          name: aktor.name,
+        }),
+      ))
     ) {
       return;
     }
 
-    sendCommand(entityId, verb);
+    void sendCommand(entityId, verb);
   }
 
   return (

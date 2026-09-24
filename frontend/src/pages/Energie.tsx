@@ -15,6 +15,7 @@
  */
 
 import { Card, Row, StaleMark, Status, type Tone } from "../design/primitives";
+import { confirmInApp } from "../design/confirm";
 import { Stepper } from "../design/stepper";
 import { IconPlug, IconSolar } from "../design/icons";
 import { useAppState, useEntity } from "../realtime/hooks";
@@ -344,19 +345,27 @@ function MultiPlusCard({ online }: { online: boolean }) {
 
   const operationValue = stateString(operation, online);
 
-  function choose(next: string) {
+  async function choose(next: string) {
     if (!online || !canSet || next === actual) return;
 
     if (spec?.needs_confirmation) {
-      const label = t(`energy.inverterMode.${next}`, next);
-      const ok = window.confirm(
-        t("energy.inverterModeConfirm", undefined, { mode: label }),
+      const label = t(
+        `energy.inverterMode.${next}`,
+        next,
+      );
+
+      const ok = await confirmInApp(
+        t(
+          "energy.inverterModeConfirm",
+          undefined,
+          { mode: label },
+        ),
       );
 
       if (!ok) return;
     }
 
-    sendCommand(
+    void sendCommand(
       "energy.inverter.state",
       "set_state",
       { state: next },

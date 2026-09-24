@@ -18,6 +18,7 @@
  */
 
 import { Button, Card } from "../design/primitives";
+import { confirmInApp } from "../design/confirm";
 import { IconCabinet } from "../design/icons";
 import { Stellung, brauchtBestaetigung, useAktor } from "../control/actuator";
 import { sendCommand } from "../api/client";
@@ -61,14 +62,19 @@ export function Schraenke() {
 function GruppenZeile({ entityId, online }: { entityId: string; online: boolean }) {
   const aktor = useAktor(entityId);
 
-  function schalten(verb: string) {
+  async function schalten(verb: string) {
     if (
       brauchtBestaetigung(aktor.entity, verb) &&
-      !window.confirm(t("cabinet.confirm", undefined, { name: aktor.name }))
+      !(await confirmInApp(
+        t("cabinet.confirm", undefined, {
+          name: aktor.name,
+        }),
+      ))
     ) {
       return;
     }
-    sendCommand(entityId, verb);
+
+    void sendCommand(entityId, verb);
   }
 
   return (

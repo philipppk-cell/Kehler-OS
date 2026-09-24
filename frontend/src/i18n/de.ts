@@ -7,6 +7,11 @@
  */
 
 const de: Record<string, string> = {
+  // Bestätigungsdialog
+  "confirm.title": "Bestätigung erforderlich",
+  "confirm.cancel": "Abbrechen",
+  "confirm.accept": "Bestätigen",
+
   // Zustände
   "state.unknown": "Unbekannt",
   "state.unknownHint": "Der tatsächliche Zustand ist derzeit nicht bekannt",

@@ -11,6 +11,7 @@ import { Diagnose } from "./pages/Diagnose";
 import { Einstellungen } from "./pages/Einstellungen";
 import { Placeholder } from "./pages/Placeholder";
 import { BootScreen } from "./boot/BootScreen";
+import { ConfirmationHost } from "./design/confirm";
 import { RealtimeClient, realtimeUrl } from "./realtime/client";
 import { fetchSystem } from "./api/client";
 import { useAppState } from "./realtime/hooks";
@@ -37,6 +38,8 @@ export function App() {
 
   return (
     <>
+      <ConfirmationHost />
+
       {/* Liegt über allem und entscheidet selbst, wann es geht: sobald der
           erste Zustand da ist — oder sofort, wenn die Verbindung scheitert,
           damit das Banner dahinter sichtbar wird. */}
